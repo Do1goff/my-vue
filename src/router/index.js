@@ -10,7 +10,12 @@ const routes = [
     name: 'home',
     component: HomeView
   },
+  {
+    path: '/abits',
+    name: 'abits',
 
+    component: () => import( '../views/AbitView.vue')
+}
 ]
 
 const router = new VueRouter({
