@@ -21,7 +21,7 @@ export default {
                 firstName:this.firstName,
                 lastName:this.lastName
             }
-            this.$emit("addAbit",abit)
+            this.$store.dispatch('addAbit',abit)
     }
 }
 }

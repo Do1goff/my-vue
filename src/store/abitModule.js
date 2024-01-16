@@ -12,22 +12,26 @@ export default{
                 lastName:"sssss"
             }
         ],
-
+        isTrue:true,
+        count:0
     },
     mutations:{
-        newAbit:(state, abit) => state.abits.unshift(abit),
-        setAbits:(state,abits) => state.abits = abits,
+        newAbit:(state, abit) => state.abits.push(abit),
+        update:(state) => state.isTrue = !state.isTrue,
+        PLUS:(state)=>state.count++
     },
     getters:{
         allAbits: state =>state.abits,
+        ISTRUE:state =>state.isTrue,
+        COUNT: state => state.count
         
     },
     actions:{
          addAbit({commit}, abit){
-            commit('newAbits',abit)
+            commit('newAbit',abit)
          },
-         fetchAbits({commit}){
-            commit('setAbits',state.abits)
+        updIsTrue({commit}){
+            commit('update')
         }
     },
 }
