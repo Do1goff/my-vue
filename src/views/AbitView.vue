@@ -7,11 +7,6 @@
             :abit="abit"
             />
         </v-row>
-        <h1>{{ $store.getters.ISTRUE }}</h1>
-        <v-btn @click="upd">изменить</v-btn>
-        <h2>{{ $store.getters.COUNT }}</h2>
-        <v-btn @click="plus">изменить</v-btn>
-
     </v-container>
 </template>
 
@@ -26,13 +21,11 @@ export default {
         lastName:''
     }),
     components:{ AbitForm, Abit},
+    mounted(){
+        this.$store.dispatch('fetchAbits')
+    },
     methods:{
-        upd(){
-            this.$store.dispatch('updIsTrue')
-        },
-        plus(){
-            this.$store.commit('PLUS')
-        },
+
 }
 }
 </script>

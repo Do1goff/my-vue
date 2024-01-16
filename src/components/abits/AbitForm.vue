@@ -1,8 +1,8 @@
 <template>
     <v-container>
         <v-row class="'d-flex'">
-            <v-text-field v-model="firstName"/>
-            <v-text-field v-model="lastName"/>
+            <v-text-field v-model="firstName" placeholder="Имя"/>
+            <v-text-field v-model="lastName" placeholder="Фамилия"/>
             <v-btn @click="addAbit">Добавить</v-btn>
         </v-row>
     </v-container>

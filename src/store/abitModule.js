@@ -1,37 +1,28 @@
+import axios from "axios"
+
+
 export default{
     state:{
-        abits:[
-            {
-                id:1,
-                firstName:'first',
-                lastName:'aaaaa'
-            }, 
-            {
-                id:2,
-                firstName:"second",
-                lastName:"sssss"
-            }
-        ],
-        isTrue:true,
-        count:0
+        abits:[],
+
     },
     mutations:{
         newAbit:(state, abit) => state.abits.push(abit),
-        update:(state) => state.isTrue = !state.isTrue,
-        PLUS:(state)=>state.count++
+        setAbits:(state, payload)=>state.abits=payload
     },
     getters:{
         allAbits: state =>state.abits,
-        ISTRUE:state =>state.isTrue,
-        COUNT: state => state.count
-        
     },
     actions:{
          addAbit({commit}, abit){
             commit('newAbit',abit)
          },
-        updIsTrue({commit}){
-            commit('update')
+        async fetchAbits(context){
+            await axios.get('http://localhost:4000/abits')
+            .then(responce => context.commit('setAbits',responce.data))
+            .catch(function (error){
+                console.log(error)
+            })
         }
     },
 }
