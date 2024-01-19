@@ -19,9 +19,9 @@ export default {
             let abit ={
                 id: Date.now(),
                 firstName:this.firstName,
-                lastName:this.lastName
+                lastName:this.lastName,
             }
-            this.$store.dispatch('addAbit',abit)
+            this.$store.dispatch('createAbit',abit)
     }
 }
 }
