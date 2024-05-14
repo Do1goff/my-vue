@@ -4,7 +4,7 @@ import { VueMaskDirective } from 'v-mask'
 import Vue from 'vue'
 import VueMoment from 'vue-moment'
 import App from './App.vue'
-import axios from './axios'
+import './axios'
 import vuetify from './plugins/vuetify'
 import router from './router'
 import store from './store'
@@ -16,6 +16,5 @@ new Vue({
   router,
   store,
   vuetify,
-  axios,
   render: (h) => h(App),
 }).$mount('#app')

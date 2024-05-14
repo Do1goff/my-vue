@@ -1,464 +1,1053 @@
 <template>
-  <v-row no-gutters>
-    <v-col cols="6">
-      <v-card>
-        <v-card-text>
-          <v-row>
-            <v-col cols="4">
-              <v-text-field
-                dense
-                :value="abit.id"
-                label="№ п/п"
-              />
-            </v-col>
-            <v-col cols="4">
-              <v-text-field
-                dense
-                :value="abit.personal_file_reg"
-                label="р/н"
-              />
-            </v-col>
-            <v-col cols="4">
-              <v-menu
-                v-model="menu1"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
-              >
-                <template #activator="{ on, attrs }">
+  <v-card>
+    <v-row no-gutters>
+      <v-col cols="6">
+        <v-card>
+          <v-card-text>
+            <v-row>
+              <v-col cols="4">
+                <v-text-field
+                  dense
+                  :value="data.id"
+                  label="№ п/п"
+                  readonly
+                />
+              </v-col>
+              <v-col cols="4">
+                <v-badge
+                  color="green"
+                  :value="abit.personal_file_reg !== data.personal_file_reg"
+                  dot
+                >
                   <v-text-field
+                    v-model="data.personal_file_reg"
                     dense
-                    :value="formatDate(dateCreateAt)"
-                    label="Дата"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
+                    label="р/н"
+                    @input="send('personal_file_reg', $event)"
                   />
-                </template>
-                <v-date-picker @input="changeDate('createAt', $event)" />
-              </v-menu>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-text>
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                required
-                :value="abit.personal_file_number"
-                :rules="[rules.required]"
-                label="№ личного дела"
-                @input="updateData('personal_file_number', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.lastName"
-                label="Фамилия"
-                @input="updateData('lastName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.firstName"
-                label="Имя"
-                @input="updateData('firstName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.surName"
-                label="Отчество"
-                @input="updateData('surName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-menu
-                v-model="menu2"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
-              >
-                <template #activator="{ on, attrs }">
+                </v-badge>
+              </v-col>
+              <v-col cols="4">
+                <v-menu
+                  v-model="menuPersonal_file_date_reg"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template #activator="{ on, attrs }">
+                    <v-badge
+                      color="green"
+                      :value="
+                        abit.personal_file_date_reg !==
+                        data.personal_file_date_reg
+                      "
+                      dot
+                    >
+                      <v-text-field
+                        dense
+                        :value="formatDate(data.personal_file_date_reg)"
+                        label="Дата"
+                        prepend-icon="mdi-calendar"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                      />
+                    </v-badge>
+                  </template>
+                  <v-date-picker @input="changeDatePersonal_file_date_reg" />
+                </v-menu>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-title>Абитуриент</v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="4">
+                <v-badge
+                  color="green"
+                  :value="abit.lastName !== data.lastName"
+                  dot
+                >
                   <v-text-field
+                    v-model="data.lastName"
                     dense
-                    :value="formatDate(abit.birthday)"
-                    label="Дата рождения"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
+                    label="Фамилия"
+                    @input="send('lastName', $event)"
                   />
-                </template>
-                <v-date-picker @input="changeDate('birthday', $event)" />
-              </v-menu>
-            </v-col>
-            <v-col cols="6">
-              <v-select
-                dense
-                :value="abit.personal_file_existence"
-                :items="personal_file_existence"
-                item-text="title"
-                item-value="value"
-                label="Наличие личного дела"
-                @input="updateData('personal_file_existence', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-text>
-          <v-row>
-            <v-col cols="6">
-              <v-autocomplete
-                dense
-                :value="abit.nationality"
-                :items="nationality"
-                item-text="name"
-                item-value="id"
-                label="Национальность"
-                @input="updateData('nationality', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-select
-                dense
-                :value="abit.gender"
-                :items="genders"
-                item-text="title"
-                item-value="value"
-                label="пол"
-                @input="updateData('gender', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-select
-                dense
-                :value="abit.family_status"
-                :items="family_status"
-                item-text="title"
-                item-value="value"
-                label="семейное положение"
-                @input="updateData('family_status', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.abit_childrens"
-                label="количество детей"
-                type="number"
-                @input="updateDataInt('abit_childrens', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-textarea
-                rows="1"
-                dense
-                :value="abit.residence"
-                label="Место жительства"
-                @input="updateData('residence', $event)"
-              />
-            </v-col>
-            <v-col cols-="6">
-              <v-text-field
-                dense
-                :value="abit.secondCitizenship"
-                label="Второе гражданство"
-                @input="updateData('secondCitizenship', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-title> Семья </v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.family_social_status"
-                label="Происхождение"
-                @input="updateData('family_social_status', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.family_childrens"
-                type="number"
-                label="Количество детей в семье"
-                @input="updateDataInt('family_childrens', $event)"
-              />
-            </v-col>
-            <v-col cols="12">
-              <v-textarea
-                rows="1"
-                dense
-                :value="abit.family_address"
-                label="Место жительства родителей"
-                @input="updateData('family_address', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-text>
-          <v-autocomplete
-            dense
-            :value="abit.cossack_society"
-            :items="cossack_society"
-            item-text="name"
-            label="Казачье общество"
-            @input="updateData('cossack_society', $event)"
-          />
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-text>
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.telephone"
-                label="телефон"
-                type="tel"
-                @input="updateData('telephone', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="abit.telephone2"
-                label="2 телефон"
-                @input="updateData('telephone2', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-title> Мать </v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="motherJSON.lastName"
-                label="Фамилия"
-                @input="updateMother('lastName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="motherJSON.firstName"
-                label="Имя"
-                @input="updateMother('firstName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="motherJSON.surName"
-                label="Отчество"
-                @input="updateMother('surName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-menu
-                v-model="menu3"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
-              >
-                <template #activator="{ on, attrs }">
+                </v-badge>
+              </v-col>
+              <v-col cols="4">
+                <v-badge
+                  color="green"
+                  :value="abit.firstName !== data.firstName"
+                  dot
+                >
                   <v-text-field
+                    v-model="data.firstName"
                     dense
-                    :value="formatDate(motherJSON.birthday)"
-                    label="Дата рождения"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
+                    label="Имя"
+                    @input="send('firstName', $event)"
                   />
-                </template>
-                <v-date-picker @input="changeDateMother('birthday', $event)" />
-              </v-menu>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="motherJSON.status"
-                label="Статус"
-                @input="updateMother('status', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-checkbox
-                dense
-                :value="abit.mother_fail"
-                label="Утеря матери"
-                @click="data.mother_fail = !abit.mother_fail"
-                @input="updateData('mother_fail', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-title> Отец </v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="fatherJSON.lastName"
-                label="Фамилия"
-                @input="updateFather('lastName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="fatherJSON.firstName"
-                label="Имя"
-                @input="updateFather('firstName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="fatherJSON.surName"
-                label="Отчество"
-                @input="updateFather('surName', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-menu
-                v-model="menu4"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
-              >
-                <template #activator="{ on, attrs }">
+                </v-badge>
+              </v-col>
+              <v-col cols="4">
+                <v-badge
+                  color="green"
+                  :value="abit.surName !== data.surName"
+                  dot
+                >
                   <v-text-field
+                    v-model="data.surName"
                     dense
-                    :value="formatDate(fatherJSON.birthday)"
-                    label="Дата рождения"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
+                    label="Отчество"
+                    @input="send('surName', $event)"
                   />
-                </template>
-                <v-date-picker @input="changeDateFather('birthday', $event)" />
-              </v-menu>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                dense
-                :value="fatherJSON.status"
-                label="Статус"
-                @input="updateFather('status', $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-checkbox
-                dense
-                :value="abit.father_fail"
-                label="Утеря отца"
-                @click="data.father_fail = !abit.father_fail"
-                @input="updateData('father_fail', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
+                </v-badge>
+              </v-col>
+              <v-col cols="4">
+                <v-badge
+                  color="green"
+                  :value="
+                    abit.personal_file_number !== data.personal_file_number
+                  "
+                  dot
+                >
+                  <v-text-field
+                    v-model="data.personal_file_number"
+                    col
+                    dense
+                    required
+                    readonly
+                    :rules="[rules.required]"
+                    label="№ личного дела"
+                    @input="send('personal_file_number', $event)"
+                  />
+                </v-badge>
+              </v-col>
 
-      <v-card>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-autocomplete
-                dense
-                :value="abit.specialty_military_commissariat"
-                :items="specialty"
-                item-text="name"
-                item-value="id"
-                label="Желаемая специальность"
-                @input="updateData('specialty_military_commissariat', $event)"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card>
-        <v-card-text>
-          <v-textarea
-            dense
-            :value="abit.note"
-            label="Примечания"
-            rows="1"
-            @input="updateData('note', $event)"
-          />
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-btn
-      color="blue darken-1"
-      text
-      @click="save"
-    >
-      Сохранить
-    </v-btn>
-  </v-row>
+              <v-col cols="4">
+                <v-menu
+                  v-model="menuBirthday"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template #activator="{ on, attrs }">
+                    <v-badge
+                      color="green"
+                      :value="abit.birthday !== data.birthday"
+                      dot
+                    >
+                      <v-text-field
+                        dense
+                        :value="formatDate(data.birthday)"
+                        label="Дата рождения"
+                        prepend-icon="mdi-calendar"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                      />
+                    </v-badge>
+                  </template>
+                  <v-date-picker @input="changeDateBirthday" />
+                </v-menu>
+              </v-col>
+              <v-col cols="4">
+                <v-badge
+                  color="green"
+                  :value="
+                    abit.personal_file_existence !==
+                    data.personal_file_existence
+                  "
+                  dot
+                >
+                  <v-select
+                    v-model="data.personal_file_existence"
+                    dense
+                    :items="personal_file_existence"
+                    item-text="title"
+                    item-value="value"
+                    label="Наличие личного дела"
+                    @input="send('personal_file_existence', $event)"
+                  />
+                </v-badge>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-text>
+            <v-row>
+              <v-col cols="3">
+                <v-badge
+                  color="green"
+                  :value="
+                    (Object.assign({}, abit.nationality).id !==
+                      data.nationality &&
+                      Object.assign({}, abit.nationality).id !==
+                        Object.assign({}, data.nationality).id) ||
+                    (abit.nationality === null && data.nationality)
+                  "
+                  dot
+                >
+                  <v-autocomplete
+                    v-model="data.nationality"
+                    dense
+                    :items="nationality"
+                    item-text="name"
+                    item-value="id"
+                    label="Национальность"
+                    @input="send('nationality', $event)"
+                  />
+                </v-badge>
+              </v-col>
+              <v-col cols="3">
+                <v-badge
+                  color="green"
+                  :value="abit.gender !== data.gender"
+                  dot
+                >
+                  <v-select
+                    v-model="data.gender"
+                    dense
+                    :items="genders"
+                    item-text="title"
+                    item-value="value"
+                    label="пол"
+                    @input="send('gender', $event)"
+                  />
+                </v-badge>
+              </v-col>
+              <v-col cols="3">
+                <v-badge
+                  color="green"
+                  :value="abit.family_status !== data.family_status"
+                  dot
+                >
+                  <v-select
+                    v-model="data.family_status"
+                    dense
+                    :items="family_status"
+                    item-text="title"
+                    item-value="value"
+                    label="семейное положение"
+                    @input="send('family_status', $event)"
+                  />
+                </v-badge>
+              </v-col>
+              <v-col cols="3">
+                <v-badge
+                  color="green"
+                  :value="
+                    String(abit.abit_childrens) !== String(data.abit_childrens)
+                  "
+                  dot
+                >
+                  <v-text-field
+                    v-model="data.abit_childrens"
+                    dense
+                    min="0"
+                    max="10"
+                    label="Дети"
+                    type="number"
+                    @input="send('abit_childrens', parseInt($event, 10))"
+                  />
+                </v-badge>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-text>
+            <v-row>
+              <v-col cols="8">
+                <v-badge
+                  color="green"
+                  :value="abit.residence !== data.residence"
+                  dot
+                >
+                  <v-autocomplete
+                    v-model="data.residence"
+                    :items="addresses"
+                    item-text="name"
+                    item-value="name"
+                    dense
+                    label="Место жительства"
+                    @input="send('residence', $event)"
+                  >
+                    <template v-slot:no-data>
+                      <v-menu
+                        v-model="menuAddress"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="500"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            color="primary"
+                            dark
+                            class="mb-2"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            Добавить
+                          </v-btn>
+                        </template>
+                        <v-card>
+                          <v-card>
+                            <v-card-title>
+                              <span class="text-h5">Добавить</span>
+                            </v-card-title>
+
+                            <v-card-text>
+                              <v-container>
+                                <v-row>
+                                  <v-col cols="12">
+                                    <v-text-field
+                                      v-model="address.name"
+                                      dense
+                                      label="Адрес"
+                                    />
+                                  </v-col>
+                                </v-row>
+                              </v-container>
+                            </v-card-text>
+                          </v-card>
+
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              color="blue darken-1"
+                              text
+                              dense
+                              @click="saveAddress"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-menu>
+                    </template>
+                  </v-autocomplete>
+                </v-badge>
+              </v-col>
+              <v-col cols-="4">
+                <v-badge
+                  color="green"
+                  :value="abit.secondCitizenship !== data.secondCitizenship"
+                  dot
+                >
+                  <v-select
+                    v-model="data.secondCitizenship"
+                    dense
+                    :items="secondCitizenship"
+                    item-text="title"
+                    item-value="value"
+                    label="Второе гражданство"
+                    @input="send('secondCitizenship', $event)"
+                  />
+                </v-badge>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-title>
+            Военный комиссариат
+            <v-spacer />
+            <v-dialog
+              v-model="dialogMilitaryCommissariat"
+              max-width="1200px"
+            >
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  dark
+                  class="mb-2"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  Добавить
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card>
+                  <v-card-title>
+                    <span class="text-h5">Добавить</span>
+                  </v-card-title>
+
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <v-col cols="6">
+                          <v-select
+                            v-model="militaryCommissariat.district"
+                            :items="districts"
+                            item-text="title"
+                            item-value="value"
+                            label="Округ"
+                          />
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field
+                            v-model="militaryCommissariat.name"
+                            label="Военкомат"
+                          />
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field
+                            v-model="militaryCommissariat.telephone"
+                            label="телефон"
+                          />
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field
+                            v-model="militaryCommissariat.director"
+                            label="Начальник"
+                          />
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field
+                            v-model="militaryCommissariat.address"
+                            label="Адрес"
+                          />
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field
+                            v-model="militaryCommissariat.email"
+                            label="email"
+                          />
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                </v-card>
+
+                <v-card-actions>
+                  <v-spacer />
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="saveMilitaryCommissariat"
+                  >
+                    Сохранить
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12">
+                <v-badge
+                  color="green"
+                  :value="
+                    (Object.assign({}, abit.militaryCommissariat).id !==
+                      data.militaryCommissariat &&
+                      Object.assign({}, abit.militaryCommissariat).id !==
+                        Object.assign({}, data.militaryCommissariat).id) ||
+                    (abit.militaryCommissariat === null &&
+                      data.militaryCommissariat)
+                  "
+                  dot
+                >
+                  <v-autocomplete
+                    v-model="data.militaryCommissariat"
+                    dense
+                    :items="militaryCommissariats"
+                    item-text="name"
+                    item-value="id"
+                    label="Военный комиссариат"
+                    @input="sendMC('militaryCommissariat', $event)"
+                  />
+                </v-badge>
+              </v-col>
+              <v-col cols="3">
+                <v-text-field
+                  :value="MC.district"
+                  label="Округ"
+                  dense
+                  readonly
+                />
+              </v-col>
+              <v-col cols="9">
+                <v-text-field
+                  :value="MC.address"
+                  label="Адрес"
+                  dense
+                  readonly
+                />
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  :value="MC.telephone"
+                  label="Телефон"
+                  dense
+                  readonly
+                />
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  :value="MC.director"
+                  label="Начальник"
+                  dense
+                  readonly
+                />
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  :value="MC.email"
+                  label="Email"
+                  dense
+                  readonly
+                />
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
+        <v-card>
+          <v-card-text>
+            <v-row>
+              <v-col>
+                <v-data-table
+                  :headers="headers"
+                  :items="telephones"
+                  height="70px"
+                  dense
+                  disable-pagination
+                  hide-default-footer
+                >
+                  <template #top>
+                    <v-toolbar
+                      flat
+                      dense
+                    >
+                      <v-toolbar-title> Телефоны </v-toolbar-title>
+                      <v-spacer />
+                      <v-dialog
+                        v-model="dialogTelNote"
+                        max-width="500px"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            color="primary"
+                            dark
+                            class="mb-2"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            Добавить
+                          </v-btn>
+                        </template>
+                        <v-card>
+                          <v-card-title> Добавить </v-card-title>
+                          <v-card-text>
+                            <v-container>
+                              <v-row>
+                                <v-col cols="6">
+                                  <v-text-field
+                                    v-model="telephone.number"
+                                    v-mask="'+7 (###) ###-##-##'"
+                                    label="Телефон"
+                                  />
+                                </v-col>
+                                <v-col cols="6">
+                                  <v-text-field
+                                    v-model="telephone.note"
+                                    label="Примечание"
+                                  />
+                                </v-col>
+                              </v-row>
+                            </v-container>
+                          </v-card-text>
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              text
+                              @click="saveTelephone"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                    </v-toolbar>
+                  </template>
+                  <template #item.actions="{ item }">
+                    <v-icon
+                      small
+                      @click="editTelephone(item)"
+                    >
+                      mdi-pencil
+                    </v-icon>
+                  </template>
+                </v-data-table>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-title>Семья</v-card-title>
+          <v-card-text>
+            <v-tabs
+              v-model="tabsFamily"
+              fixed-tabs
+              background-color="indigo"
+              dark
+            >
+              <v-tab
+                v-for="(MEMBER, index) in family"
+                :key="`tab_${index}`"
+                :value="MEMBER"
+              >
+                {{ MEMBER.kinship }}
+              </v-tab>
+              <v-tab>Добавить</v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="tabsFamily">
+              <v-tab-item
+                v-for="(MEMBER, index) in family"
+                :key="index"
+              >
+                <v-card>
+                  <v-row>
+                    <v-col cols="4">
+                      <v-text-field
+                        :value="MEMBER.kinship"
+                        label="Родство"
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        :value="formatDate(MEMBER.birthday)"
+                        label="Дата рождения"
+                        prepend-icon="mdi-calendar"
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="2">
+                      <v-checkbox
+                        v-model="MEMBER.fail"
+                        hint="Гибель"
+                        persistent-hint
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="2">
+                      <v-dialog
+                        v-model="dialogFamily"
+                        max-width="500px"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            text
+                            class="mb-2"
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="editFamily(MEMBER)"
+                          >
+                            <v-icon>mdi-pencil</v-icon>
+                          </v-btn>
+                        </template>
+                        <v-card>
+                          <v-card-title> Изменить </v-card-title>
+                          <v-card-text>
+                            <v-row>
+                              <v-col cols="4">
+                                <v-select
+                                  v-model="member.kinship"
+                                  :items="kinships"
+                                  label="Родство"
+                                />
+                              </v-col>
+                              <v-col cols="4">
+                                <v-menu
+                                  v-model="menuMemberBirthday"
+                                  :close-on-content-click="false"
+                                  :nudge-right="40"
+                                  transition="scale-transition"
+                                  offset-y
+                                  min-width="auto"
+                                >
+                                  <template #activator="{ on, attrs }">
+                                    <v-text-field
+                                      :value="formatDate(member.birthday)"
+                                      label="Дата рождения"
+                                      prepend-icon="mdi-calendar"
+                                      readonly
+                                      v-bind="attrs"
+                                      v-on="on"
+                                    />
+                                  </template>
+                                  <v-date-picker @input="changeDateMember" />
+                                </v-menu>
+                              </v-col>
+                              <v-col cols="2">
+                                <v-checkbox
+                                  v-model="member.fail"
+                                  hint="Гибель"
+                                  persistent-hint
+                                />
+                              </v-col>
+                              <v-col cols="2" />
+                              <v-col cols="4">
+                                <v-text-field
+                                  v-model="member.lastName"
+                                  dense
+                                  label="Фамилия"
+                                />
+                              </v-col>
+                              <v-col cols="4">
+                                <v-text-field
+                                  v-model="member.firstName"
+                                  dense
+                                  label="Имя"
+                                />
+                              </v-col>
+                              <v-col cols="4">
+                                <v-text-field
+                                  v-model="member.surName"
+                                  dense
+                                  label="Отчество"
+                                />
+                              </v-col>
+                              <v-col cols="12">
+                                <v-text-field
+                                  v-model="member.status"
+                                  dense
+                                  label="Статус"
+                                />
+                              </v-col>
+                            </v-row>
+                          </v-card-text>
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              text
+                              @click="saveFamily"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        dense
+                        :value="MEMBER.lastName"
+                        label="Фамилия"
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        dense
+                        :value="MEMBER.firstName"
+                        label="Имя"
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        dense
+                        :value="MEMBER.surName"
+                        label="Отчество"
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field
+                        dense
+                        :value="MEMBER.status"
+                        label="Статус"
+                        readonly
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-tab-item>
+              <v-tab-item>
+                <v-card>
+                  <v-row>
+                    <v-col cols="4">
+                      <v-select
+                        v-model="member.kinship"
+                        :items="kinships"
+                        label="Родство"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-menu
+                        v-model="menuNewMemberBirthday"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="auto"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-text-field
+                            :value="formatDate(member.birthday)"
+                            label="Дата рождения"
+                            prepend-icon="mdi-calendar"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          />
+                        </template>
+                        <v-date-picker @input="changeDateNewMember" />
+                      </v-menu>
+                    </v-col>
+                    <v-col cols="2">
+                      <v-checkbox
+                        v-model="member.fail"
+                        hint="Гибель"
+                        persistent-hint
+                      />
+                    </v-col>
+                    <v-col cols="2">
+                      <v-badge
+                        left
+                        bottom
+                        dot
+                        color="red"
+                        :value="member.kinship !== undefined"
+                      >
+                        <v-btn
+                          text
+                          @click="addMember"
+                        >
+                          <v-icon>mdi-content-save</v-icon>
+                        </v-btn>
+                      </v-badge>
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        v-model="member.lastName"
+                        dense
+                        label="Фамилия"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        v-model="member.firstName"
+                        dense
+                        label="Имя"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        v-model="member.surName"
+                        dense
+                        label="Отчество"
+                      />
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="member.status"
+                        dense
+                        label="Статус"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-text>
+            <v-row>
+              <v-col cols="6">
+                <v-badge
+                  color="green"
+                  :value="
+                    abit.family_social_status !== data.family_social_status
+                  "
+                  dot
+                >
+                  <v-select
+                    v-model="data.family_social_status"
+                    dense
+                    :items="family_social_status"
+                    item-text="title"
+                    item-value="value"
+                    label="Происхождение"
+                    @input="send('family_social_status', $event)"
+                  />
+                </v-badge>
+              </v-col>
+              <v-col cols="6">
+                <v-badge
+                  color="green"
+                  :value="
+                    String(abit.family_childrens) !==
+                    String(data.family_childrens)
+                  "
+                  dot
+                >
+                  <v-text-field
+                    v-model="data.family_childrens"
+                    dense
+                    type="number"
+                    min="0"
+                    label="Количество детей в семье"
+                    @input="send('family_childrens', parseInt($event, 10))"
+                  />
+                </v-badge>
+              </v-col>
+              <v-col cols="12">
+                <v-badge
+                  color="green"
+                  :value="abit.family_address !== data.family_address"
+                  dot
+                >
+                  <v-autocomplete
+                    v-model="data.family_address"
+                    :items="addresses"
+                    item-text="name"
+                    item-value="name"
+                    dense
+                    label="Место жительства родителей"
+                    @input="send('family_address', $event)"
+                  >
+                    <template v-slot:no-data>
+                      <v-menu
+                        v-model="menuAddress"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="500"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            color="primary"
+                            dark
+                            class="mb-2"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            Добавить
+                          </v-btn>
+                        </template>
+                        <v-card>
+                          <v-card>
+                            <v-card-title>
+                              <span class="text-h5">Добавить</span>
+                            </v-card-title>
+
+                            <v-card-text>
+                              <v-container>
+                                <v-row>
+                                  <v-col cols="12">
+                                    <v-text-field
+                                      v-model="address.name"
+                                      dense
+                                      label="Адрес"
+                                    />
+                                  </v-col>
+                                </v-row>
+                              </v-container>
+                            </v-card-text>
+                          </v-card>
+
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              color="blue darken-1"
+                              text
+                              dense
+                              @click="saveAddress"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-menu>
+                    </template>
+                  </v-autocomplete>
+                </v-badge>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12">
+                <v-badge
+                  color="green"
+                  :value="
+                    (Object.assign({}, abit.specialty_military_commissariat)
+                      .id !== data.specialty_military_commissariat &&
+                      Object.assign({}, abit.specialty_military_commissariat)
+                        .id !==
+                        Object.assign({}, data.specialty_military_commissariat)
+                          .id) ||
+                    (abit.specialty_military_commissariat === null &&
+                      data.specialty_military_commissariat)
+                  "
+                  dot
+                >
+                  <v-autocomplete
+                    v-model="data.specialty_military_commissariat"
+                    dense
+                    :items="specialty"
+                    item-text="name"
+                    item-value="id"
+                    label="Желаемая специальность"
+                    @input="send('specialty_military_commissariat', $event)"
+                  />
+                </v-badge>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-card>
 </template>
 
 <script>
 import moment from 'moment'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'FirstInfoComponent',
-  props: ['abit'],
+  props: {
+    abit: {
+      type: Object,
+      default: () => {},
+      required: true,
+    },
+  },
   data() {
     return {
+      tabsFamily: 0,
+      dialogTelNote: false,
       data: {},
+      telephone: {},
+      member: {},
+      differences: {},
       rules: {
         required: (value) => !!value || 'Обязательно.',
       },
-      menu1: false,
-      menu2: false,
-      menu3: false,
-      menu4: false,
-      mother: {},
-      father: {},
+      menuPersonal_file_date_reg: false,
+      menuBirthday: false,
+      menuNewMemberBirthday: false,
+      menuMemberBirthday: false,
       genders: [
         { value: 'men', title: 'Мужской' },
         { value: 'women', title: 'Женский' },
@@ -470,73 +1059,181 @@ export default {
       personal_file_existence: [
         { value: 'print', title: 'бумажное' },
         { value: 'electro', title: 'электронное' },
+        { value: 'print_and_electro', title: 'бумажное и электронное' },
       ],
+      secondCitizenship: [
+        { value: 'present', title: 'имеет' },
+        { value: 'absent', title: 'не имеет' },
+      ],
+      family_social_status: [
+        { value: 'military', title: 'Военнослужащих' },
+        { value: 'civil_servant', title: 'Госслужащих' },
+        { value: 'teacher', title: 'Преподавателей' },
+        { value: 'service', title: 'Работников сферы услуг' },
+        { value: 'trader', title: 'Работников сферы торговли' },
+        { value: 'work', title: 'Рабочих' },
+        { value: 'SERVANT', title: 'Служащих' },
+        { value: 'SCIENCE', title: 'Учёных' },
+      ],
+      kinships: ['Мать', 'Отец'],
+      headers: [
+        { value: 'number', text: 'Номер' },
+        { value: 'note', text: 'Примечание' },
+        { value: 'actions', text: 'Действие' },
+      ],
+      dialogFamily: false,
+      militaryCommissariat: {},
+      dialogMilitaryCommissariat: false,
+      districts: [
+        { value: 'central', title: 'Центральный' },
+        { value: 'west', title: 'Западный' },
+        { value: 'east', title: 'Восточный' },
+        { value: 'south', title: 'Южный' },
+        { value: 'north', title: 'Северный флот' },
+      ],
+      MC: {},
+      address: {},
+      menuAddress: false,
     }
   },
   computed: {
-    nationality() {
-      return this.$store.getters.nationality
+    ...mapGetters([
+      'nationality',
+      'specialty',
+      'cossack_society',
+      'telephones',
+      'family',
+      'militaryCommissariats',
+      'addresses',
+    ]),
+  },
+  watch: {
+    abit() {
+      this.data = { ...this.abit }
     },
-    specialty() {
-      return this.$store.getters.specialty
+    data() {
+      if (this.data.id) {
+        this.fetchTelephones(this.data.id)
+        this.fetchFamily(this.data.id)
+        if (this.data.militaryCommissariat) {
+          this.MC = this.data.militaryCommissariat
+        } else {
+          this.MC = {}
+        }
+      }
     },
-    cossack_society() {
-      return this.$store.getters.cossack_society
-    },
-    motherJSON() {
-      return this.abit.mother ? JSON.parse(this.abit.mother) : this.mother
-    },
-    fatherJSON() {
-      return this.abit.father ? JSON.parse(this.abit.father) : this.father
-    },
-    dateCreateAt() {
-      return this.data.createAt ? this.data.createAt : this.abit.createAt
-    },
+  },
+  mounted() {
+    this.data = { ...this.abit }
   },
   created() {
-    this.$store.dispatch('fetchNationality')
-    this.$store.dispatch('fetchSpecialty')
-    this.$store.dispatch('fetchCossackSociety')
+    this.fetchNationality()
+    this.fetchSpecialty()
+    this.fetchCossackSociety()
+    this.fetchMilitaryCommissariats()
+    this.fetchAddresses()
   },
   methods: {
-    ...mapActions(['selectAbit', 'updateAbit']),
-    updateData(fieldName, event) {
-      this.data[fieldName] = event
-    },
-    updateDataInt(fieldName, event) {
-      this.data[fieldName] = parseInt(event, 10)
-    },
-    save() {
-      this.data.id = this.abit.id
-      this.data.mother = JSON.stringify(this.motherJSON)
-      this.data.father = JSON.stringify(this.fatherJSON)
-      this.updateAbit(this.data)
-    },
-
+    ...mapActions([
+      'fetchNationality',
+      'fetchSpecialty',
+      'fetchCossackSociety',
+      'fetchTelephones',
+      'addTelephones',
+      'putTelephones',
+      'fetchFamily',
+      'addFamily',
+      'putFamily',
+      'addMilitaryCommissariat',
+      'fetchMilitaryCommissariats',
+      'fetchAddresses',
+      'addAddresses',
+    ]),
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
       return moment(date).format('DD-MM-YYYY')
     },
-    changeDate(fieldName, event) {
-      this.data[fieldName] = new Date(event).toISOString()
-      this.menu1 = false
-      this.menu2 = false
+    changeDatePersonal_file_date_reg(event) {
+      this.data.personal_file_date_reg = new Date(event).toISOString()
+      this.menuPersonal_file_date_reg = false
+      this.send('personal_file_date_reg', this.data.personal_file_date_reg)
     },
-    changeDateMother(fieldName, event) {
-      this.motherJSON[fieldName] = new Date(event).toISOString()
-      this.menu3 = false
+    changeDateBirthday(event) {
+      this.data.birthday = new Date(event).toISOString()
+      this.menuBirthday = false
+      this.send('birthday', this.data.birthday)
     },
-    changeDateFather(fieldName, event) {
-      this.fatherJSON[fieldName] = new Date(event).toISOString()
-      this.menu4 = false
+    changeDateNewMember(event) {
+      this.member.birthday = new Date(event).toISOString()
+      this.menuNewMemberBirthday = false
     },
-    updateMother(fieldName, event) {
-      this.motherJSON[fieldName] = event
+    changeDateMember(event) {
+      this.member.birthday = new Date(event).toISOString()
+      this.menuMemberBirthday = false
     },
-    updateFather(fieldName, event) {
-      this.fatherJSON[fieldName] = event
+    send(key, value) {
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
+    },
+    sendMC(key, value) {
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.MC = this.militaryCommissariats[value - 1]
+      this.differences = {}
+    },
+    saveTelephone() {
+      if (!this.telephone.id) {
+        this.telephone.abitId = this.abit.id
+        this.addTelephones(this.telephone)
+        this.telephone.number = ''
+        this.telephone.note = ''
+        this.dialogTelNote = false
+      } else {
+        this.putTelephones(this.telephone)
+        this.dialogTelNote = false
+      }
+    },
+    editTelephone(item) {
+      this.telephone = item
+      this.dialogTelNote = true
+    },
+    saveFamily() {
+      this.putFamily(this.member)
+      this.dialogFamily = false
+      this.member = {}
+    },
+    editFamily(item) {
+      this.member = item
+      this.dialogFamily = true
+    },
+    addMember() {
+      this.member.abitId = this.abit.id
+      this.addFamily(this.member)
+      this.member = {}
+    },
+    saveMilitaryCommissariat() {
+      const newMilitaryCommissariat = Object.assign(
+        {},
+        this.militaryCommissariat
+      )
+      this.addMilitaryCommissariat(newMilitaryCommissariat)
+      this.dialogMilitaryCommissariat = false
+    },
+    saveAddress() {
+      const newAddress = Object.assign({}, this.address)
+      this.addAddresses(newAddress)
+      this.menuAddress = false
+      this.fetchAddresses()
+      this.address = {}
     },
   },
 }
 </script>
+
+<style>
+.v-badge {
+  display: block;
+}
+</style>

@@ -1,222 +1,237 @@
 <template>
-  <v-container>
-    <v-row no-gutters>
-      <v-col cols="6">
-        <v-card>
-          <v-card-title> Военный комиссариат </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12">
+  <v-row no-gutters>
+    <v-col cols="6">
+      <v-card>
+        <v-card-title> Военный комиссариат </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="8">
+              <v-badge
+                color="green"
+                :value="data.militaryCommissariat !== abit.militaryCommissariat"
+                dot
+              >
                 <v-autocomplete
-                  :value="abit.militaryCommissariat"
+                  v-model="data.militaryCommissariat"
+                  dense
                   :items="militaryCommissariats"
                   item-text="name"
+                  item-value="id"
                   label="Военный комиссариат"
-                  @input="updateData('militaryCommissariat', $event)"
+                  @input="send('militaryCommissariat', $event)"
                 />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-actions>
-            <v-dialog
-              v-model="dialogMilitaryCommissariat"
-              max-width="1200px"
-            >
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  dark
-                  class="mb-2"
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  Добавить
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card>
-                  <v-card-title>
-                    <span class="text-h5">Добавить</span>
-                  </v-card-title>
-
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-select
-                            :value="militaryCommissariat.district"
-                            :items="districts"
-                            item-text="title"
-                            item-value="value"
-                            label="Округ"
-                            @input="
-                              updateMilitaryCommissariat('district', $event)
-                            "
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="militaryCommissariat.name"
-                            label="Военкомат"
-                            @input="updateMilitaryCommissariat('name', $event)"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="militaryCommissariat.telephone"
-                            label="телефон"
-                            @input="
-                              updateMilitaryCommissariat('telephone', $event)
-                            "
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="militaryCommissariat.director"
-                            label="Начальник"
-                            @input="
-                              updateMilitaryCommissariat('director', $event)
-                            "
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="militaryCommissariat.address"
-                            label="Адрес"
-                            @input="
-                              updateMilitaryCommissariat('address', $event)
-                            "
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="militaryCommissariat.email"
-                            label="email"
-                            @input="updateMilitaryCommissariat('email', $event)"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                </v-card>
-
-                <v-card-actions>
-                  <v-spacer />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-dialog
+                v-model="dialogMilitaryCommissariat"
+                max-width="1200px"
+              >
+                <template #activator="{ on, attrs }">
                   <v-btn
-                    color="blue darken-1"
-                    text
-                    @click="saveMilitaryCommissariat"
+                    color="primary"
+                    dark
+                    class="mb-2"
+                    v-bind="attrs"
+                    v-on="on"
                   >
-                    Сохранить
+                    Добавить
                   </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-card-actions>
-        </v-card>
-        <v-card>
-          <v-card-text>
-            <v-row>
-              <v-col cols="6">
-                <v-text-field
-                  :value="abit.personal_number"
-                  label="Личный номер"
-                  @input="updateData('personal_number', $event)"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-checkbox
-                  :value="abit.personal_number_giving"
-                  label="Выдача личного номера"
-                  @click="
-                    data.personal_number_giving = !abit.personal_number_giving
-                  "
-                  @input="updateData('personal_number_giving', $event)"
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="6">
-        <v-card>
-          <v-card-title> Военная служба </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="6">
-                <v-text-field
-                  :value="militaryServiceJSON.rank"
-                  label="Воинское звание"
-                  @input="updateMilitaryService('rank', $event)"
-                />
-              </v-col>
+                </template>
+                <v-card>
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">Добавить</span>
+                    </v-card-title>
 
-              <v-col cols="6">
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="6">
+                            <v-select
+                              v-model="militaryCommissariat.district"
+                              :items="districts"
+                              item-text="title"
+                              item-value="value"
+                              label="Округ"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="militaryCommissariat.name"
+                              label="Военкомат"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="militaryCommissariat.telephone"
+                              label="телефон"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="militaryCommissariat.director"
+                              label="Начальник"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="militaryCommissariat.address"
+                              label="Адрес"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              v-model="militaryCommissariat.email"
+                              label="email"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                  </v-card>
+
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      color="blue darken-1"
+                      text
+                      @click="saveMilitaryCommissariat"
+                    >
+                      Сохранить
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+      <v-card>
+        <v-card-text>
+          <v-row>
+            <v-col cols="6">
+              <v-badge
+                color="green"
+                :value="data.personal_number !== abit.personal_number"
+                dot
+              >
                 <v-text-field
-                  :value="militaryServiceJSON.post"
-                  label="Должность"
-                  @input="updateMilitaryService('post', $event)"
+                  v-model="data.personal_number"
+                  v-mask="'XX-######'"
+                  dense
+                  label="Личный номер"
+                  @input="send('personal_number', $event)"
                 />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  :value="militaryServiceJSON.place"
-                  label="Где служит"
-                  @input="updateMilitaryService('place', $event)"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  :value="militaryServiceJSON.unit"
-                  label="Воинская часть"
-                  @input="updateMilitaryService('unit', $event)"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  :value="militaryServiceJSON.category"
-                  :items="categories"
-                  item-text="title"
-                  item-value="value"
-                  label="Категория"
-                  @input="updateMilitaryService('category', $event)"
-                />
-              </v-col>
-              <v-col cols="6">
+              </v-badge>
+            </v-col>
+            <v-col cols="6">
+              <v-badge
+                color="green"
+                :value="
+                  data.personal_number_giving !== abit.personal_number_giving
+                "
+                dot
+              >
                 <v-checkbox
-                  :value="militaryServiceJSON.dismissed"
-                  label="Уволен?"
-                  @click="
-                    militaryServiceJSON.dismissed =
-                      !militaryServiceJSON.dismissed
-                  "
-                  @input="updateMilitaryService('dismissed', $event)"
+                  v-model="data.personal_number_giving"
+                  dense
+                  label="Выдача личного номера"
+                  @change="send('personal_number_giving', $event)"
                 />
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-btn
-      color="blue darken-1"
-      text
-      @click="save"
-    >
-      Сохранить
-    </v-btn>
-  </v-container>
+              </v-badge>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-col>
+    <v-col cols="6">
+      <v-card>
+        <v-card-title>
+          <v-badge
+            color="green"
+            :value="badgeColorMilitaryService()"
+            dot
+          >
+            Военная служба
+          </v-badge>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="4">
+              <v-select
+                v-model="militaryServiceJSON.rank"
+                :items="ranks"
+                dense
+                label="Воинское звание"
+                @input="sendMilitaryService"
+              />
+            </v-col>
+            <v-col cols="8">
+              <v-text-field
+                v-model="militaryServiceJSON.post"
+                dense
+                label="Должность"
+                @input="sendMilitaryService"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="militaryServiceJSON.place"
+                dense
+                label="Где служит"
+                @input="sendMilitaryService"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="militaryServiceJSON.unit"
+                dense
+                label="Воинская часть"
+                @input="sendMilitaryService"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-select
+                v-model="militaryServiceJSON.category"
+                dense
+                :items="categories"
+                item-text="title"
+                item-value="value"
+                label="Категория"
+                @input="sendMilitaryService"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-checkbox
+                v-model="militaryServiceJSON.dismissed"
+                dense
+                label="Уволен?"
+                @click="sendMilitaryService"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'MilitaryComponent',
-  props: ['abit'],
+  props: {
+    abit: {
+      type: Object,
+      default: () => {},
+      required: true,
+    },
+  },
   data() {
     return {
       data: {},
-      militaryService: {},
+      differences: {},
       militaryCommissariat: {},
       dialogMilitaryCommissariat: false,
       districts: [
@@ -230,37 +245,49 @@ export default {
         { value: 'conscription', title: 'По призыву' },
         { value: 'contract', title: 'Контракт' },
       ],
+      ranks: [
+        'Рядовой',
+        'Ефрейтор',
+        'Младший сержант',
+        'Сержант',
+        'Старший сержант',
+        'Старшина',
+        'Прапорщик',
+        'Старший прапорщик',
+      ],
     }
   },
   computed: {
-    militaryCommissariats() {
-      return this.$store.getters.militaryCommissariats
-    },
+    ...mapGetters(['militaryCommissariats']),
     militaryServiceJSON() {
-      return this.abit.militaryService
-        ? JSON.parse(this.abit.militaryService)
+      return this.data.militaryService
+        ? JSON.parse(this.data.militaryService)
         : {}
     },
   },
+  watch: {
+    abit() {
+      this.data = { ...this.abit }
+    },
+  },
   created() {
-    this.$store.dispatch('fetchMilitaryCommissariats')
+    this.fetchMilitaryCommissariats()
+  },
+  mounted() {
+    this.data = { ...this.abit }
   },
   methods: {
-    ...mapActions(['updateAbit', 'addMilitaryCommissariat']),
-
-    updateData(fieldName, event) {
-      this.data[fieldName] = event
-    },
-    updateMilitaryService(fieldName, event) {
-      this.militaryServiceJSON[fieldName] = event
-    },
-    updateMilitaryCommissariat(fieldName, event) {
-      this.militaryCommissariat[fieldName] = event
-    },
-    save() {
-      this.data.id = this.abit.id
-      this.data.militaryService = JSON.stringify(this.militaryServiceJSON)
-      this.updateAbit(this.data)
+    ...mapActions(['addMilitaryCommissariat', 'fetchMilitaryCommissariats']),
+    badgeColorMilitaryService() {
+      if (
+        (this.abit.militaryService &&
+          this.abit.militaryService !==
+            JSON.stringify(this.militaryServiceJSON)) ||
+        (!this.abit.militaryService &&
+          JSON.stringify(this.militaryServiceJSON) !== '{}')
+      ) {
+        return true
+      } else return false
     },
     saveMilitaryCommissariat() {
       const newMilitaryCommissariat = Object.assign(
@@ -269,6 +296,17 @@ export default {
       )
       this.addMilitaryCommissariat(newMilitaryCommissariat)
       this.dialogMilitaryCommissariat = false
+    },
+    send(key, value) {
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
+    },
+    sendMilitaryService() {
+      this.data.militaryService = JSON.stringify(this.militaryServiceJSON)
+      this.differences.militaryService = this.data.militaryService
+      this.$emit('child-event', this.differences)
+      this.differences = {}
     },
   },
 }

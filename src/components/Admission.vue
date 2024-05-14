@@ -1,265 +1,462 @@
 <template>
-  <v-container>
-    <v-row no-gutters>
-      <v-col cols="6">
-        <v-card>
-          <v-card-title> Комиссия </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12">
-                <v-autocomplete
-                  :value="abit.admission_commission"
-                  :items="commissions"
-                  item-text="name"
-                  label="Комиссия"
-                  @input="updateData('admission_commission', $event)"
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-actions>
-            <v-dialog
-              v-model="dialogCommission"
-              max-width="1200px"
-            >
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  dark
-                  class="mb-2"
+  <v-row no-gutters>
+    <v-col cols="6">
+      <v-card>
+        <v-card-title>Дата регистрации заявления</v-card-title>
+        <v-card-text>
+          <v-menu
+            v-model="menuAdmission"
+            :close-on-content-click="false"
+            :nudge-right="40"
+            transition="scale-transition"
+            offset-y
+            min-width="auto"
+          >
+            <template #activator="{ on, attrs }">
+              <v-badge
+                color="green"
+                :value="data.admission_date !== abit.admission_date"
+                dot
+              >
+                <v-text-field
+                  dense
+                  :value="formatDate(data.admission_date)"
+                  label="Дата"
+                  prepend-icon="mdi-calendar"
+                  readonly
                   v-bind="attrs"
                   v-on="on"
-                >
-                  Добавить
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card>
-                  <v-card-title>
-                    <span class="text-h5">Добавить</span>
-                  </v-card-title>
-
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="commission.name"
-                            label="Комиссия"
-                            @input="updateCommission('name', $event)"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                </v-card>
-
-                <v-card-actions>
-                  <v-spacer />
-                  <v-btn
-                    color="blue darken-1"
-                    text
-                    @click="saveCommission"
-                  >
-                    Сохранить
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-card-actions>
-        </v-card>
-        <v-card>
-          <v-card-text>
-            <v-row>
-              <v-col cols="4">
+                />
+              </v-badge>
+            </template>
+            <v-date-picker @input="changeDateAdmission" />
+          </v-menu>
+        </v-card-text>
+      </v-card>
+      <v-card>
+        <v-card-title> Комиссия </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="8">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.admission_commission).id !==
+                    data.admission_commission &&
+                    Object.assign({}, abit.admission_commission).id !==
+                      Object.assign({}, data.admission_commission).id) ||
+                  (abit.admission_commission === null &&
+                    data.admission_commission)
+                "
+                dot
+              >
                 <v-autocomplete
+                  v-model="data.admission_commission"
+                  :items="commissions"
+                  item-text="name"
+                  item-value="id"
+                  label="Комиссия"
+                  @input="send('admission_commission', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-menu
+                v-model="menuCommission"
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+              >
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    color="primary"
+                    dark
+                    class="mb-2"
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    Добавить
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">Добавить</span>
+                    </v-card-title>
+
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="12">
+                            <v-text-field
+                              v-model="commission.name"
+                              label="Комиссия"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                  </v-card>
+
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      color="blue darken-1"
+                      text
+                      @click="saveCommission"
+                    >
+                      Сохранить
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-menu>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+      <v-card>
+        <v-card-text>
+          <v-row>
+            <v-col cols="4">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.specialty_1).id !==
+                    data.specialty_1 &&
+                    Object.assign({}, abit.specialty_1).id !==
+                      Object.assign({}, data.specialty_1).id) ||
+                  (abit.specialty_1 === null && data.specialty_1)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.specialty_1"
                   dense
-                  :value="abit.specialty_1"
                   :items="specialty"
                   item-text="name"
                   item-value="id"
                   label="1 Специальность"
-                  @input="updateData('specialty_1', $event)"
+                  @input="send('specialty_1', $event)"
                 />
-              </v-col>
-              <v-col cols="4">
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.specialty_2).id !==
+                    data.specialty_2 &&
+                    Object.assign({}, abit.specialty_2).id !==
+                      Object.assign({}, data.specialty_2).id) ||
+                  (abit.specialty_2 === null && data.specialty_2)
+                "
+                dot
+              >
                 <v-autocomplete
+                  v-model="data.specialty_2"
                   dense
-                  :value="abit.specialty_2"
                   :items="specialty"
                   item-text="name"
                   item-value="id"
                   label="2 Специальность"
-                  @input="updateData('specialty_2', $event)"
+                  @input="send('specialty_2', $event)"
                 />
-              </v-col>
-              <v-col cols="4">
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.specialty_3).id !==
+                    data.specialty_3 &&
+                    Object.assign({}, abit.specialty_3).id !==
+                      Object.assign({}, data.specialty_3).id) ||
+                  (abit.specialty_3 === null && data.specialty_3)
+                "
+                dot
+              >
                 <v-autocomplete
+                  v-model="data.specialty_3"
                   dense
-                  :value="abit.specialty_3"
                   :items="specialty"
                   item-text="name"
                   item-value="id"
                   label="3 Специальность"
-                  @input="updateData('specialty_3', $event)"
+                  @input="send('specialty_3', $event)"
                 />
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-        <v-card>
-          <v-card-text>
-            <v-text-field
-              :value="abit.admission_note"
-              label="Примечания"
-              @input="updateData('admission_note', $event)"
-            />
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="6">
-        <v-card>
-          <v-card-title> Экзаменационная группа </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12">
+              </v-badge>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+      <v-card>
+        <v-card-title> Экзаменационная группа </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="8">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.admission_examination_group).id !==
+                    data.admission_examination_group &&
+                    Object.assign({}, abit.admission_examination_group).id !==
+                      Object.assign({}, data.admission_examination_group).id) ||
+                  (abit.admission_examination_group === null &&
+                    data.admission_examination_group)
+                "
+                dot
+              >
                 <v-autocomplete
-                  :value="abit.admission_examination_group"
+                  v-model="data.admission_examination_group"
                   :items="examinationGroups"
                   item-text="name"
+                  item-value="id"
                   label="Экзаменационная группа"
-                  @input="updateData('admission_examination_group', $event)"
+                  @input="send('admission_examination_group', $event)"
                 />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-actions>
-            <v-dialog
-              v-model="dialogExaminationGroup"
-              max-width="1200px"
-            >
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  dark
-                  class="mb-2"
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  Добавить
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card>
-                  <v-card-title>
-                    <span class="text-h5">Добавить</span>
-                  </v-card-title>
-
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="examinationGroup.name"
-                            label="Экзаменационная группа"
-                            @input="updateExaminationGroup('name', $event)"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                </v-card>
-
-                <v-card-actions>
-                  <v-spacer />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-menu
+                v-model="menuExaminationGroup"
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+              >
+                <template #activator="{ on, attrs }">
                   <v-btn
-                    color="blue darken-1"
-                    text
-                    @click="saveExaminationGroup"
+                    color="primary"
+                    dark
+                    class="mb-2"
+                    v-bind="attrs"
+                    v-on="on"
                   >
-                    Сохранить
+                    Добавить
                   </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-card-actions>
-        </v-card>
-        <v-card>
-          <v-card-text>
-            <v-autocomplete
-              :value="abit.admission_source_information"
+                </template>
+                <v-card>
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">Добавить</span>
+                    </v-card-title>
+
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="12">
+                            <v-text-field
+                              v-model="examinationGroup.name"
+                              dense
+                              label="Экзаменационная группа"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                  </v-card>
+
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn
+                      color="blue darken-1"
+                      text
+                      dense
+                      @click="saveExaminationGroup"
+                    >
+                      Сохранить
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-menu>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-col>
+    <v-col cols="6">
+      <v-card>
+        <v-card-title> Наличие документов подлинников </v-card-title>
+        <v-row>
+          <v-col cols="4">
+            <v-badge
+              color="green"
+              :value="
+                data.document_passport_presence !==
+                abit.document_passport_presence
+              "
+              dot
+            >
+              <v-checkbox
+                v-model="data.document_passport_presence"
+                dense
+                label="Паспорт РФ"
+                @change="send('document_passport_presence', $event)"
+              />
+            </v-badge>
+          </v-col>
+          <v-col cols="4">
+            <v-badge
+              color="green"
+              :value="
+                data.document_birthday_presence !==
+                abit.document_birthday_presence
+              "
+              dot
+            >
+              <v-checkbox
+                v-model="data.document_birthday_presence"
+                dense
+                label="Свидетельство о рождении"
+                @change="send('document_birthday_presence', $event)"
+              />
+            </v-badge>
+          </v-col>
+          <v-col cols="4">
+            <v-badge
+              color="green"
+              :value="
+                data.document_education_presence !==
+                abit.document_education_presence
+              "
+              dot
+            >
+              <v-checkbox
+                v-model="data.document_education_presence"
+                dense
+                label="Документ об образовании"
+                @change="send('document_education_presence', $event)"
+              />
+            </v-badge>
+          </v-col>
+        </v-row>
+      </v-card>
+      <v-card>
+        <v-card-text>
+          <v-badge
+            color="green"
+            :value="
+              data.admission_source_information !==
+              abit.admission_source_information
+            "
+            dot
+          >
+            <v-select
+              v-model="data.admission_source_information"
               :items="source_information"
               item-text="name"
-              label="Источники информации"
+              label="Источники информации об академии"
               multiple
-              @input="updateData('admission_source_information', $event)"
-            />
-          </v-card-text>
-        </v-card>
-        <v-card>
-          <v-card-title> Отчисление </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="6">
-                <v-text-field
-                  :value="expulsionJSON.reason"
-                  label="Причина"
-                  @input="updateExpulsion('reason', $event)"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-menu
-                  v-model="menu"
-                  :close-on-content-click="false"
-                  :nudge-right="40"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
+              dense
+              chips
+              @input="send('admission_source_information', $event)"
+            >
+              <template v-slot:selection="{ item, index }">
+                <v-chip v-if="index < 2">
+                  <span>{{ item.name }}</span>
+                </v-chip>
+                <span
+                  v-if="index === 2"
+                  class="black--text text-caption"
                 >
-                  <template #activator="{ on, attrs }">
-                    <v-text-field
-                      dense
-                      :value="formatDate(expulsionJSON.date)"
-                      label="Дата"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    />
-                  </template>
-                  <v-date-picker @input="changeDate('date', $event)" />
-                </v-menu>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-btn
-      color="blue darken-1"
-      text
-      @click="save"
-    >
-      Сохранить
-    </v-btn>
-  </v-container>
+                  (+{{ data.admission_source_information.length - 2 }})
+                </span>
+              </template>
+            </v-select>
+          </v-badge>
+        </v-card-text>
+      </v-card>
+      <v-card height="168px">
+        <v-card-text>
+          <v-badge
+            color="green"
+            :value="data.admission_note !== abit.admission_note"
+            dot
+          >
+            <v-textarea
+              v-model="data.admission_note"
+              label="Примечания"
+              rows="3"
+              @input="send('admission_note', $event)"
+            />
+          </v-badge>
+        </v-card-text>
+      </v-card>
+      <v-card>
+        <v-card-title>
+          <v-badge
+            color="green"
+            :value="badgeColorExpulsion()"
+            dot
+          >
+            Отчисление
+          </v-badge>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="6">
+              <v-text-field
+                v-model="expulsionJSON.reason"
+                label="Причина"
+                dense
+                @input="sendExpulsion"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-menu
+                v-model="menuExpulsion"
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+              >
+                <template #activator="{ on, attrs }">
+                  <v-text-field
+                    dense
+                    :value="formatDate(expulsionJSON.date)"
+                    label="Дата"
+                    prepend-icon="mdi-calendar"
+                    readonly
+                    v-bind="attrs"
+                    v-on="on"
+                  />
+                </template>
+                <v-date-picker @input="changeDateExpulsion" />
+              </v-menu>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
 import moment from 'moment'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'AdmissionComponent',
-  props: ['abit'],
+  props: {
+    abit: {
+      type: Object,
+      default: () => {},
+      required: true,
+    },
+  },
   data() {
     return {
       data: {},
+      differences: {},
       commission: {},
-      dialogCommission: false,
       examinationGroup: {},
-      dialogExaminationGroup: false,
-      expulsion: {},
-      menu: false,
+      menuCommission: false,
+      menuExaminationGroup: false,
+      menuExpulsion: false,
+      menuAdmission: false,
       source_information: [
         { value: 'family', name: 'Родственники' },
         { value: 'friends', name: 'Друзья/знакомые' },
@@ -273,68 +470,80 @@ export default {
     }
   },
   computed: {
-    commissions() {
-      return this.$store.getters.commissions
-    },
-    examinationGroups() {
-      return this.$store.getters.examinationGroups
-    },
-    specialty() {
-      return this.$store.getters.specialty
-    },
+    ...mapGetters(['commissions', 'examinationGroups', 'specialty']),
     expulsionJSON() {
-      return this.abit.expulsion
-        ? JSON.parse(this.abit.expulsion)
-        : this.expulsion
+      return this.data.expulsion ? JSON.parse(this.data.expulsion) : {}
     },
   },
+  watch: {
+    abit() {
+      this.data = { ...this.abit }
+    },
+  },
+  mounted() {
+    this.data = { ...this.abit }
+  },
   created() {
-    this.$store.dispatch('fetchAdmissionCommissions')
-    this.$store.dispatch('fetchExaminationGroups')
-    this.$store.dispatch('fetchSpecialty')
+    this.fetchAdmissionCommissions()
+    this.fetchExaminationGroups()
+    this.fetchSpecialty()
   },
   methods: {
     ...mapActions([
-      'updateAbit',
       'addAdmissionCommission',
       'addExaminationGroup',
+      'fetchSpecialty',
+      'fetchExaminationGroups',
+      'fetchAdmissionCommissions',
     ]),
-
-    updateData(fieldName, event) {
-      this.data[fieldName] = event
+    badgeColorExpulsion() {
+      if (
+        (this.abit.expulsion &&
+          this.abit.expulsion !== JSON.stringify(this.expulsionJSON)) ||
+        (!this.abit.expulsion && JSON.stringify(this.expulsionJSON) !== '{}')
+      ) {
+        return true
+      } else return false
     },
-    updateCommission(fieldName, event) {
-      this.commission[fieldName] = event
+    send(key, value) {
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
     },
-    updateExaminationGroup(fieldName, event) {
-      this.examinationGroup[fieldName] = event
-    },
-    updateExpulsion(fieldName, event) {
-      this.expulsionJSON[fieldName] = event
-    },
-    save() {
-      this.data.id = this.abit.id
+    sendExpulsion() {
       this.data.expulsion = JSON.stringify(this.expulsionJSON)
-      this.updateAbit(this.data)
+      this.differences.expulsion = this.data.expulsion
+      this.$emit('child-event', this.differences)
+      this.differences = {}
     },
     saveCommission() {
       const newCommission = Object.assign({}, this.commission)
       this.addAdmissionCommission(newCommission)
-      this.dialogCommission = false
+      this.menuCommission = false
+      this.fetchAdmissionCommissions()
+      this.commission = {}
     },
     saveExaminationGroup() {
       const newExaminationGroup = Object.assign({}, this.examinationGroup)
       this.addExaminationGroup(newExaminationGroup)
-      this.dialogExaminationGroup = false
+      this.menuExaminationGroup = false
+      this.fetchExaminationGroups()
+      this.examinationGroup = {}
     },
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
       return moment(date).format('DD-MM-YYYY')
     },
-    changeDate(fieldName, event) {
-      this.expulsionJSON[fieldName] = new Date(event).toISOString()
-      this.menu = false
+    changeDateExpulsion(event) {
+      this.expulsionJSON.date = new Date(event).toISOString()
+      this.menuExpulsion = false
+      this.sendExpulsion()
+    },
+    changeDateAdmission(event) {
+      this.data.admission_date = new Date(event).toISOString()
+      this.menuAdmission = false
+      this.send('admission_date', this.data.admission_date)
     },
   },
 }

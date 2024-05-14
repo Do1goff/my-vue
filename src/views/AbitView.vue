@@ -3,6 +3,29 @@
     <v-row>
       <v-col cols="4">
         <data-table />
+        <v-dialog
+          v-model="dialogCheckSave"
+          max-width="500px"
+        >
+          <v-card>
+            <v-card-title>Сохранить изменения?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                text
+                color="primary"
+              >
+                Отмена
+              </v-btn>
+              <v-btn
+                text
+                color="primary"
+              >
+                Сохранить
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-col>
       <v-col cols="8">
         <v-card>
@@ -11,6 +34,13 @@
               <h2>Abit Profile {{ abit ? abit.id : '' }}</h2>
             </div>
             <v-spacer />
+            <v-btn
+              color="blue darken-1"
+              text
+              @click="save"
+            >
+              Сохранить
+            </v-btn>
             <router-link
               v-if="abit"
               :to="{ name: 'abitEdit', params: { id: abit.id } }"
@@ -30,7 +60,13 @@
                 :key="`tab_${index}`"
                 :value="n.value"
               >
-                {{ n.text }}
+                <v-badge
+                  color="green"
+                  :value="badgeColor(n.value)"
+                  dot
+                >
+                  {{ n.text }}
+                </v-badge>
               </v-tab>
             </v-tabs>
             <v-tabs-items v-model="tabs">
@@ -40,7 +76,8 @@
               >
                 <component
                   :is="n.value"
-                  :abit="abit ? abit : ''"
+                  :abit="abit || {}"
+                  @child-event="handleChildEvent(n, $event)"
                 />
               </v-tab-item>
             </v-tabs-items>
@@ -74,16 +111,18 @@ export default {
   props: ['id'],
   data() {
     return {
-      data: {},
-      tabs: null,
+      message: {},
+      differences: null,
+      tabs: 0,
+      editedTabs: [],
       headers: [
         { text: 'Первичные данные', value: 'FirstInfo' },
         { text: 'Документы', value: 'Documents' },
-        { text: 'в/служба', value: 'Military' },
-        { text: 'результаты', value: 'Results' },
         { text: 'достижения', value: 'Achievements' },
-        { text: 'поступление', value: 'Admission' },
+        { text: 'прибытие', value: 'Admission' },
+        { text: 'результаты', value: 'Results' },
       ],
+      dialogCheckSave: false,
     }
   },
   computed: {
@@ -92,18 +131,40 @@ export default {
       return this.selectedAbit
     },
   },
-  methods: {
-    ...mapActions(['selectAbit']),
-  },
-  // eslint-disable-next-line vue/order-in-components
   watch: {
     id() {
       this.selectAbit(this.id)
+      this.dialogCheckSave = true
+    },
+    tabs(newVal) {
+      localStorage.setItem('tabs', newVal)
     },
   },
-  // eslint-disable-next-line vue/order-in-components
   created() {
     this.selectAbit(this.id)
+    if (localStorage.getItem('tabs')) {
+      this.tabs = parseInt(localStorage.getItem('tabs'))
+    }
+  },
+  methods: {
+    ...mapActions(['selectAbit', 'updateAbit']),
+    handleChildEvent(n, data) {
+      this.message = { ...this.message, ...data }
+      if (!this.editedTabs.includes(n.value)) {
+        this.editedTabs.push(n.value)
+      }
+    },
+    badgeColor(key) {
+      if (this.editedTabs.includes(key)) {
+        return true
+      } else return false
+    },
+    save() {
+      this.message.id = this.id
+      this.updateAbit(this.message)
+      this.editedTabs = []
+      this.message = {}
+    },
   },
 }
 </script>

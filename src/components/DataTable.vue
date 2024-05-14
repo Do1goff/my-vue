@@ -7,10 +7,12 @@
     height="500px"
     fixed-header
     :search="search"
+    disable-pagination
+    hide-default-footer
   >
     <template #top>
       <v-toolbar flat>
-        <v-toolbar-title>{{ formatDate(editedAbit.birthday) }}</v-toolbar-title>
+        <v-toolbar-title>Список</v-toolbar-title>
         <v-divider
           class="mx-4"
           inset
@@ -44,53 +46,58 @@
               </v-card-title>
 
               <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="3">
-                      <v-text-field
-                        v-model="data.lastName"
-                        label="Фамилия"
-                        :rules="[rules.required]"
-                      />
-                    </v-col>
-                    <v-col cols="3">
-                      <v-text-field
-                        v-model="data.firstName"
-                        label="Имя"
-                        :rules="[rules.required]"
-                      />
-                    </v-col>
-                    <v-col cols="3">
-                      <v-text-field
-                        v-model="data.surName"
-                        label="Отчество"
-                      />
-                    </v-col>
-                    <v-col cols="3">
-                      <v-menu
-                        v-model="menu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template #activator="{ on, attrs }">
-                          <v-text-field
-                            :value="formatDate(data.birthday)"
-                            :rules="[rules.required]"
-                            label="Дата рождения"
-                            prepend-icon="mdi-calendar"
-                            readonly
-                            v-bind="attrs"
-                            v-on="on"
-                          />
-                        </template>
-                        <v-date-picker @input="changeDate" />
-                      </v-menu>
-                    </v-col>
-                  </v-row>
-                </v-container>
+                <v-form
+                  ref="form"
+                  @submit.prevent="saveAbitData"
+                >
+                  <v-container>
+                    <v-row>
+                      <v-col cols="3">
+                        <v-text-field
+                          v-model="data.lastName"
+                          label="Фамилия"
+                          :rules="[rules.required]"
+                        />
+                      </v-col>
+                      <v-col cols="3">
+                        <v-text-field
+                          v-model="data.firstName"
+                          label="Имя"
+                          :rules="[rules.required]"
+                        />
+                      </v-col>
+                      <v-col cols="3">
+                        <v-text-field
+                          v-model="data.surName"
+                          label="Отчество"
+                        />
+                      </v-col>
+                      <v-col cols="3">
+                        <v-menu
+                          v-model="menu"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template #activator="{ on, attrs }">
+                            <v-text-field
+                              :value="formatDate(data.birthday)"
+                              :rules="[rules.required]"
+                              label="Дата рождения"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              v-bind="attrs"
+                              v-on="on"
+                            />
+                          </template>
+                          <v-date-picker @input="changeDate" />
+                        </v-menu>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-form>
               </v-card-text>
             </v-card>
 
@@ -106,8 +113,10 @@
               <v-btn
                 color="blue darken-1"
                 text
-                @click="saveAdd"
+                @click="saveAbitData"
               >
+                <!-- :disabled="isFormValid()" -->
+                <!-- @click="saveAdd" -->
                 Сохранить
               </v-btn>
             </v-card-actions>
@@ -117,9 +126,7 @@
     </template>
 
     <template #item.birthday="{ item }">
-      <p>
-        {{ formatDate(item.birthday) }}
-      </p>
+      {{ formatDate(item.birthday) }}
     </template>
     <template #item.actions="{ item }">
       <router-link
@@ -149,6 +156,7 @@ export default {
   name: 'DataTableComponent',
   data() {
     return {
+      formValid: false,
       date: null,
       menu: false,
       dialogAdd: false,
@@ -194,6 +202,10 @@ export default {
     ...mapGetters(['allAbits']),
   },
 
+  created() {
+    this.fetchAbits()
+  },
+
   methods: {
     moment,
     ...mapActions(['addAbit', 'fetchAbits']),
@@ -209,12 +221,17 @@ export default {
       return moment(date).format('DD-MM-YYYY')
     },
 
-    saveAdd() {
+    async saveAdd() {
       const newAbit = Object.assign({}, this.data)
       newAbit.birthday = new Date(this.data.birthday)
-      this.addAbit(newAbit)
+      await this.addAbit(newAbit)
       this.data = Object.assign({}, this.defaultAbit)
       this.dialogAdd = false
+      this.$router.replace({
+        name: 'abit',
+        params: { id: this.allAbits.length },
+      })
+      this.selectedAbitId = this.allAbits.length
     },
 
     closeAdd() {
@@ -224,21 +241,26 @@ export default {
     changeAbit(item) {
       this.selectedAbitId = item.id
     },
-
+    saveAbitData() {
+      this.formValid = true
+      if (!this.$refs.form.validate()) {
+        this.formValid = false
+        return
+      }
+      this.saveAdd()
+    },
+    isFormValid() {
+      return this.formValid
+    },
     isSelectedAbit(item) {
       return this.selectedAbitId === item.id
     },
-  },
-
-  // eslint-disable-next-line vue/order-in-components
-  created() {
-    this.fetchAbits()
   },
 }
 </script>
 
 <style>
 .selected {
-  background: rgb(115, 220, 255);
+  background-color: rgb(115, 220, 255);
 }
 </style>
