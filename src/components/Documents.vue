@@ -4,151 +4,165 @@
     <v-col cols="6">
       <v-card>
         <v-tabs
-          v-model="tabs"
+          v-model="tabsEducation"
           fixed-tabs
           background-color="red"
           dark
         >
-          <v-tab>
-            <v-badge
-              color="green"
-              :value="badgeColorEducation()"
-              dot
-            >
-              Образование
-            </v-badge>
-          </v-tab>
-          <v-tab>
-            <v-badge
-              color="green"
-              :value="badgeColorUncanceledEducation()"
-              dot
-            >
-              Текущее
-            </v-badge>
-          </v-tab>
+          <v-tab> Образование </v-tab>
+          <v-tab> Текущее </v-tab>
         </v-tabs>
-        <v-tabs-items v-model="tabs">
+        <v-tabs-items v-model="tabsEducation">
           <v-tab-item>
             <v-card>
               <v-card-text>
                 <v-row>
                   <v-col cols="4">
-                    <v-text-field
-                      v-model="educationJSON.category"
-                      dense
-                      label="Категория"
-                      @input="sendEducation"
-                    />
-                  </v-col>
-                  <v-col cols="4">
-                    <v-text-field
-                      v-model="educationJSON.document_education"
-                      dense
-                      label="Документ"
-                      @input="sendEducation"
-                    />
-                  </v-col>
-                  <v-col cols="4">
-                    <v-autocomplete
-                      :value="formatDateYear(educationJSON.date_end)"
-                      dense
-                      :items="years"
-                      label="Год окончания"
-                      @input="changeDateEducation"
-                    />
-                  </v-col>
-                  <v-col cols="12">
-                    <!-- <v-text-field
-                      v-model="educationJSON.institute"
-                      dense
-                      label="Образовательное учреждение"
-                      @input="sendEducation"
-                    /> -->
-                    <v-autocomplete
-                      v-model="educationJSON.institute"
-                      :items="institutes"
-                      item-text="name"
-                      item-value="id"
-                      dense
-                      label="Образовательное учреждение"
-                      @input="sendEducationInstitute"
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.education &&
+                          JSON.parse(abit.education).category !==
+                            educationJSON.category) ||
+                        (!abit.education && educationJSON.category !== ``)
+                      "
+                      dot
                     >
-                      <template v-slot:no-data>
-                        <v-menu
-                          v-model="menuInstitutes"
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          transition="scale-transition"
-                          offset-y
-                          min-width="500"
-                        >
-                          <template #activator="{ on, attrs }">
-                            <v-btn
-                              color="primary"
-                              dark
-                              class="mb-2"
-                              v-bind="attrs"
-                              v-on="on"
-                            >
-                              Добавить
-                            </v-btn>
-                          </template>
-                          <v-card>
-                            <v-card>
-                              <v-card-title>
-                                <span class="text-h5">Добавить</span>
-                              </v-card-title>
-
-                              <v-card-text>
-                                <v-container>
-                                  <v-row>
-                                    <v-col cols="12">
-                                      <v-text-field
-                                        v-model="institute.name"
-                                        dense
-                                        label="Образовательное учреждение"
-                                      />
-                                    </v-col>
-                                    <v-col cols="12">
-                                      <v-text-field
-                                        v-model="institute.address"
-                                        dense
-                                        label="Адрес"
-                                      />
-                                    </v-col>
-                                  </v-row>
-                                </v-container>
-                              </v-card-text>
-                            </v-card>
-
-                            <v-card-actions>
-                              <v-spacer />
-                              <v-btn
-                                color="blue darken-1"
-                                text
-                                dense
-                                @click="saveInstitute"
-                              >
-                                Сохранить
-                              </v-btn>
-                            </v-card-actions>
-                          </v-card>
-                        </v-menu>
-                      </template>
-                    </v-autocomplete>
+                      <v-autocomplete
+                        v-model="educationJSON.category"
+                        :items="categoriesEducation"
+                        dense
+                        label="Категория"
+                        @input="sendEducation"
+                      />
+                    </v-badge>
+                  </v-col>
+                  <v-col cols="4">
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.education &&
+                          JSON.parse(abit.education).document_education !==
+                            educationJSON.document_education) ||
+                        (!abit.education &&
+                          educationJSON.document_education !== ``)
+                      "
+                      dot
+                    >
+                      <v-text-field
+                        v-model="educationJSON.document_education"
+                        dense
+                        label="Документ"
+                        @input="sendEducation"
+                      />
+                    </v-badge>
+                  </v-col>
+                  <v-col cols="4">
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.education &&
+                          JSON.parse(abit.education).date_end !==
+                            educationJSON.date_end) ||
+                        (!abit.education && educationJSON.date_end !== ``)
+                      "
+                      dot
+                    >
+                      <v-autocomplete
+                        :value="formatDateYear(educationJSON.date_end)"
+                        dense
+                        :items="years"
+                        label="Год окончания"
+                        @input="changeDateEducation"
+                      />
+                    </v-badge>
                   </v-col>
                   <v-col cols="12">
-                    <!-- <v-autocomplete
-                      v-model="educationJSON.institute"
-                      :items="institutes"
-                      item-text="address"
-                      item-value="address"
-                      dense
-                      label="Адрес"
-                      readonly
-                      @input="sendEducation"
-                    /> -->
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.education &&
+                          JSON.parse(abit.education).institute !==
+                            educationJSON.institute) ||
+                        (!abit.education && educationJSON.institute !== ``)
+                      "
+                      dot
+                    >
+                      <v-autocomplete
+                        v-model="educationJSON.institute"
+                        :items="institutes"
+                        item-text="name"
+                        item-value="id"
+                        dense
+                        label="Образовательное учреждение"
+                        @input="sendEducationInstitute"
+                      >
+                        <template #no-data>
+                          <v-menu
+                            v-model="menuInstitutes"
+                            :close-on-content-click="false"
+                            :nudge-right="40"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="500"
+                          >
+                            <template #activator="{ on, attrs }">
+                              <v-btn
+                                color="primary"
+                                dark
+                                class="mb-2"
+                                v-bind="attrs"
+                                v-on="on"
+                              >
+                                Добавить
+                              </v-btn>
+                            </template>
+                            <v-card>
+                              <v-card>
+                                <v-card-title>
+                                  <span class="text-h5">Добавить</span>
+                                </v-card-title>
+
+                                <v-card-text>
+                                  <v-container>
+                                    <v-row>
+                                      <v-col cols="12">
+                                        <v-text-field
+                                          v-model="institute.name"
+                                          dense
+                                          label="Образовательное учреждение"
+                                        />
+                                      </v-col>
+                                      <v-col cols="12">
+                                        <v-text-field
+                                          v-model="institute.address"
+                                          dense
+                                          label="Адрес"
+                                        />
+                                      </v-col>
+                                    </v-row>
+                                  </v-container>
+                                </v-card-text>
+                              </v-card>
+
+                              <v-card-actions>
+                                <v-spacer />
+                                <v-btn
+                                  color="blue darken-1"
+                                  text
+                                  dense
+                                  @click="saveInstitute"
+                                >
+                                  Сохранить
+                                </v-btn>
+                              </v-card-actions>
+                            </v-card>
+                          </v-menu>
+                        </template>
+                      </v-autocomplete>
+                    </v-badge>
+                  </v-col>
+                  <v-col cols="12">
                     <v-text-field
                       v-model="educationJSON.address"
                       dense
@@ -165,136 +179,218 @@
               <v-card-text>
                 <v-row>
                   <v-col cols="4">
-                    <v-text-field
-                      v-model="uncanceledEducationJSON.category"
-                      dense
-                      label="Категория"
-                      @input="sendUncanceledEducation"
-                    />
-                  </v-col>
-                  <v-col cols="4">
-                    <v-select
+                    <v-badge
+                      color="green"
                       :value="
-                        formatDateYear(uncanceledEducationJSON.date_admission)
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation).category !==
+                            uncanceledEducationJSON.category) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.category !== ``)
                       "
-                      dense
-                      :items="years"
-                      label="Год поступления"
-                      @input="changeDateUncanceledEducationAdmission"
-                    />
+                      dot
+                    >
+                      <v-autocomplete
+                        v-model="uncanceledEducationJSON.category"
+                        :items="categoriesUncanceledEducation"
+                        dense
+                        label="Категория"
+                        @input="sendUncanceledEducation"
+                      />
+                    </v-badge>
                   </v-col>
                   <v-col cols="4">
-                    <v-select
-                      :value="formatDateYear(uncanceledEducationJSON.date_end)"
-                      dense
-                      :items="years"
-                      label="Год окончания"
-                      @input="changeDateUncanceledEducationEnd"
-                    />
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation)
+                            .date_admission !==
+                            uncanceledEducationJSON.date_admission) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.date_admission !== ``)
+                      "
+                      dot
+                    >
+                      <v-select
+                        :value="
+                          formatDateYear(uncanceledEducationJSON.date_admission)
+                        "
+                        dense
+                        :items="years"
+                        label="Год поступления"
+                        @input="changeDateUncanceledEducationAdmission"
+                      />
+                    </v-badge>
+                  </v-col>
+                  <v-col cols="4">
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation).date_end !==
+                            uncanceledEducationJSON.date_end) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.date_end !== ``)
+                      "
+                      dot
+                    >
+                      <v-select
+                        :value="
+                          formatDateYear(uncanceledEducationJSON.date_end)
+                        "
+                        dense
+                        :items="years"
+                        label="Год окончания"
+                        @input="changeDateUncanceledEducationEnd"
+                      />
+                    </v-badge>
                   </v-col>
                   <v-col cols="12">
-                    <!-- <v-text-field
-                      v-model="uncanceledEducationJSON.institute"
-                      dense
-                      label="Образовательное учреждение"
-                      @input="sendUncanceledEducation"
-                    /> -->
-                    <v-autocomplete
-                      v-model="uncanceledEducationJSON.institute"
-                      :items="institutes"
-                      item-text="name"
-                      item-value="id"
-                      dense
-                      label="Образовательное учреждение"
-                      @input="sendUncanceledEducation"
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation).institute !==
+                            uncanceledEducationJSON.institute) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.institute !== ``)
+                      "
+                      dot
                     >
-                      <template v-slot:no-data>
-                        <v-menu
-                          v-model="menuInstitutes"
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          transition="scale-transition"
-                          offset-y
-                          min-width="500"
-                        >
-                          <template #activator="{ on, attrs }">
-                            <v-btn
-                              color="primary"
-                              dark
-                              class="mb-2"
-                              v-bind="attrs"
-                              v-on="on"
-                            >
-                              Добавить
-                            </v-btn>
-                          </template>
-                          <v-card>
-                            <v-card>
-                              <v-card-title>
-                                <span class="text-h5">Добавить</span>
-                              </v-card-title>
-
-                              <v-card-text>
-                                <v-container>
-                                  <v-row>
-                                    <v-col cols="12">
-                                      <v-text-field
-                                        v-model="institute.name"
-                                        dense
-                                        label="Образовательное учреждение"
-                                      />
-                                    </v-col>
-                                    <v-col cols="12">
-                                      <v-text-field
-                                        v-model="institute.address"
-                                        dense
-                                        label="Адрес"
-                                      />
-                                    </v-col>
-                                  </v-row>
-                                </v-container>
-                              </v-card-text>
-                            </v-card>
-
-                            <v-card-actions>
-                              <v-spacer />
+                      <v-autocomplete
+                        v-model="uncanceledEducationJSON.institute"
+                        :items="institutes"
+                        item-text="name"
+                        item-value="id"
+                        dense
+                        label="Образовательное учреждение"
+                        @input="sendUncanceledEducation"
+                      >
+                        <template #no-data>
+                          <v-menu
+                            v-model="menuInstitutes"
+                            :close-on-content-click="false"
+                            :nudge-right="40"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="500"
+                          >
+                            <template #activator="{ on, attrs }">
                               <v-btn
-                                color="blue darken-1"
-                                text
-                                dense
-                                @click="saveInstitute"
+                                color="primary"
+                                dark
+                                class="mb-2"
+                                v-bind="attrs"
+                                v-on="on"
                               >
-                                Сохранить
+                                Добавить
                               </v-btn>
-                            </v-card-actions>
-                          </v-card>
-                        </v-menu>
-                      </template>
-                    </v-autocomplete>
+                            </template>
+                            <v-card>
+                              <v-card>
+                                <v-card-title>
+                                  <span class="text-h5">Добавить</span>
+                                </v-card-title>
+
+                                <v-card-text>
+                                  <v-container>
+                                    <v-row>
+                                      <v-col cols="12">
+                                        <v-text-field
+                                          v-model="institute.name"
+                                          dense
+                                          label="Образовательное учреждение"
+                                        />
+                                      </v-col>
+                                      <v-col cols="12">
+                                        <v-text-field
+                                          v-model="institute.address"
+                                          dense
+                                          label="Адрес"
+                                        />
+                                      </v-col>
+                                    </v-row>
+                                  </v-container>
+                                </v-card-text>
+                              </v-card>
+
+                              <v-card-actions>
+                                <v-spacer />
+                                <v-btn
+                                  color="blue darken-1"
+                                  text
+                                  dense
+                                  @click="saveInstitute"
+                                >
+                                  Сохранить
+                                </v-btn>
+                              </v-card-actions>
+                            </v-card>
+                          </v-menu>
+                        </template>
+                      </v-autocomplete>
+                    </v-badge>
                   </v-col>
                   <v-col cols="4">
-                    <v-text-field
-                      v-model="uncanceledEducationJSON.period_study"
-                      dense
-                      label="Срок обучения"
-                      @input="sendUncanceledEducation"
-                    />
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation).period_study !==
+                            uncanceledEducationJSON.period_study) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.period_study !== ``)
+                      "
+                      dot
+                    >
+                      <v-text-field
+                        v-model="uncanceledEducationJSON.period_study"
+                        dense
+                        label="Срок обучения"
+                        @input="sendUncanceledEducation"
+                      />
+                    </v-badge>
                   </v-col>
                   <v-col cols="4">
-                    <v-text-field
-                      v-model="uncanceledEducationJSON.course"
-                      dense
-                      label="Курс"
-                      @input="sendUncanceledEducation"
-                    />
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation).course !==
+                            uncanceledEducationJSON.course) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.course !== ``)
+                      "
+                      dot
+                    >
+                      <v-text-field
+                        v-model="uncanceledEducationJSON.course"
+                        dense
+                        label="Курс"
+                        @input="sendUncanceledEducation"
+                      />
+                    </v-badge>
                   </v-col>
                   <v-col cols="4">
-                    <v-text-field
-                      v-model="uncanceledEducationJSON.semesters_end"
-                      dense
-                      label="Семестров закрыто"
-                      @input="sendUncanceledEducation"
-                    />
+                    <v-badge
+                      color="green"
+                      :value="
+                        (abit.uncanceledEducation &&
+                          JSON.parse(abit.uncanceledEducation).semesters_end !==
+                            uncanceledEducationJSON.semesters_end) ||
+                        (!abit.uncanceledEducation &&
+                          uncanceledEducationJSON.semesters_end !== ``)
+                      "
+                      dot
+                    >
+                      <v-text-field
+                        v-model="uncanceledEducationJSON.semesters_end"
+                        dense
+                        label="Семестров закрыто"
+                        @input="sendUncanceledEducation"
+                      />
+                    </v-badge>
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -303,82 +399,141 @@
         </v-tabs-items>
       </v-card>
       <v-card>
-        <v-card-title>
-          <v-badge
-            color="green"
-            :value="badgeColorPassport()"
-            dot
-          >
-            Паспорт
-          </v-badge>
-        </v-card-title>
+        <v-card-title> Паспорт </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="4">
-              <v-text-field
-                v-model="passportJSON.series"
-                v-mask="'####'"
-                dense
-                label="серия"
-                @input="sendPassport('series', parseInt($event, 10))"
-              />
-            </v-col>
-            <v-col cols="4">
-              <v-text-field
-                v-model="passportJSON.num"
-                v-mask="'######'"
-                dense
-                label="номер"
-                @input="sendPassport('num', parseInt($event, 10))"
-              />
-            </v-col>
-            <v-col cols="4">
-              <v-menu
-                v-model="menuPassportDate"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
+              <v-badge
+                color="green"
+                :value="
+                  (abit.document_passport &&
+                    JSON.parse(abit.document_passport).series !==
+                      passportJSON.series) ||
+                  (!abit.document_passport && passportJSON.series !== ``)
+                "
+                dot
               >
-                <template #activator="{ on, attrs }">
-                  <v-text-field
-                    dense
-                    :value="formatDate(passportJSON.date_issue)"
-                    label="Дата выдачи"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
-                  />
-                </template>
-                <v-date-picker @input="changePassportDate" />
-              </v-menu>
+                <v-text-field
+                  v-model="passportJSON.series"
+                  v-mask="'####'"
+                  dense
+                  label="серия"
+                  @input="sendPassport('series', parseInt($event, 10))"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-badge
+                color="green"
+                :value="
+                  (abit.document_passport &&
+                    JSON.parse(abit.document_passport).num !==
+                      passportJSON.num) ||
+                  (!abit.document_passport && passportJSON.num !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="passportJSON.num"
+                  v-mask="'######'"
+                  dense
+                  label="номер"
+                  @input="sendPassport('num', parseInt($event, 10))"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-badge
+                color="green"
+                :value="
+                  (abit.document_passport &&
+                    JSON.parse(abit.document_passport).date_issue !==
+                      passportJSON.date_issue) ||
+                  (!abit.document_passport && passportJSON.date_issue !== ``)
+                "
+                dot
+              >
+                <v-menu
+                  v-model="menuPassportDate"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template #activator="{ on, attrs }">
+                    <v-text-field
+                      dense
+                      :value="formatDate(passportJSON.date_issue)"
+                      label="Дата выдачи"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    />
+                  </template>
+                  <v-date-picker @input="changePassportDate" />
+                </v-menu>
+              </v-badge>
             </v-col>
             <v-col cols="8">
-              <v-text-field
-                v-model="passportJSON.issued_by"
-                dense
-                label="кем выдан"
-                @input="sendPassport"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.document_passport &&
+                    JSON.parse(abit.document_passport).issued_by !==
+                      passportJSON.issued_by) ||
+                  (!abit.document_passport && passportJSON.issued_by !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="passportJSON.issued_by"
+                  dense
+                  label="кем выдан"
+                  @input="sendPassport"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="4">
-              <v-text-field
-                v-model="passportJSON.department_code"
-                v-mask="'###-###'"
-                dense
-                label="код подразделения"
-                @input="sendPassport"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.document_passport &&
+                    JSON.parse(abit.document_passport).department_code !==
+                      passportJSON.department_code) ||
+                  (!abit.document_passport &&
+                    passportJSON.department_code !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="passportJSON.department_code"
+                  v-mask="'###-###'"
+                  dense
+                  label="код подразделения"
+                  @input="sendPassport"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="12">
-              <v-text-field
-                v-model="passportJSON.birthplace"
-                dense
-                label="место рождения"
-                @input="sendPassport"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.document_passport &&
+                    JSON.parse(abit.document_passport).birthplace !==
+                      passportJSON.birthplace) ||
+                  (!abit.document_passport && passportJSON.birthplace !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="passportJSON.birthplace"
+                  dense
+                  label="место рождения"
+                  @input="sendPassport"
+                />
+              </v-badge>
             </v-col>
           </v-row>
         </v-card-text>
@@ -517,7 +672,7 @@
                   chips
                   @input="send('document_mvd_prosecution', $event)"
                 >
-                  <template v-slot:selection="{ item, index }">
+                  <template #selection="{ item, index }">
                     <v-chip v-if="index < 1">
                       <span>{{ item.title }}</span>
                     </v-chip>
@@ -550,7 +705,7 @@
               <v-toolbar-title> Оценки в документе о СОО/СПО </v-toolbar-title>
               <v-spacer />
               <v-dialog
-                v-model="dialog"
+                v-model="dialogMark"
                 max-width="500px"
               >
                 <template #activator="{ on, attrs }">
@@ -560,17 +715,19 @@
                     class="mb-2"
                     v-bind="attrs"
                     v-on="on"
+                    @click="editList = true"
                   >
                     Добавить
                   </v-btn>
                 </template>
                 <v-card>
                   <v-card-title>
-                    Добавить
+                    {{ computedEditMark }}
                     <v-spacer />
                     <v-dialog
-                      v-model="dialogList"
+                      v-model="dialogMarkList"
                       max-width="800px"
+                      v-if="editList"
                     >
                       <template #activator="{ on, attrs }">
                         <v-btn
@@ -605,6 +762,8 @@
                                       <v-col cols="6">
                                         <v-text-field
                                           v-model="markList[index]"
+                                          v-mask="'#'"
+                                          :rules="[rules.mark]"
                                           :items="marks"
                                           label="Оценка"
                                         />
@@ -636,7 +795,7 @@
                             :value="mark.mark"
                             :items="marks"
                             label="Оценка"
-                            @input="updateMark('mark', parseInt($event, 10))"
+                            @input="updateMark(parseInt($event, 10))"
                           />
                         </v-col>
                         <v-col cols="6">
@@ -646,7 +805,7 @@
                             item-text="name"
                             item-value="id"
                             label="Предмет"
-                            @input="updateMarkSubject('subject', $event)"
+                            @input="updateMarkSubject"
                           />
                         </v-col>
                       </v-row>
@@ -676,68 +835,127 @@
         </v-data-table>
       </v-card>
       <v-card>
-        <v-card-title>
-          <v-badge
-            color="green"
-            :value="badgeColorMilitaryService()"
-            dot
-          >
-            Военная служба
-          </v-badge>
-        </v-card-title>
+        <v-card-title> Военная служба </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="4">
-              <v-select
-                v-model="militaryServiceJSON.rank"
-                :items="ranks"
-                dense
-                label="Воинское звание"
-                @input="sendMilitaryService"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.militaryService &&
+                    JSON.parse(abit.militaryService).rank !==
+                      militaryServiceJSON.rank) ||
+                  (!abit.militaryService && militaryServiceJSON.rank !== ``)
+                "
+                dot
+              >
+                <v-select
+                  v-model="militaryServiceJSON.rank"
+                  :items="ranks"
+                  dense
+                  label="Воинское звание"
+                  @input="sendMilitaryService"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="8">
-              <v-text-field
-                v-model="militaryServiceJSON.post"
-                dense
-                label="Должность"
-                @input="sendMilitaryService"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.militaryService &&
+                    JSON.parse(abit.militaryService).post !==
+                      militaryServiceJSON.post) ||
+                  (!abit.militaryService && militaryServiceJSON.post !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="militaryServiceJSON.post"
+                  dense
+                  label="Должность"
+                  @input="sendMilitaryService"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model="militaryServiceJSON.place"
-                dense
-                label="Где служит"
-                @input="sendMilitaryService"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.militaryService &&
+                    JSON.parse(abit.militaryService).place !==
+                      militaryServiceJSON.place) ||
+                  (!abit.militaryService && militaryServiceJSON.place !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="militaryServiceJSON.place"
+                  dense
+                  label="Где служит"
+                  @input="sendMilitaryService"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model="militaryServiceJSON.unit"
-                dense
-                label="Воинская часть"
-                @input="sendMilitaryService"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.militaryService &&
+                    JSON.parse(abit.militaryService).unit !==
+                      militaryServiceJSON.unit) ||
+                  (!abit.militaryService && militaryServiceJSON.unit !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="militaryServiceJSON.unit"
+                  dense
+                  label="Воинская часть"
+                  @input="sendMilitaryService"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="6">
-              <v-select
-                v-model="militaryServiceJSON.category"
-                dense
-                :items="categories"
-                item-text="title"
-                item-value="value"
-                label="Категория"
-                @input="sendMilitaryService"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.militaryService &&
+                    JSON.parse(abit.militaryService).category !==
+                      militaryServiceJSON.category) ||
+                  (!abit.militaryService && militaryServiceJSON.category !== ``)
+                "
+                dot
+              >
+                <v-select
+                  v-model="militaryServiceJSON.category"
+                  dense
+                  :items="categories"
+                  item-text="title"
+                  item-value="value"
+                  label="Категория"
+                  @input="sendMilitaryService"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="6">
-              <v-checkbox
-                v-model="militaryServiceJSON.dismissed"
-                dense
-                label="Уволен?"
-                @click="sendMilitaryService"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.militaryService &&
+                    JSON.parse(abit.militaryService).dismissed !==
+                      militaryServiceJSON.dismissed) ||
+                  (!abit.militaryService &&
+                    militaryServiceJSON.dismissed !== ``)
+                "
+                dot
+              >
+                <v-checkbox
+                  v-model="militaryServiceJSON.dismissed"
+                  dense
+                  label="Уволен?"
+                  @click="sendMilitaryService"
+                />
+              </v-badge>
             </v-col>
           </v-row>
         </v-card-text>
@@ -802,8 +1020,18 @@ export default {
       mark: {},
       markList: [],
       marks: [5, 4, 3, 2],
-      tabs: 0,
+      tabsEducation: 0,
+      institute: {},
+      editList: true,
+      menuInstitutes: false,
       menuPassportDate: false,
+      dialogMark: false,
+      dialogMarkList: false,
+      headers: [
+        { value: 'subject.name', text: 'Предмет' },
+        { value: 'mark', text: 'Оценка' },
+        { value: 'actions', text: 'Действие' },
+      ],
       document_secrets_access: [
         { value: 'group_1', title: '1 группа' },
         { value: 'group_2', title: '2 группа' },
@@ -830,13 +1058,6 @@ export default {
         { value: 'administrative', title: 'Административная' },
         { value: 'accounting', title: 'Факт учёта в ОПДН' },
       ],
-      dialog: false,
-      dialogList: false,
-      headers: [
-        { value: 'subject.name', text: 'Предмет' },
-        { value: 'mark', text: 'Оценка' },
-        { value: 'actions', text: 'Действие' },
-      ],
       ranks: [
         'Рядовой',
         'Ефрейтор',
@@ -851,8 +1072,11 @@ export default {
         { value: 'conscription', title: 'По призыву' },
         { value: 'contract', title: 'Контракт' },
       ],
-      institute: {},
-      menuInstitutes: false,
+      categoriesEducation: ['СОО', 'СПО'],
+      categoriesUncanceledEducation: ['ВУЗ', 'СПО', 'НПО'],
+      rules: {
+        mark: (value) => value <= 5 || 'Оценка по 5-бальной шкале',
+      },
     }
   },
   computed: {
@@ -863,6 +1087,7 @@ export default {
         : {
             series: '',
             num: '',
+            date_issue: '',
             issued_by: '',
             department_code: '',
             birthplace: '',
@@ -871,7 +1096,37 @@ export default {
     militaryServiceJSON() {
       return this.data.militaryService
         ? JSON.parse(this.data.militaryService)
-        : {}
+        : {
+            rank: '',
+            post: '',
+            place: '',
+            unit: '',
+            category: '',
+            dismissed: '',
+          }
+    },
+    educationJSON() {
+      return this.data.education
+        ? JSON.parse(this.data.education)
+        : {
+            category: '',
+            document_education: '',
+            date_end: '',
+            institute: '',
+          }
+    },
+    uncanceledEducationJSON() {
+      return this.data.uncanceledEducation
+        ? JSON.parse(this.data.uncanceledEducation)
+        : {
+            category: '',
+            date_admission: '',
+            date_end: '',
+            institute: '',
+            period_study: '',
+            course: '',
+            semesters_end: '',
+          }
     },
     years() {
       const array = []
@@ -880,13 +1135,8 @@ export default {
       }
       return array
     },
-    educationJSON() {
-      return this.data.education ? JSON.parse(this.data.education) : {}
-    },
-    uncanceledEducationJSON() {
-      return this.data.uncanceledEducation
-        ? JSON.parse(this.data.uncanceledEducation)
-        : {}
+    computedEditMark() {
+      return this.editList ? 'Добавить' : 'Изменить'
     },
   },
   watch: {
@@ -915,42 +1165,11 @@ export default {
       'fetchInstitutes',
       'addInstitutes',
     ]),
-    badgeColorPassport() {
-      if (
-        (this.abit.document_passport &&
-          this.abit.document_passport !== JSON.stringify(this.passportJSON)) ||
-        (!this.abit.document_passport &&
-          JSON.stringify(this.passportJSON) !==
-            `{"series":"","num":"","issued_by":"","department_code":"","birthplace":""}`)
-      ) {
-        return true
-      } else return false
+    updateMark(event) {
+      this.mark.mark = event
     },
-    badgeColorEducation() {
-      if (
-        (this.abit.education &&
-          this.abit.education !== JSON.stringify(this.educationJSON)) ||
-        (!this.abit.education && JSON.stringify(this.educationJSON) !== '{}')
-      ) {
-        return true
-      } else return false
-    },
-    badgeColorUncanceledEducation() {
-      if (
-        (this.abit.uncanceledEducation &&
-          this.abit.uncanceledEducation !==
-            JSON.stringify(this.uncanceledEducationJSON)) ||
-        (!this.abit.uncanceledEducation &&
-          JSON.stringify(this.uncanceledEducationJSON) !== '{}')
-      ) {
-        return true
-      } else return false
-    },
-    updateMark(fieldName, event) {
-      this.mark[fieldName] = event
-    },
-    updateMarkSubject(fieldName, event) {
-      this.mark[fieldName] = this.subjects[event - 1]
+    updateMarkSubject(event) {
+      this.mark.subject = this.subjects[event - 1]
     },
     formatDate(dateString) {
       if (!dateString) return null
@@ -987,9 +1206,10 @@ export default {
         this.addSchoolMark(this.mark)
         this.mark.mark = ''
         this.mark.subject = ''
+        this.dialogMark = false
       } else {
         this.putSchoolMark(this.mark)
-        this.dialog = false
+        this.dialogMark = false
       }
     },
     saveMarkList() {
@@ -1001,27 +1221,27 @@ export default {
         }
         this.addSchoolMark(M)
       }
+      this.dialogMarkList = false
+      this.dialogMark = false
     },
     editMark(item) {
+      this.editList = false
       this.mark = item
-      this.dialog = true
+      this.dialogMark = true
     },
     send(key, value) {
       this.differences[key] = value
       this.$emit('child-event', this.differences)
       this.differences = {}
+      console.log(value)
     },
     sendPassport() {
       this.data.document_passport = JSON.stringify(this.passportJSON)
-      this.differences.document_passport = this.data.document_passport
-      this.$emit('child-event', this.differences)
-      this.differences = {}
+      this.send('document_passport', this.data.document_passport)
     },
     sendEducation() {
       this.data.education = JSON.stringify(this.educationJSON)
-      this.differences.education = this.data.education
-      this.$emit('child-event', this.differences)
-      this.differences = {}
+      this.send('education', this.data.education)
     },
     sendEducationInstitute(event) {
       this.educationJSON.institute = event
@@ -1032,26 +1252,11 @@ export default {
       this.data.uncanceledEducation = JSON.stringify(
         this.uncanceledEducationJSON
       )
-      this.differences.uncanceledEducation = this.data.uncanceledEducation
-      this.$emit('child-event', this.differences)
-      this.differences = {}
-    },
-    badgeColorMilitaryService() {
-      if (
-        (this.abit.militaryService &&
-          this.abit.militaryService !==
-            JSON.stringify(this.militaryServiceJSON)) ||
-        (!this.abit.militaryService &&
-          JSON.stringify(this.militaryServiceJSON) !== '{}')
-      ) {
-        return true
-      } else return false
+      this.send('uncanceledEducation', this.data.uncanceledEducation)
     },
     sendMilitaryService() {
       this.data.militaryService = JSON.stringify(this.militaryServiceJSON)
-      this.differences.militaryService = this.data.militaryService
-      this.$emit('child-event', this.differences)
-      this.differences = {}
+      this.send('militaryService', this.data.militaryService)
     },
     saveInstitute() {
       const newInstitute = Object.assign({}, this.institute)

@@ -2,51 +2,30 @@
   <v-container fluid>
     <v-row>
       <v-col cols="4">
-        <data-table />
-        <v-dialog
-          v-model="dialogCheckSave"
-          max-width="500px"
-        >
-          <v-card>
-            <v-card-title>Сохранить изменения?</v-card-title>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn
-                text
-                color="primary"
-              >
-                Отмена
-              </v-btn>
-              <v-btn
-                text
-                color="primary"
-              >
-                Сохранить
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        <data-table
+          :message="message"
+          @checkSave="checkSave"
+        />
       </v-col>
       <v-col cols="8">
         <v-card>
           <v-card-title>
             <div>
-              <h2>Abit Profile {{ abit ? abit.id : '' }}</h2>
+              <h2>
+                {{ abit ? abit.lastName : '' }}
+                {{ abit ? abit.firstName : '' }} {{ abit ? abit.surName : '' }}
+                {{ abit ? abit.personal_file_number : '' }}
+              </h2>
             </div>
             <v-spacer />
             <v-btn
               color="blue darken-1"
               text
+              :disabled="message === null"
               @click="save"
             >
               Сохранить
             </v-btn>
-            <router-link
-              v-if="abit"
-              :to="{ name: 'abitEdit', params: { id: abit.id } }"
-            >
-              <v-icon big> mdi-pencil </v-icon>
-            </router-link>
           </v-card-title>
           <v-card-text>
             <v-tabs
@@ -56,28 +35,28 @@
               dark
             >
               <v-tab
-                v-for="(n, index) in headers"
+                v-for="(component, index) in headers"
                 :key="`tab_${index}`"
-                :value="n.value"
+                :value="component.value"
               >
                 <v-badge
                   color="green"
-                  :value="badgeColor(n.value)"
+                  :value="badgeColor(component.value)"
                   dot
                 >
-                  {{ n.text }}
+                  {{ component.text }}
                 </v-badge>
               </v-tab>
             </v-tabs>
             <v-tabs-items v-model="tabs">
               <v-tab-item
-                v-for="(n, index) in headers"
+                v-for="(component, index) in headers"
                 :key="index"
               >
                 <component
-                  :is="n.value"
+                  :is="component.value"
                   :abit="abit || {}"
-                  @child-event="handleChildEvent(n, $event)"
+                  @child-event="handleChildEvent(component, $event)"
                 />
               </v-tab-item>
             </v-tabs-items>
@@ -93,7 +72,6 @@ import Achievements from '@/components/Achievements.vue'
 import Admission from '@/components/Admission.vue'
 import DataTable from '@/components/DataTable.vue'
 import Documents from '@/components/Documents.vue'
-import Military from '@/components/Military.vue'
 import Results from '@/components/Results.vue'
 import { mapActions, mapGetters } from 'vuex'
 import FirstInfo from '../components/FirstInfo.vue'
@@ -103,7 +81,6 @@ export default {
     DataTable,
     FirstInfo,
     Results,
-    Military,
     Documents,
     Admission,
     Achievements,
@@ -111,8 +88,8 @@ export default {
   props: ['id'],
   data() {
     return {
-      message: {},
-      differences: null,
+      ID: 10,
+      message: null,
       tabs: 0,
       editedTabs: [],
       headers: [
@@ -122,7 +99,6 @@ export default {
         { text: 'прибытие', value: 'Admission' },
         { text: 'результаты', value: 'Results' },
       ],
-      dialogCheckSave: false,
     }
   },
   computed: {
@@ -134,7 +110,6 @@ export default {
   watch: {
     id() {
       this.selectAbit(this.id)
-      this.dialogCheckSave = true
     },
     tabs(newVal) {
       localStorage.setItem('tabs', newVal)
@@ -148,10 +123,39 @@ export default {
   },
   methods: {
     ...mapActions(['selectAbit', 'updateAbit']),
-    handleChildEvent(n, data) {
-      this.message = { ...this.message, ...data }
-      if (!this.editedTabs.includes(n.value)) {
-        this.editedTabs.push(n.value)
+    handleChildEvent(tab, data) {
+      if (
+        typeof this.abit[Object.keys(data)[0]] === 'object' &&
+        this.abit[Object.keys(data)[0]] !== null &&
+        this.abit[Object.keys(data)[0]].id === data[Object.keys(data)[0]]
+      ) {
+        if (this.editedTabs.includes(tab.value)) {
+          this.editedTabs.pop(tab.value)
+        }
+        if (this.message !== null) {
+          delete this.message[Object.keys(data)[0]]
+          if (Object.keys(this.message).length === 0) {
+            this.message = null
+          }
+        }
+      } else if (
+        data[Object.keys(data)[0]] !== this.abit[Object.keys(data)[0]] ||
+        (this.abit[Object.keys(data)[0]] === null && data[Object.keys(data)[0]])
+      ) {
+        if (this.message === null || !this.message[Object.keys(data)[0]]) {
+          this.editedTabs.push(tab.value)
+        }
+        this.message = { ...this.message, ...data }
+      } else {
+        if (this.editedTabs.includes(tab.value)) {
+          this.editedTabs.pop(tab.value)
+        }
+        if (this.message !== null) {
+          delete this.message[Object.keys(data)[0]]
+          if (Object.keys(this.message).length === 0) {
+            this.message = null
+          }
+        }
       }
     },
     badgeColor(key) {
@@ -163,7 +167,11 @@ export default {
       this.message.id = this.id
       this.updateAbit(this.message)
       this.editedTabs = []
-      this.message = {}
+      this.message = null
+    },
+    checkSave() {
+      this.message = null
+      this.editedTabs = []
     },
   },
 }

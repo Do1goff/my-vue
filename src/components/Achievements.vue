@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-row no-gutters>
     <v-col cols="6">
@@ -75,7 +76,7 @@
           </v-badge>
         </v-card-text>
       </v-card>
-      <v-card>
+      <v-card height="120px">
         <v-card-text>
           <v-badge
             color="green"
@@ -86,7 +87,7 @@
               v-model="data.note"
               dense
               label="Примечания"
-              rows="2"
+              rows="3"
               @input="send('note', $event)"
             />
           </v-badge>
@@ -99,7 +100,7 @@
         <v-data-table
           :headers="headers"
           :items="personalAchievements"
-          height="303px"
+          height="296px"
           dense
           disable-pagination
           hide-default-footer
@@ -197,8 +198,8 @@ export default {
     return {
       data: {},
       differences: {},
-      menuAchievement: false,
       editAchievement: {},
+      menuAchievement: false,
       headers: [
         { value: 'achievement.name', text: 'Наименование' },
         { value: 'value', text: 'Наличие' },
@@ -265,6 +266,7 @@ export default {
     savePersonalAchievements() {
       this.editAchievement.abitId = this.abit.id
       this.addPersonalAchievements(this.editAchievement)
+      this.editAchievement = {}
     },
   },
 }

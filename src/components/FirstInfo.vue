@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-card>
     <v-row no-gutters>
@@ -281,7 +282,7 @@
                     label="Место жительства"
                     @input="send('residence', $event)"
                   >
-                    <template v-slot:no-data>
+                    <template #no-data>
                       <v-menu
                         v-model="menuAddress"
                         :close-on-content-click="false"
@@ -389,7 +390,7 @@
                       <v-row>
                         <v-col cols="6">
                           <v-select
-                            v-model="militaryCommissariat.district"
+                            v-model="newMilitaryCommissariat.district"
                             :items="districts"
                             item-text="title"
                             item-value="value"
@@ -398,31 +399,31 @@
                         </v-col>
                         <v-col cols="6">
                           <v-text-field
-                            v-model="militaryCommissariat.name"
+                            v-model="newMilitaryCommissariat.name"
                             label="Военкомат"
                           />
                         </v-col>
                         <v-col cols="6">
                           <v-text-field
-                            v-model="militaryCommissariat.telephone"
+                            v-model="newMilitaryCommissariat.telephone"
                             label="телефон"
                           />
                         </v-col>
                         <v-col cols="6">
                           <v-text-field
-                            v-model="militaryCommissariat.director"
+                            v-model="newMilitaryCommissariat.director"
                             label="Начальник"
                           />
                         </v-col>
                         <v-col cols="6">
                           <v-text-field
-                            v-model="militaryCommissariat.address"
+                            v-model="newMilitaryCommissariat.address"
                             label="Адрес"
                           />
                         </v-col>
                         <v-col cols="6">
                           <v-text-field
-                            v-model="militaryCommissariat.email"
+                            v-model="newMilitaryCommissariat.email"
                             label="email"
                           />
                         </v-col>
@@ -466,13 +467,15 @@
                     item-text="name"
                     item-value="id"
                     label="Военный комиссариат"
-                    @input="sendMC('militaryCommissariat', $event)"
+                    @input="
+                      sendMilitaryCommissariat('militaryCommissariat', $event)
+                    "
                   />
                 </v-badge>
               </v-col>
               <v-col cols="3">
                 <v-text-field
-                  :value="MC.district"
+                  :value="militaryCommissariat.district"
                   label="Округ"
                   dense
                   readonly
@@ -480,7 +483,7 @@
               </v-col>
               <v-col cols="9">
                 <v-text-field
-                  :value="MC.address"
+                  :value="militaryCommissariat.address"
                   label="Адрес"
                   dense
                   readonly
@@ -488,7 +491,7 @@
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  :value="MC.telephone"
+                  :value="militaryCommissariat.telephone"
                   label="Телефон"
                   dense
                   readonly
@@ -496,7 +499,7 @@
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  :value="MC.director"
+                  :value="militaryCommissariat.director"
                   label="Начальник"
                   dense
                   readonly
@@ -504,7 +507,7 @@
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  :value="MC.email"
+                  :value="militaryCommissariat.email"
                   label="Email"
                   dense
                   readonly
@@ -520,7 +523,7 @@
             <v-row>
               <v-col>
                 <v-data-table
-                  :headers="headers"
+                  :headers="headersTel"
                   :items="telephones"
                   height="70px"
                   dense
@@ -923,7 +926,7 @@
                     label="Место жительства родителей"
                     @input="send('family_address', $event)"
                   >
-                    <template v-slot:no-data>
+                    <template #no-data>
                       <v-menu
                         v-model="menuAddress"
                         :close-on-content-click="false"
@@ -1035,19 +1038,35 @@ export default {
   },
   data() {
     return {
-      tabsFamily: 0,
-      dialogTelNote: false,
       data: {},
-      telephone: {},
-      member: {},
       differences: {},
       rules: {
         required: (value) => !!value || 'Обязательно.',
       },
+      tabsFamily: 0,
+      member: {},
+      telephone: {},
+      address: {},
+      militaryCommissariat: {},
+      newMilitaryCommissariat: {},
+      dialogMilitaryCommissariat: false,
+      dialogTelNote: false,
+      dialogFamily: false,
       menuPersonal_file_date_reg: false,
       menuBirthday: false,
+      menuAddress: false,
       menuNewMemberBirthday: false,
       menuMemberBirthday: false,
+      headersTel: [
+        { value: 'number', text: 'Номер' },
+        { value: 'note', text: 'Примечание' },
+        { value: 'actions', text: 'Действие' },
+      ],
+      personal_file_existence: [
+        { value: 'print', title: 'бумажное' },
+        { value: 'electro', title: 'электронное' },
+        { value: 'print_and_electro', title: 'бумажное и электронное' },
+      ],
       genders: [
         { value: 'men', title: 'Мужской' },
         { value: 'women', title: 'Женский' },
@@ -1055,11 +1074,6 @@ export default {
       family_status: [
         { value: 'single', title: 'холост' },
         { value: 'married', title: 'женат' },
-      ],
-      personal_file_existence: [
-        { value: 'print', title: 'бумажное' },
-        { value: 'electro', title: 'электронное' },
-        { value: 'print_and_electro', title: 'бумажное и электронное' },
       ],
       secondCitizenship: [
         { value: 'present', title: 'имеет' },
@@ -1075,15 +1089,7 @@ export default {
         { value: 'SERVANT', title: 'Служащих' },
         { value: 'SCIENCE', title: 'Учёных' },
       ],
-      kinships: ['Мать', 'Отец'],
-      headers: [
-        { value: 'number', text: 'Номер' },
-        { value: 'note', text: 'Примечание' },
-        { value: 'actions', text: 'Действие' },
-      ],
-      dialogFamily: false,
-      militaryCommissariat: {},
-      dialogMilitaryCommissariat: false,
+      kinships: ['Мать', 'Отец', 'Сестра', 'Брат', 'Отчим', 'Мачеха'],
       districts: [
         { value: 'central', title: 'Центральный' },
         { value: 'west', title: 'Западный' },
@@ -1091,16 +1097,12 @@ export default {
         { value: 'south', title: 'Южный' },
         { value: 'north', title: 'Северный флот' },
       ],
-      MC: {},
-      address: {},
-      menuAddress: false,
     }
   },
   computed: {
     ...mapGetters([
       'nationality',
       'specialty',
-      'cossack_society',
       'telephones',
       'family',
       'militaryCommissariats',
@@ -1116,9 +1118,9 @@ export default {
         this.fetchTelephones(this.data.id)
         this.fetchFamily(this.data.id)
         if (this.data.militaryCommissariat) {
-          this.MC = this.data.militaryCommissariat
+          this.militaryCommissariat = this.data.militaryCommissariat
         } else {
-          this.MC = {}
+          this.militaryCommissariat = {}
         }
       }
     },
@@ -1129,7 +1131,6 @@ export default {
   created() {
     this.fetchNationality()
     this.fetchSpecialty()
-    this.fetchCossackSociety()
     this.fetchMilitaryCommissariats()
     this.fetchAddresses()
   },
@@ -1137,18 +1138,26 @@ export default {
     ...mapActions([
       'fetchNationality',
       'fetchSpecialty',
-      'fetchCossackSociety',
       'fetchTelephones',
       'addTelephones',
       'putTelephones',
       'fetchFamily',
       'addFamily',
       'putFamily',
-      'addMilitaryCommissariat',
       'fetchMilitaryCommissariats',
+      'addMilitaryCommissariat',
       'fetchAddresses',
       'addAddresses',
     ]),
+    send(key, value) {
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
+    },
+    sendMilitaryCommissariat(key, value) {
+      this.send(key, value)
+      this.militaryCommissariat = this.militaryCommissariats[value - 1]
+    },
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
@@ -1171,17 +1180,6 @@ export default {
     changeDateMember(event) {
       this.member.birthday = new Date(event).toISOString()
       this.menuMemberBirthday = false
-    },
-    send(key, value) {
-      this.differences[key] = value
-      this.$emit('child-event', this.differences)
-      this.differences = {}
-    },
-    sendMC(key, value) {
-      this.differences[key] = value
-      this.$emit('child-event', this.differences)
-      this.MC = this.militaryCommissariats[value - 1]
-      this.differences = {}
     },
     saveTelephone() {
       if (!this.telephone.id) {
@@ -1216,7 +1214,7 @@ export default {
     saveMilitaryCommissariat() {
       const newMilitaryCommissariat = Object.assign(
         {},
-        this.militaryCommissariat
+        this.newMilitaryCommissariat
       )
       this.addMilitaryCommissariat(newMilitaryCommissariat)
       this.dialogMilitaryCommissariat = false

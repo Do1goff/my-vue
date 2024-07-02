@@ -10,20 +10,58 @@
         <v-card-text>
           <v-row>
             <v-col cols="6">
-              <v-text-field
-                v-model="qualificationExamJSON.mark"
-                dense
-                label="КЭ"
-                @input="sendQualificationExam"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.qualificationExam &&
+                    JSON.parse(abit.qualificationExam).mark !==
+                      qualificationExamJSON.mark) ||
+                  (!abit.qualificationExam && qualificationExamJSON.mark !== ``)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="qualificationExamJSON.mark"
+                  :items="[5, 4, 3, 2]"
+                  dense
+                  label="КЭ"
+                  @input="sendQualificationExam"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model="qualificationExamJSON.date"
-                dense
-                label="Дата"
-                @input="sendQualificationExam"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.qualificationExam &&
+                    JSON.parse(abit.qualificationExam).date !==
+                      qualificationExamJSON.date) ||
+                  (!abit.qualificationExam && qualificationExamJSON.date !== ``)
+                "
+                dot
+              >
+                <v-menu
+                  v-model="menuQualificationExam"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template #activator="{ on, attrs }">
+                    <v-text-field
+                      dense
+                      :value="formatDate(qualificationExamJSON.date)"
+                      label="Дата"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    />
+                  </template>
+                  <v-date-picker @input="changeDateQualificationExam" />
+                </v-menu>
+              </v-badge>
             </v-col>
             <v-col cols="6">
               <v-text-field
@@ -83,11 +121,12 @@
                         <v-col cols="6">
                           <v-text-field
                             :value="sportScore.score"
+                            :rules="[rules.score]"
                             label="Баллы"
                             type="number"
                             max="100"
                             min="0"
-                            @input="updateSport('score', parseInt($event, 10))"
+                            @input="updateSport(parseInt($event, 10))"
                           />
                         </v-col>
                         <v-col cols="6">
@@ -97,7 +136,7 @@
                             item-text="name"
                             item-value="id"
                             label="Норматив"
-                            @input="updateSportExercises('exercises', $event)"
+                            @input="updateSportExercises"
                           />
                         </v-col>
                       </v-row>
@@ -108,6 +147,7 @@
                     <v-btn
                       text
                       @click="saveSportScore"
+                      :disabled="!sportScore.score || !sportScore.exercises"
                     >
                       Сохранить
                     </v-btn>
@@ -164,11 +204,12 @@
                         <v-col cols="6">
                           <v-text-field
                             :value="egeMark.mark"
+                            :rules="[rules.score]"
                             label="Оценка"
                             max="100"
                             min="0"
                             type="number"
-                            @input="updateEgeMark('mark', parseInt($event, 10))"
+                            @input="updateEgeMark(parseInt($event, 10))"
                           />
                         </v-col>
                         <v-col cols="6">
@@ -178,7 +219,7 @@
                             item-text="name"
                             item-value="id"
                             label="Предмет"
-                            @input="updateEgeMarkSubject('subject', $event)"
+                            @input="updateEgeMarkSubject"
                           />
                         </v-col>
                         <v-col>
@@ -211,6 +252,9 @@
                     <v-spacer />
                     <v-btn
                       text
+                      :disabled="
+                        !egeMark.mark || !egeMark.subject || !egeMark.date
+                      "
                       @click="saveEgeMark"
                     >
                       Сохранить
@@ -271,15 +315,13 @@
                         <v-col cols="6">
                           <v-text-field
                             :value="entranceTestMark.mark"
+                            :rules="[rules.score]"
                             label="Оценка"
                             max="100"
                             min="0"
                             type="number"
                             @input="
-                              updateEntranceTestMark(
-                                'mark',
-                                parseInt($event, 10)
-                              )
+                              updateEntranceTestMark(parseInt($event, 10))
                             "
                           />
                         </v-col>
@@ -290,9 +332,7 @@
                             item-text="name"
                             item-value="id"
                             label="Предмет"
-                            @input="
-                              updateEntranceTestMarkSubject('subject', $event)
-                            "
+                            @input="updateEntranceTestMarkSubject"
                           />
                         </v-col>
                         <v-col>
@@ -327,6 +367,11 @@
                     <v-spacer />
                     <v-btn
                       text
+                      :disabled="
+                        !entranceTestMark.mark ||
+                        !entranceTestMark.subject ||
+                        !entranceTestMark.date
+                      "
                       @click="saveEntranceTestMark"
                     >
                       Сохранить
@@ -368,12 +413,14 @@ export default {
   data() {
     return {
       data: {},
+      differences: {},
       result: {},
       egeMark: {},
       entranceTestMark: {},
       menuEgeMark: false,
       menuEntranceTestMark: false,
-      sportScore: {},
+      menuQualificationExam: false,
+      sportScore: { score: '', exercises: '' },
       dialog: false,
       dialogEntranceTest: false,
       dialogSport: false,
@@ -388,7 +435,9 @@ export default {
         { value: 'score', text: 'Баллы' },
         { value: 'actions', text: 'Действие' },
       ],
-      SUM: 0,
+      rules: {
+        score: (value) => value <= 100 || '100-бальная шкала',
+      },
     }
   },
   computed: {
@@ -400,9 +449,12 @@ export default {
       'sportScores',
     ]),
     qualificationExamJSON() {
-      return this.abit.qualificationExam
-        ? JSON.parse(this.abit.qualificationExam)
-        : {}
+      return this.data.qualificationExam
+        ? JSON.parse(this.data.qualificationExam)
+        : {
+            mark: '',
+            date: '',
+          }
     },
     sumSportScores() {
       var xew = 0
@@ -433,44 +485,43 @@ export default {
   },
   methods: {
     ...mapActions([
-      'addEgeMark',
-      'putEgeMark',
-      'addEntranceTestMark',
-      'putEntranceTestMark',
-      'addSportScore',
-      'putSportScore',
       'fetchSubjects',
       'fetchExercises',
       'fetchEgeMark',
+      'addEgeMark',
+      'putEgeMark',
       'fetchEntranceTestMark',
+      'addEntranceTestMark',
+      'putEntranceTestMark',
       'fetchSportScore',
+      'addSportScore',
+      'putSportScore',
     ]),
-
-    updateEgeMark(fieldName, event) {
-      this.egeMark[fieldName] = event
+    updateEgeMark(event) {
+      this.egeMark.mark = event
     },
-    updateEgeMarkSubject(fieldName, event) {
-      this.egeMark[fieldName] = this.subjects[event - 1]
+    updateEgeMarkSubject(event) {
+      this.egeMark.subject = this.subjects[event - 1]
     },
     editEgeMark(item) {
       this.egeMark = item
       this.dialog = true
     },
-    updateEntranceTestMark(fieldName, event) {
-      this.entranceTestMark[fieldName] = event
+    updateEntranceTestMark(event) {
+      this.entranceTestMark.mark = event
     },
-    updateEntranceTestMarkSubject(fieldName, event) {
-      this.entranceTestMark[fieldName] = this.subjects[event - 1]
+    updateEntranceTestMarkSubject(event) {
+      this.entranceTestMark.subject = this.subjects[event - 1]
     },
     editEntranceTest(item) {
       this.entranceTestMark = item
       this.dialogEntranceTest = true
     },
-    updateSport(fieldName, event) {
-      this.sportScore[fieldName] = event
+    updateSport(event) {
+      this.sportScore.score = event
     },
-    updateSportExercises(fieldName, event) {
-      this.sportScore[fieldName] = this.exercises[event - 1]
+    updateSportExercises(event) {
+      this.sportScore.exercises = this.exercises[event - 1]
     },
     editSport(item) {
       this.dialogSport = true
@@ -482,6 +533,7 @@ export default {
         this.addEgeMark(this.egeMark)
         this.egeMark.mark = ''
         this.egeMark.subject = ''
+        this.egeMark.date = ''
       } else {
         this.putEgeMark(this.egeMark)
         this.dialog = false
@@ -493,6 +545,7 @@ export default {
         this.addEntranceTestMark(this.entranceTestMark)
         this.entranceTestMark.mark = ''
         this.entranceTestMark.subject = ''
+        this.entranceTestMark.date = ''
       } else {
         this.putEntranceTestMark(this.entranceTestMark)
         this.dialogEntranceTest = false
@@ -503,7 +556,7 @@ export default {
         this.sportScore.abitId = this.abit.id
         this.addSportScore(this.sportScore)
         this.sportScore.score = ''
-        this.sportScore.exercise = ''
+        this.sportScore.exercises = ''
       } else {
         this.putSportScore(this.sportScore)
         this.dialogSport = false
@@ -516,9 +569,7 @@ export default {
     },
     sendQualificationExam() {
       this.data.qualificationExam = JSON.stringify(this.qualificationExamJSON)
-      this.differences.qualificationExam = this.data.qualificationExam
-      this.$emit('child-event', this.differences)
-      this.differences = {}
+      this.send('qualificationExam', this.data.qualificationExam)
     },
     formatDate(dateString) {
       if (!dateString) return null
@@ -533,6 +584,17 @@ export default {
       this.entranceTestMark.date = new Date(event).toISOString()
       this.menuEntranceTestMark = false
     },
+    changeDateQualificationExam(event) {
+      this.qualificationExamJSON.date = new Date(event).toISOString()
+      this.menuQualificationExam = false
+      this.sendQualificationExam()
+    },
   },
 }
 </script>
+
+<style>
+.v-badge {
+  display: block;
+}
+</style>

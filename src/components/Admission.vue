@@ -369,7 +369,7 @@
           </v-badge>
         </v-card-text>
       </v-card>
-      <v-card height="168px">
+      <v-card height="156px">
         <v-card-text>
           <v-badge
             color="green"
@@ -378,6 +378,7 @@
           >
             <v-textarea
               v-model="data.admission_note"
+              hide-details
               label="Примечания"
               rows="3"
               @input="send('admission_note', $event)"
@@ -386,47 +387,60 @@
         </v-card-text>
       </v-card>
       <v-card>
-        <v-card-title>
-          <v-badge
-            color="green"
-            :value="badgeColorExpulsion()"
-            dot
-          >
-            Отчисление
-          </v-badge>
-        </v-card-title>
+        <v-card-title> Отчисление </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="6">
-              <v-text-field
-                v-model="expulsionJSON.reason"
-                label="Причина"
-                dense
-                @input="sendExpulsion"
-              />
+              <v-badge
+                color="green"
+                :value="
+                  (abit.expulsion &&
+                    JSON.parse(abit.expulsion).reason !==
+                      expulsionJSON.reason) ||
+                  (!abit.expulsion && expulsionJSON.reason !== ``)
+                "
+                dot
+              >
+                <v-text-field
+                  v-model="expulsionJSON.reason"
+                  label="Причина"
+                  dense
+                  @input="sendExpulsion"
+                />
+              </v-badge>
             </v-col>
             <v-col cols="6">
-              <v-menu
-                v-model="menuExpulsion"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
+              <v-badge
+                color="green"
+                :value="
+                  (abit.expulsion &&
+                    JSON.parse(abit.expulsion).date !== expulsionJSON.date) ||
+                  (!abit.expulsion && expulsionJSON.date !== ``)
+                "
+                dot
               >
-                <template #activator="{ on, attrs }">
-                  <v-text-field
-                    dense
-                    :value="formatDate(expulsionJSON.date)"
-                    label="Дата"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
-                  />
-                </template>
-                <v-date-picker @input="changeDateExpulsion" />
-              </v-menu>
+                <v-menu
+                  v-model="menuExpulsion"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template #activator="{ on, attrs }">
+                    <v-text-field
+                      dense
+                      :value="formatDate(expulsionJSON.date)"
+                      label="Дата"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    />
+                  </template>
+                  <v-date-picker @input="changeDateExpulsion" />
+                </v-menu>
+              </v-badge>
             </v-col>
           </v-row>
         </v-card-text>
@@ -453,10 +467,10 @@ export default {
       differences: {},
       commission: {},
       examinationGroup: {},
+      menuAdmission: false,
       menuCommission: false,
       menuExaminationGroup: false,
       menuExpulsion: false,
-      menuAdmission: false,
       source_information: [
         { value: 'family', name: 'Родственники' },
         { value: 'friends', name: 'Друзья/знакомые' },
@@ -472,7 +486,9 @@ export default {
   computed: {
     ...mapGetters(['commissions', 'examinationGroups', 'specialty']),
     expulsionJSON() {
-      return this.data.expulsion ? JSON.parse(this.data.expulsion) : {}
+      return this.data.expulsion
+        ? JSON.parse(this.data.expulsion)
+        : { reason: '', date: '' }
     },
   },
   watch: {
@@ -490,21 +506,12 @@ export default {
   },
   methods: {
     ...mapActions([
-      'addAdmissionCommission',
-      'addExaminationGroup',
       'fetchSpecialty',
-      'fetchExaminationGroups',
       'fetchAdmissionCommissions',
+      'addAdmissionCommission',
+      'fetchExaminationGroups',
+      'addExaminationGroup',
     ]),
-    badgeColorExpulsion() {
-      if (
-        (this.abit.expulsion &&
-          this.abit.expulsion !== JSON.stringify(this.expulsionJSON)) ||
-        (!this.abit.expulsion && JSON.stringify(this.expulsionJSON) !== '{}')
-      ) {
-        return true
-      } else return false
-    },
     send(key, value) {
       this.differences[key] = value
       this.$emit('child-event', this.differences)
@@ -512,9 +519,7 @@ export default {
     },
     sendExpulsion() {
       this.data.expulsion = JSON.stringify(this.expulsionJSON)
-      this.differences.expulsion = this.data.expulsion
-      this.$emit('child-event', this.differences)
-      this.differences = {}
+      this.send('expulsion', this.data.expulsion)
     },
     saveCommission() {
       const newCommission = Object.assign({}, this.commission)

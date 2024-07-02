@@ -23,7 +23,29 @@
           label="Поиск"
           class="mx-4"
         />
-
+        <v-dialog
+          v-model="dialogCheck"
+          max-width="500px"
+        >
+          <v-card>
+            <v-card-title>Вернуться, чтобы сохранить изменения?</v-card-title>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="primary"
+                @click="cancelChange"
+              >
+                Вернуться
+              </v-btn>
+              <v-btn
+                color="light-grey"
+                @click="changeAbit"
+              >
+                Продолжить
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <v-dialog
           v-model="dialogAdd"
           max-width="1200px"
@@ -129,22 +151,13 @@
       {{ formatDate(item.birthday) }}
     </template>
     <template #item.actions="{ item }">
-      <router-link
-        :to="{
-          name: 'abit',
-          params: {
-            id: item.id,
-          },
-        }"
+      <v-icon
+        small
+        :class="{ selected: isSelectedAbit(item) }"
+        @click="checkChangeAbit(item)"
       >
-        <v-icon
-          small
-          :class="{ selected: isSelectedAbit(item) }"
-          @click="changeAbit(item)"
-        >
-          mdi-pencil
-        </v-icon>
-      </router-link>
+        mdi-pencil
+      </v-icon>
     </template>
   </v-data-table>
 </template>
@@ -154,12 +167,10 @@ import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'DataTableComponent',
+  props: ['message'],
   data() {
     return {
-      formValid: false,
-      date: null,
-      menu: false,
-      dialogAdd: false,
+      data: {},
       search: '',
       headers: [
         {
@@ -184,17 +195,19 @@ export default {
           value: 'actions',
         },
       ],
-      data: {},
-      editedAbit: {},
+      selectedAbitId: null,
+      menu: false,
+      dialogAdd: false,
+      dialogCheck: false,
       defaultAbit: {
         lastName: '',
         firstName: '',
         surName: '',
       },
-      selectedAbitId: null,
       rules: {
         required: (value) => !!value || 'Обязательно.',
       },
+      formValid: false,
     }
   },
 
@@ -208,19 +221,16 @@ export default {
 
   methods: {
     moment,
-    ...mapActions(['addAbit', 'fetchAbits']),
-
+    ...mapActions(['addAbit', 'fetchAbits', 'selectAbit']),
     changeDate(event) {
       this.data.birthday = new Date(event).toISOString()
       this.menu = false
     },
-
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
       return moment(date).format('DD-MM-YYYY')
     },
-
     async saveAdd() {
       const newAbit = Object.assign({}, this.data)
       newAbit.birthday = new Date(this.data.birthday)
@@ -233,13 +243,30 @@ export default {
       })
       this.selectedAbitId = this.allAbits.length
     },
-
     closeAdd() {
       this.dialogAdd = false
       this.data = Object.assign({}, this.defaultAbit)
     },
-    changeAbit(item) {
-      this.selectedAbitId = item.id
+    checkChangeAbit(item) {
+      if (this.message) {
+        this.dialogCheck = true
+        this.selectedAbitId = item.id
+      } else {
+        this.selectedAbitId = item.id
+        this.changeAbit()
+      }
+    },
+    cancelChange() {
+      this.dialogCheck = false
+      this.selectedAbitId = this.id
+    },
+    async changeAbit() {
+      await this.$router.replace({
+        name: 'abit',
+        params: { id: this.selectedAbitId },
+      })
+      this.dialogCheck = false
+      this.$emit('checkSave')
     },
     saveAbitData() {
       this.formValid = true
