@@ -4,15 +4,20 @@
     :headers="headers"
     :items="$store.getters.allAbits"
     item-key="id"
-    height="500px"
-    fixed-header
     :search="search"
+    height="600px"
+    dense
+    fixed-header
     disable-pagination
     hide-default-footer
+    @click:row="checkChangeAbit($event)"
+    item-class="selected"
   >
     <template #top>
-      <v-toolbar flat>
-        <v-toolbar-title>Список</v-toolbar-title>
+      <v-toolbar>
+        <v-toolbar-title>
+          <p>{{ $store.getters.allAbits.length }}</p></v-toolbar-title
+        >
         <v-divider
           class="mx-4"
           inset
@@ -79,6 +84,7 @@
                           v-model="data.lastName"
                           label="Фамилия"
                           :rules="[rules.required]"
+                          @input="normalizationText"
                         />
                       </v-col>
                       <v-col cols="3">
@@ -95,27 +101,13 @@
                         />
                       </v-col>
                       <v-col cols="3">
-                        <v-menu
-                          v-model="menu"
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          transition="scale-transition"
-                          offset-y
-                          min-width="auto"
-                        >
-                          <template #activator="{ on, attrs }">
-                            <v-text-field
-                              :value="formatDate(data.birthday)"
-                              :rules="[rules.required]"
-                              label="Дата рождения"
-                              prepend-icon="mdi-calendar"
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                            />
-                          </template>
-                          <v-date-picker @input="changeDate" />
-                        </v-menu>
+                        <v-text-field
+                          v-model="data.birthday"
+                          label="Дата рождения"
+                          type="date"
+                          :rules="[rules.required]"
+                          @keyup.enter="saveAbitData"
+                        />
                       </v-col>
                     </v-row>
                   </v-container>
@@ -137,8 +129,6 @@
                 text
                 @click="saveAbitData"
               >
-                <!-- :disabled="isFormValid()" -->
-                <!-- @click="saveAdd" -->
                 Сохранить
               </v-btn>
             </v-card-actions>
@@ -146,18 +136,47 @@
         </v-dialog>
       </v-toolbar>
     </template>
-
-    <template #item.birthday="{ item }">
-      {{ formatDate(item.birthday) }}
-    </template>
-    <template #item.actions="{ item }">
-      <v-icon
-        small
-        :class="{ selected: isSelectedAbit(item) }"
+    <template v-slot:item="{ item }">
+      <tr
+        :class="getClass(item)"
         @click="checkChangeAbit(item)"
+        dense
       >
-        mdi-pencil
-      </v-icon>
+        <td
+          class="fixed-column"
+          style="font-size: 12px; padding: 0; margin: 0; text-align: center"
+        >
+          {{ item.id }}
+        </td>
+        <td
+          class="fixed-column"
+          style="font-size: 12px; padding: 0; margin: 0; text-align: center"
+        >
+          {{ item.personal_file_number }}
+        </td>
+        <td
+          class="fixed-column"
+          style="font-size: 12px; padding: 0; margin: 0; text-align: center"
+        >
+          {{
+            item.admission_examination_group
+              ? item.admission_examination_group.name
+              : ''
+          }}
+        </td>
+        <td
+          class="fixed-column"
+          style="font-size: 12px; padding: 0; margin: 0; text-align: center"
+        >
+          {{ item.lastName }} {{ item.firstName }} {{ item.surName }}
+        </td>
+        <td
+          class="fixed-column"
+          style="font-size: 12px; padding: 0; margin: 0; text-align: center"
+        >
+          {{ formatDate(item.birthday) }}
+        </td>
+      </tr>
     </template>
   </v-data-table>
 </template>
@@ -167,7 +186,14 @@ import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'DataTableComponent',
-  props: ['message'],
+  props: [
+    'message',
+    'educationChild',
+    'residenceChild',
+    'uncanceledEducationChild',
+    'militaryServiceChild',
+    'passportChild',
+  ],
   data() {
     return {
       data: {},
@@ -176,24 +202,44 @@ export default {
         {
           text: 'ID',
           value: 'id',
+          width: '1%',
+          align: 'center',
         },
         {
-          text: 'имя',
-          align: 'start',
-          value: 'firstName',
+          text: '№ ЛД',
+          value: 'personal_file_number',
+          width: '1%',
+          align: 'center',
         },
         {
-          text: 'фамилия',
+          text: 'Группа',
+          value: 'admission_examination_group',
+          width: '1%',
+          align: 'center',
+        },
+        {
+          text: 'ФИО',
           value: 'lastName',
+          align: 'center',
         },
+        // {
+        //   text: 'Имя',
+        //   value: 'firstName',
+        // },
+        // {
+        //   text: 'Отчество',
+        //   value: 'surName',
+        // },
         {
-          text: 'дата рождения',
+          text: 'Дата рождения',
           value: 'birthday',
+          width: '1%',
+          align: 'center',
         },
-        {
-          text: 'Действия',
-          value: 'actions',
-        },
+        // {
+        //   text: 'Действия',
+        //   value: 'actions',
+        // },
       ],
       selectedAbitId: null,
       menu: false,
@@ -208,6 +254,7 @@ export default {
         required: (value) => !!value || 'Обязательно.',
       },
       formValid: false,
+      editBirthday: '',
     }
   },
 
@@ -222,9 +269,10 @@ export default {
   methods: {
     moment,
     ...mapActions(['addAbit', 'fetchAbits', 'selectAbit']),
-    changeDate(event) {
-      this.data.birthday = new Date(event).toISOString()
-      this.menu = false
+    normalizationText(event) {
+      this.data.lastName = event
+        .replace(/\s+/g, '')
+        .replace(/\b\w/g, (l) => l.toUpperCase())
     },
     formatDate(dateString) {
       if (!dateString) return null
@@ -236,9 +284,10 @@ export default {
       newAbit.birthday = new Date(this.data.birthday)
       await this.addAbit(newAbit)
       this.data = Object.assign({}, this.defaultAbit)
+      this.editBirthday = ''
       this.dialogAdd = false
       this.$router.replace({
-        name: 'abit',
+        name: 'component',
         params: { id: this.allAbits.length },
       })
       this.selectedAbitId = this.allAbits.length
@@ -248,12 +297,21 @@ export default {
       this.data = Object.assign({}, this.defaultAbit)
     },
     checkChangeAbit(item) {
-      if (this.message) {
-        this.dialogCheck = true
-        this.selectedAbitId = item.id
-      } else {
-        this.selectedAbitId = item.id
-        this.changeAbit()
+      if (`${item.id}` !== this.$route.path.split('/')[2]) {
+        if (
+          this.message ||
+          this.educationChild ||
+          this.uncanceledEducationChild ||
+          this.residenceChild ||
+          this.passportChild ||
+          this.militaryServiceChild
+        ) {
+          this.dialogCheck = true
+          this.selectedAbitId = item.id
+        } else {
+          this.selectedAbitId = item.id
+          this.changeAbit()
+        }
       }
     },
     cancelChange() {
@@ -261,10 +319,17 @@ export default {
       this.selectedAbitId = this.id
     },
     async changeAbit() {
-      await this.$router.replace({
-        name: 'abit',
-        params: { id: this.selectedAbitId },
-      })
+      if (this.$route.path.split('/')[3]) {
+        await this.$router.replace({
+          name: 'component',
+          params: { id: this.selectedAbitId },
+        })
+      } else {
+        await this.$router.replace({
+          name: 'abit',
+          params: { id: this.selectedAbitId },
+        })
+      }
       this.dialogCheck = false
       this.$emit('checkSave')
     },
@@ -276,18 +341,36 @@ export default {
       }
       this.saveAdd()
     },
-    isFormValid() {
-      return this.formValid
-    },
-    isSelectedAbit(item) {
-      return this.selectedAbitId === item.id
+    getClass(item) {
+      if (this.$route.path.split('/')[2] === `${item.id}`) {
+        return 'selected'
+      } else if (
+        item.expulsion ? JSON.parse(item.expulsion).reason !== null : false
+      ) {
+        return 'expulsed'
+      }
     },
   },
 }
 </script>
 
-<style>
+<style scoped>
 .selected {
   background-color: rgb(115, 220, 255);
+}
+
+.expulsed {
+  background-color: red;
+}
+
+.v-data-table {
+  table-layout: fixed;
+}
+
+.fixed-column {
+  width: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

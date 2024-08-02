@@ -2,81 +2,151 @@
 <template>
   <v-row no-gutters>
     <v-col cols="6">
-      <v-card>
+      <v-card tile>
         <v-card-text>
-          <v-badge
-            color="green"
-            :value="
-              (Object.assign({}, abit.quota).id !== data.quota &&
-                Object.assign({}, abit.quota).id !==
-                  Object.assign({}, data.quota).id) ||
-              (abit.quota === null && data.quota)
-            "
-            dot
-          >
-            <v-autocomplete
-              v-model="data.quota"
-              dense
-              :items="quota"
-              item-text="name"
-              item-value="id"
-              label="Квота"
-              @input="send('quota', $event)"
-            />
-          </v-badge>
+          <v-row>
+            <v-col cols="9">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.establishedQuota).id !==
+                    data.establishedQuota &&
+                    Object.assign({}, abit.establishedQuota).id !==
+                      Object.assign({}, data.establishedQuota).id) ||
+                  (abit.establishedQuota === null && data.establishedQuota)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.establishedQuota"
+                  dense
+                  :items="establishedQuota"
+                  item-text="name"
+                  item-value="id"
+                  label="Установленная квота"
+                  @input="send('establishedQuota', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="3">
+              <v-badge
+                color="green"
+                dot
+                :value="
+                  abit.establishedQuota_test != data.establishedQuota_test
+                "
+              >
+                <v-switch
+                  :disabled="data.establishedQuota == null"
+                  hint="Подтверждение"
+                  persistent-hint
+                  class="no-wrap-hint"
+                  dense
+                  v-model="data.establishedQuota_test"
+                  @change="send('establishedQuota_test', $event)"
+                />
+              </v-badge>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
-      <v-card>
+      <v-card tile>
         <v-card-text>
-          <v-badge
-            color="green"
-            :value="
-              (Object.assign({}, abit.priorityRight).id !==
-                data.priorityRight &&
-                Object.assign({}, abit.priorityRight).id !==
-                  Object.assign({}, data.priorityRight).id) ||
-              (abit.priorityRight === null && data.priorityRight)
-            "
-            dot
-          >
-            <v-autocomplete
-              v-model="data.priorityRight"
-              dense
-              :items="priorityRight"
-              item-text="name"
-              item-value="id"
-              label="Преимущественное право"
-              @input="send('priorityRight', $event)"
-            />
-          </v-badge>
+          <v-row>
+            <v-col cols="9">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.separateQuota).id !==
+                    data.separateQuota &&
+                    Object.assign({}, abit.separateQuota).id !==
+                      Object.assign({}, data.separateQuota).id) ||
+                  (abit.separateQuota === null && data.separateQuota)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.separateQuota"
+                  dense
+                  :items="separateQuota"
+                  item-text="name"
+                  item-value="id"
+                  label="Отдельная квота"
+                  @input="send('separateQuota', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="3">
+              <v-badge
+                color="green"
+                dot
+                :value="abit.separateQuota_test != data.separateQuota_test"
+              >
+                <v-switch
+                  :disabled="data.separateQuota == null"
+                  hint="Подтверждение"
+                  persistent-hint
+                  class="no-wrap-hint"
+                  dense
+                  v-model="data.separateQuota_test"
+                  @change="send('separateQuota_test', $event)"
+                />
+              </v-badge>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
-      <v-card>
+      <v-card tile>
         <v-card-text>
-          <v-badge
-            color="green"
-            :value="
-              (Object.assign({}, abit.cossack_society).id !==
-                data.cossack_society &&
-                Object.assign({}, abit.cossack_society).id !==
-                  Object.assign({}, data.cossack_society).id) ||
-              (abit.cossack_society === null && data.cossack_society)
-            "
-            dot
-          >
-            <v-autocomplete
-              v-model="data.cossack_society"
-              dense
-              :items="cossack_society"
-              item-text="name"
-              item-value="id"
-              label="Казачье общество"
-              @input="send('cossack_society', $event)"
-            />
-          </v-badge>
+          <v-row>
+            <v-col cols="9">
+              <v-badge
+                color="green"
+                :value="
+                  (Object.assign({}, abit.priorityRight).id !==
+                    data.priorityRight &&
+                    Object.assign({}, abit.priorityRight).id !==
+                      Object.assign({}, data.priorityRight).id) ||
+                  (abit.priorityRight === null && data.priorityRight)
+                "
+                dot
+              >
+                <v-autocomplete
+                  class="small-text"
+                  v-model="data.priorityRight"
+                  dense
+                  :items="priorityRight"
+                  item-text="name"
+                  item-value="id"
+                  label="Преимущественное право"
+                  @input="send('priorityRight', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="3">
+              <v-badge
+                color="green"
+                dot
+                :value="abit.priorityRight_test != data.priorityRight_test"
+              >
+                <v-switch
+                  :disabled="data.priorityRight == null"
+                  hint="Подтверждение"
+                  persistent-hint
+                  class="no-wrap-hint"
+                  dense
+                  v-model="data.priorityRight_test"
+                  @change="send('priorityRight_test', $event)"
+                />
+              </v-badge>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
-      <v-card height="120px">
+      <v-card
+        height="120px"
+        tile
+      >
         <v-card-text>
           <v-badge
             color="green"
@@ -96,11 +166,11 @@
     </v-col>
 
     <v-col cols="6">
-      <v-card>
+      <v-card tile>
         <v-data-table
           :headers="headers"
           :items="personalAchievements"
-          height="296px"
+          height="338px"
           dense
           disable-pagination
           hide-default-footer
@@ -115,7 +185,6 @@
                 :nudge-left="150"
                 transition="scale-transition"
                 offset-y
-                min-width="auto"
               >
                 <template #activator="{ on, attrs }">
                   <v-btn
@@ -159,7 +228,7 @@
               </v-menu>
             </v-toolbar>
           </template>
-          <template #item.value="{ item }">
+          <!-- <template #item.value="{ item }">
             <v-switch
               v-model="item.value"
               dense
@@ -167,9 +236,9 @@
                 changeValueListAchievements(item.abitAchievementId, $event)
               "
             />
-          </template>
+          </template> -->
           <template #item.test="{ item }">
-            <v-checkbox
+            <v-switch
               v-model="item.test"
               dense
               @change="
@@ -202,44 +271,48 @@ export default {
       menuAchievement: false,
       headers: [
         { value: 'achievement.name', text: 'Наименование' },
-        { value: 'value', text: 'Наличие' },
-        { value: 'test', text: 'Проверка' },
+        // { value: 'value', text: 'Наличие' },
+        { value: 'test', text: 'Подтверждение' },
       ],
     }
   },
   computed: {
     ...mapGetters([
-      'quota',
+      'establishedQuota',
+      'separateQuota',
       'priorityRight',
       'listAchievements',
       'personalAchievements',
-      'cossack_society',
     ]),
   },
   watch: {
     abit() {
       this.data = { ...this.abit }
-      this.fetchPersonalAchievements(this.data.id)
+    },
+    async data() {
+      if (this.data.id) {
+        this.fetchPersonalAchievements(this.data.id)
+      }
     },
   },
   mounted() {
     this.data = { ...this.abit }
   },
   created() {
-    this.fetchQuota()
+    this.fetchEstablishedQuota()
+    this.fetchSeparateQuota()
     this.fetchPriorityRight()
     this.fetchListAchievements()
-    this.fetchCossackSociety()
   },
   methods: {
     ...mapActions([
-      'fetchQuota',
+      'fetchEstablishedQuota',
+      'fetchSeparateQuota',
       'fetchPriorityRight',
       'fetchListAchievements',
       'fetchPersonalAchievements',
       'addPersonalAchievements',
       'putPersonalAchievements',
-      'fetchCossackSociety',
     ]),
     send(key, value) {
       this.differences[key] = value
@@ -275,5 +348,18 @@ export default {
 <style>
 .v-badge {
   display: block;
+}
+.small-text {
+  font-size: 0.9em;
+}
+.v-row {
+  display: flex;
+  align-items: stretch;
+}
+.v-col {
+  flex: 1;
+}
+.no-wrap-hint .v-messages__message {
+  white-space: nowrap;
 }
 </style>

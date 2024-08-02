@@ -1,15 +1,12 @@
 <!-- eslint-disable vue/valid-v-slot -->
 <template>
-  <v-row
-    no-gutters
-    display:flex
-  >
+  <v-row no-gutters>
     <v-col cols="6">
-      <v-card>
+      <v-card tile>
         <v-card-title> Результаты </v-card-title>
         <v-card-text>
           <v-row>
-            <v-col cols="6">
+            <v-col cols="4">
               <v-badge
                 color="green"
                 :value="
@@ -29,7 +26,7 @@
                 />
               </v-badge>
             </v-col>
-            <v-col cols="6">
+            <v-col cols="4">
               <v-badge
                 color="green"
                 :value="
@@ -40,28 +37,25 @@
                 "
                 dot
               >
-                <v-menu
-                  v-model="menuQualificationExam"
-                  :close-on-content-click="false"
-                  :nudge-right="40"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template #activator="{ on, attrs }">
-                    <v-text-field
-                      dense
-                      :value="formatDate(qualificationExamJSON.date)"
-                      label="Дата"
-                      prepend-icon="mdi-calendar"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                    />
-                  </template>
-                  <v-date-picker @input="changeDateQualificationExam" />
-                </v-menu>
+                <v-text-field
+                  :value="formatDate(qualificationExamJSON.date)"
+                  dense
+                  type="date"
+                  label="Дата"
+                  @input="changeDateQualificationExam"
+                />
               </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-autocomplete
+                v-model="data.admission_examination_group"
+                :items="examinationGroups"
+                dense
+                readonly
+                item-text="name"
+                item-value="id"
+                label="Экзаменационная группа"
+              />
             </v-col>
             <v-col cols="6">
               <v-text-field
@@ -74,10 +68,11 @@
             </v-col>
             <v-col cols="6">
               <v-text-field
-                v-model="result.sportDate"
+                :value="formatDate(data.sport_date)"
                 dense
+                type="date"
                 label="Дата"
-                @input="send"
+                @input="sendSportDate"
               />
             </v-col>
           </v-row>
@@ -85,7 +80,7 @@
       </v-card>
     </v-col>
     <v-col cols="6">
-      <v-card>
+      <v-card tile>
         <v-data-table
           :headers="headersSport"
           :items="sportScores"
@@ -101,6 +96,7 @@
               <v-dialog
                 v-model="dialogSport"
                 max-width="500px"
+                @click:outside="clickOutsideSport"
               >
                 <template #activator="{ on, attrs }">
                   <v-btn
@@ -168,7 +164,7 @@
       </v-card>
     </v-col>
     <v-col cols="6">
-      <v-card>
+      <v-card tile>
         <v-data-table
           :headers="headers"
           :items="egeMarks"
@@ -184,6 +180,7 @@
               <v-dialog
                 v-model="dialog"
                 max-width="500px"
+                @click:outside="clickOutsideEGE"
               >
                 <template #activator="{ on, attrs }">
                   <v-btn
@@ -223,27 +220,11 @@
                           />
                         </v-col>
                         <v-col>
-                          <v-menu
-                            v-model="menuEgeMark"
-                            :close-on-content-click="false"
-                            :nudge-right="40"
-                            transition="scale-transition"
-                            offset-y
-                            min-width="auto"
-                          >
-                            <template #activator="{ on, attrs }">
-                              <v-text-field
-                                dense
-                                :value="formatDate(egeMark.date)"
-                                label="Дата"
-                                prepend-icon="mdi-calendar"
-                                readonly
-                                v-bind="attrs"
-                                v-on="on"
-                              />
-                            </template>
-                            <v-date-picker @input="changeDateEgeMark" />
-                          </v-menu>
+                          <v-autocomplete
+                            v-model="egeMark.date"
+                            :items="years"
+                            label="год"
+                          />
                         </v-col>
                       </v-row>
                     </v-container>
@@ -265,7 +246,7 @@
             </v-toolbar>
           </template>
           <template #item.date="{ item }">
-            {{ formatDate(item.date) }}
+            {{ formatDateEGE(item.date) }}
           </template>
           <template #item.actions="{ item }">
             <v-icon
@@ -279,9 +260,9 @@
       </v-card>
     </v-col>
     <v-col cols="6">
-      <v-card>
+      <v-card tile>
         <v-data-table
-          :headers="headers"
+          :headers="headersEntranceTest"
           :items="entranceTestMarks"
           height="220px"
           dense
@@ -295,6 +276,7 @@
               <v-dialog
                 v-model="dialogEntranceTest"
                 max-width="500px"
+                @click:outside="clickOutsideEntranceTest"
               >
                 <template #activator="{ on, attrs }">
                   <v-btn
@@ -335,8 +317,24 @@
                             @input="updateEntranceTestMarkSubject"
                           />
                         </v-col>
-                        <v-col>
-                          <v-menu
+                        <v-col cols="6">
+                          <v-select
+                            :value="entranceTestMark.form"
+                            :items="formsEntranceTest"
+                            item-text="name"
+                            item-value="id"
+                            label="Форма"
+                            @input="updateEntranceTestForm"
+                          />
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field
+                            :value="formatDate(entranceTestMark.date)"
+                            label="Дата"
+                            type="date"
+                            @input="changeDateEntranceTestMark"
+                          />
+                          <!-- <v-menu
                             v-model="menuEntranceTestMark"
                             :close-on-content-click="false"
                             :nudge-right="40"
@@ -346,7 +344,6 @@
                           >
                             <template #activator="{ on, attrs }">
                               <v-text-field
-                                dense
                                 :value="formatDate(entranceTestMark.date)"
                                 label="Дата"
                                 prepend-icon="mdi-calendar"
@@ -358,7 +355,7 @@
                             <v-date-picker
                               @input="changeDateEntranceTestMark"
                             />
-                          </v-menu>
+                          </v-menu> -->
                         </v-col>
                       </v-row>
                     </v-container>
@@ -367,11 +364,6 @@
                     <v-spacer />
                     <v-btn
                       text
-                      :disabled="
-                        !entranceTestMark.mark ||
-                        !entranceTestMark.subject ||
-                        !entranceTestMark.date
-                      "
                       @click="saveEntranceTestMark"
                     >
                       Сохранить
@@ -430,6 +422,13 @@ export default {
         { value: 'date', text: 'Дата' },
         { value: 'actions', text: 'Действие' },
       ],
+      headersEntranceTest: [
+        { value: 'subject.name', text: 'Предмет' },
+        { value: 'mark', text: 'Оценка' },
+        { value: 'date', text: 'Дата' },
+        { value: 'form.name', text: 'Форма' },
+        { value: 'actions', text: 'Действие' },
+      ],
       headersSport: [
         { value: 'exercises.name', text: 'Норматив' },
         { value: 'score', text: 'Баллы' },
@@ -447,6 +446,8 @@ export default {
       'egeMarks',
       'entranceTestMarks',
       'sportScores',
+      'examinationGroups',
+      'formsEntranceTest',
     ]),
     qualificationExamJSON() {
       return this.data.qualificationExam
@@ -462,6 +463,13 @@ export default {
         xew += this.sportScores[i].score
       }
       return xew
+    },
+    years() {
+      const array = []
+      for (let i = moment().year() - 5; i <= moment().year(); i++) {
+        array.push(i.toString())
+      }
+      return array
     },
   },
   watch: {
@@ -482,6 +490,8 @@ export default {
   created() {
     this.fetchSubjects()
     this.fetchExercises()
+    this.fetchExaminationGroups()
+    this.fetchFormsEntranceTest()
   },
   methods: {
     ...mapActions([
@@ -496,7 +506,18 @@ export default {
       'fetchSportScore',
       'addSportScore',
       'putSportScore',
+      'fetchExaminationGroups',
+      'fetchFormsEntranceTest',
     ]),
+    clickOutsideSport() {
+      this.sportScore = { score: 0, exercises: '' }
+    },
+    clickOutsideEGE() {
+      this.egeMark = { mark: 0, subject: '', date: '' }
+    },
+    clickOutsideEntranceTest() {
+      this.entranceTestMark = { mark: 0, subject: '', date: '' }
+    },
     updateEgeMark(event) {
       this.egeMark.mark = event
     },
@@ -505,16 +526,22 @@ export default {
     },
     editEgeMark(item) {
       this.egeMark = item
+      this.egeMark.subject = this.subjects[item.subject.id - 1]
+      this.egeMark.date = this.formatDateEGE(item.date)
       this.dialog = true
     },
     updateEntranceTestMark(event) {
       this.entranceTestMark.mark = event
+    },
+    updateEntranceTestForm(event) {
+      this.entranceTestMark.form = this.formsEntranceTest[event - 1]
     },
     updateEntranceTestMarkSubject(event) {
       this.entranceTestMark.subject = this.subjects[event - 1]
     },
     editEntranceTest(item) {
       this.entranceTestMark = item
+      this.entranceTestMark.subject.id = item.subject.id
       this.dialogEntranceTest = true
     },
     updateSport(event) {
@@ -530,6 +557,9 @@ export default {
     saveEgeMark() {
       if (!this.egeMark.abitSubjectId) {
         this.egeMark.abitId = this.abit.id
+        this.egeMark.date = moment(this.egeMark.date, 'YYYY').format(
+          'YYYY-MM-DD'
+        )
         this.addEgeMark(this.egeMark)
         this.egeMark.mark = ''
         this.egeMark.subject = ''
@@ -546,6 +576,7 @@ export default {
         this.entranceTestMark.mark = ''
         this.entranceTestMark.subject = ''
         this.entranceTestMark.date = ''
+        this.entranceTestMark.form = ''
       } else {
         this.putEntranceTestMark(this.entranceTestMark)
         this.dialogEntranceTest = false
@@ -562,6 +593,10 @@ export default {
         this.dialogSport = false
       }
     },
+    sendSportDate(value) {
+      this.data.sport_date = value
+      this.send('sport_date', this.data.sport_date)
+    },
     send(key, value) {
       this.differences[key] = value
       this.$emit('child-event', this.differences)
@@ -571,22 +606,27 @@ export default {
       this.data.qualificationExam = JSON.stringify(this.qualificationExamJSON)
       this.send('qualificationExam', this.data.qualificationExam)
     },
+    formatDateEGE(dateString) {
+      if (!dateString) return null
+      const date = new Date(dateString)
+      return moment(date).format('YYYY')
+    },
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
-      return moment(date).format('DD-MM-YYYY')
+      return moment(date).format('YYYY-MM-DD')
     },
     changeDateEgeMark(event) {
-      this.egeMark.date = new Date(event).toISOString()
+      // this.egeMark.date = new Date(event).toISOString()
+      this.egeMark.date = moment(event, 'YYYY').format('YYYY-MM-DD')
       this.menuEgeMark = false
     },
     changeDateEntranceTestMark(event) {
-      this.entranceTestMark.date = new Date(event).toISOString()
-      this.menuEntranceTestMark = false
+      this.entranceTestMark.date = event
+      // this.menuEntranceTestMark = false
     },
     changeDateQualificationExam(event) {
-      this.qualificationExamJSON.date = new Date(event).toISOString()
-      this.menuQualificationExam = false
+      this.qualificationExamJSON.date = event
       this.sendQualificationExam()
     },
   },
