@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-card>
     <v-row no-gutters>
@@ -16,7 +15,7 @@
               </v-col>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.personal_file_reg !== data.personal_file_reg"
                   dot
                 >
@@ -30,7 +29,7 @@
               </v-col>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     formatDate(abit.personal_file_date_reg) !==
                     formatDate(data.personal_file_date_reg)
@@ -55,7 +54,7 @@
             <v-row>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.lastName !== data.lastName"
                   dot
                 >
@@ -69,7 +68,7 @@
               </v-col>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.firstName !== data.firstName"
                   dot
                 >
@@ -83,7 +82,7 @@
               </v-col>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.surName !== data.surName"
                   dot
                 >
@@ -97,7 +96,7 @@
               </v-col>
               <v-col cols="2">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     abit.personal_file_number !== data.personal_file_number
                   "
@@ -117,7 +116,7 @@
               </v-col>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     formatDate(abit.birthday) !== formatDate(data.birthday)
                   "
@@ -134,7 +133,7 @@
               </v-col>
               <v-col cols="6">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     abit.personal_file_existence !==
                     data.personal_file_existence
@@ -146,8 +145,6 @@
                     v-model="data.personal_file_existence"
                     dense
                     :items="personal_file_existence"
-                    item-text="title"
-                    item-value="value"
                     label="Наличие личного дела"
                     @input="send('personal_file_existence', $event)"
                   />
@@ -161,7 +158,7 @@
             <v-row>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     (Object.assign({}, abit.nationality).id !==
                       data.nationality &&
@@ -187,7 +184,7 @@
               </v-col>
               <v-col cols="3">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.gender !== data.gender"
                   dot
                 >
@@ -196,8 +193,6 @@
                     v-model="data.gender"
                     dense
                     :items="genders"
-                    item-text="title"
-                    item-value="value"
                     label="пол"
                     @input="send('gender', $event)"
                   />
@@ -205,7 +200,7 @@
               </v-col>
               <v-col cols="3">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.family_status !== data.family_status"
                   dot
                 >
@@ -223,7 +218,7 @@
               </v-col>
               <v-col cols="2">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     String(abit.abit_childrens) !== String(data.abit_childrens)
                   "
@@ -251,7 +246,7 @@
             <v-row>
               <v-col cols="9">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="this.editResidence.residence ? true : false"
                   dot
                 >
@@ -266,7 +261,7 @@
               </v-col>
               <v-col cols="3">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.secondCitizenship !== data.secondCitizenship"
                   dot
                 >
@@ -296,7 +291,7 @@
             <v-row>
               <v-col cols="12">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     (Object.assign({}, abit.militaryCommissariat).id !==
                       data.militaryCommissariat &&
@@ -376,7 +371,7 @@
         <v-card tile>
           <v-card-text>
             <v-badge
-              color="green"
+              color="success"
               :value="
                 (Object.assign({}, abit.cossack_society).id !==
                   data.cossack_society &&
@@ -436,39 +431,47 @@
                             Добавить
                           </v-btn>
                         </template>
-                        <v-card>
-                          <v-card-title> Добавить </v-card-title>
-                          <v-card-text>
-                            <v-container>
-                              <v-row>
-                                <v-col cols="6">
-                                  <v-text-field
-                                    v-model="telephone.number"
-                                    v-mask="'+7 (###) ###-##-##'"
-                                    label="Телефон"
-                                    @keyup.enter="saveTelephone"
-                                  />
-                                </v-col>
-                                <v-col cols="6">
-                                  <v-text-field
-                                    v-model="telephone.note"
-                                    label="Примечание"
-                                    @keyup.enter="saveTelephone"
-                                  />
-                                </v-col>
-                              </v-row>
-                            </v-container>
-                          </v-card-text>
-                          <v-card-actions>
-                            <v-spacer />
-                            <v-btn
-                              text
-                              @click="saveTelephone"
-                            >
-                              Сохранить
-                            </v-btn>
-                          </v-card-actions>
-                        </v-card>
+                        <v-form
+                          ref="formTel"
+                          v-model="formTelValid"
+                          @submit.prevent="saveTelephone"
+                        >
+                          <v-card>
+                            <v-card-title> Добавить </v-card-title>
+                            <v-card-text>
+                              <v-container>
+                                <v-row>
+                                  <v-col cols="6">
+                                    <v-text-field
+                                      v-model="telephone.number"
+                                      v-mask="'+7 (###) ###-##-##'"
+                                      label="Телефон"
+                                      :rules="[rules.requiredTel]"
+                                      @keyup.enter="saveTelephone"
+                                    />
+                                  </v-col>
+                                  <v-col cols="6">
+                                    <v-text-field
+                                      v-model="telephone.note"
+                                      label="Примечание"
+                                      @keyup.enter="saveTelephone"
+                                    />
+                                  </v-col>
+                                </v-row>
+                              </v-container>
+                            </v-card-text>
+                            <v-card-actions>
+                              <v-spacer />
+                              <v-btn
+                                text
+                                @click="saveTelephone"
+                                :disabled="!formTelValid"
+                              >
+                                Сохранить
+                              </v-btn>
+                            </v-card-actions>
+                          </v-card>
+                        </v-form>
                       </v-dialog>
                     </v-toolbar>
                   </template>
@@ -494,7 +497,7 @@
             <v-tabs
               v-model="tabsFamily"
               fixed-tabs
-              background-color="indigo"
+              background-color="info"
               dark
             >
               <v-tab
@@ -506,7 +509,7 @@
               </v-tab>
               <v-btn
                 @click="openDialogAddMember"
-                color="black"
+                color="secondary"
                 text
                 height="48px"
                 >Добавить</v-btn
@@ -644,7 +647,11 @@
                                           Добавить
                                         </v-btn>
                                       </template>
-                                      <v-card>
+                                      <v-form
+                                        ref="formStatus"
+                                        v-model="formStatusValid"
+                                        @submit.prevent="saveStatus"
+                                      >
                                         <v-card>
                                           <v-card-title>
                                             <span class="text-h5"
@@ -660,26 +667,28 @@
                                                     v-model="status.name"
                                                     dense
                                                     label="Статус"
+                                                    :rules="[rules.required]"
                                                     @keyup.enter="saveStatus"
                                                   />
                                                 </v-col>
                                               </v-row>
                                             </v-container>
                                           </v-card-text>
-                                        </v-card>
 
-                                        <v-card-actions>
-                                          <v-spacer />
-                                          <v-btn
-                                            color="blue darken-1"
-                                            text
-                                            dense
-                                            @click="saveStatus"
-                                          >
-                                            Сохранить
-                                          </v-btn>
-                                        </v-card-actions>
-                                      </v-card>
+                                          <v-card-actions>
+                                            <v-spacer />
+                                            <v-btn
+                                              color="primary"
+                                              text
+                                              dense
+                                              @click="saveStatus"
+                                              :disabled="!formStatusValid"
+                                            >
+                                              Сохранить
+                                            </v-btn>
+                                          </v-card-actions>
+                                        </v-card>
+                                      </v-form>
                                     </v-menu>
                                   </template>
                                 </v-autocomplete>
@@ -739,146 +748,160 @@
                 max-width="500px"
                 @click:outside="clickOutsideFamily"
               >
-                <v-card>
-                  <v-card-title> Добавить </v-card-title>
-                  <v-card-text>
-                    <v-row>
-                      <v-col cols="4">
-                        <v-select
-                          v-model="member.kinship"
-                          :items="kinships"
-                          label="Родство"
-                          @keyup.enter="addMember"
-                        />
-                      </v-col>
-                      <v-col cols="4">
-                        <v-text-field
-                          :value="formatDate(member.birthday)"
-                          type="date"
-                          label="Дата рождения"
-                          :disabled="member.kinship == null"
-                          @input="changeDateMemberBirthday"
-                          @keyup.enter="addMember"
-                        />
-                      </v-col>
-                      <v-col cols="2">
-                        <v-checkbox
-                          v-model="member.fail"
-                          :disabled="member.kinship == null"
-                          hint="Гибель"
-                          persistent-hint
-                          @keyup.enter="addMember"
-                        />
-                      </v-col>
-                      <v-col cols="2" />
-                      <v-col cols="4">
-                        <v-text-field
-                          v-model="member.lastName"
-                          :disabled="member.kinship == null"
-                          dense
-                          label="Фамилия"
-                          @keyup.enter="addMember"
-                        />
-                      </v-col>
-                      <v-col cols="4">
-                        <v-text-field
-                          v-model="member.firstName"
-                          :disabled="member.kinship == null"
-                          dense
-                          label="Имя"
-                          @keyup.enter="addMember"
-                        />
-                      </v-col>
-                      <v-col cols="4">
-                        <v-text-field
-                          v-model="member.surName"
-                          :disabled="member.kinship == null"
-                          dense
-                          label="Отчество"
-                          @keyup.enter="addMember"
-                        />
-                      </v-col>
-                      <v-col cols="12">
-                        <v-autocomplete
-                          v-model="member.status"
-                          :disabled="member.kinship == null"
-                          :items="statuses"
-                          item-text="name"
-                          item-value="name"
-                          dense
-                          label="Статус"
-                          @keyup.enter="addMember"
-                        >
-                          <template #no-data>
-                            <v-menu
-                              v-model="menuStatus"
-                              :close-on-content-click="false"
-                              :nudge-right="40"
-                              transition="scale-transition"
-                              offset-y
-                              min-width="500"
-                            >
-                              <template #activator="{ on, attrs }">
-                                <v-btn
-                                  color="primary"
-                                  dark
-                                  class="mb-2"
-                                  v-bind="attrs"
-                                  v-on="on"
-                                >
-                                  Добавить
-                                </v-btn>
-                              </template>
-                              <v-card>
-                                <v-card>
-                                  <v-card-title>
-                                    <span class="text-h5">Добавить</span>
-                                  </v-card-title>
-
-                                  <v-card-text>
-                                    <v-container>
-                                      <v-row>
-                                        <v-col cols="12">
-                                          <v-text-field
-                                            v-model="status.name"
-                                            dense
-                                            label="Статус"
-                                            @keyup.enter="saveStatus"
-                                          />
-                                        </v-col>
-                                      </v-row>
-                                    </v-container>
-                                  </v-card-text>
-                                </v-card>
-
-                                <v-card-actions>
-                                  <v-spacer />
+                <v-form
+                  ref="formFamily"
+                  v-model="formFamilyValid"
+                  @submit.prevent="addMember"
+                >
+                  <v-card>
+                    <v-card-title> Добавить </v-card-title>
+                    <v-card-text>
+                      <v-row>
+                        <v-col cols="4">
+                          <v-select
+                            v-model="member.kinship"
+                            :items="kinships"
+                            label="Родство"
+                            :rules="[rules.required]"
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="4">
+                          <v-text-field
+                            :value="formatDate(member.birthday)"
+                            type="date"
+                            label="Дата рождения"
+                            :disabled="member.kinship == null"
+                            @input="changeDateMemberBirthday"
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="2">
+                          <v-checkbox
+                            v-model="member.fail"
+                            :disabled="member.kinship == null"
+                            hint="Гибель"
+                            persistent-hint
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="2" />
+                        <v-col cols="4">
+                          <v-text-field
+                            v-model="member.lastName"
+                            :disabled="member.kinship == null"
+                            dense
+                            label="Фамилия"
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="4">
+                          <v-text-field
+                            v-model="member.firstName"
+                            :disabled="member.kinship == null"
+                            dense
+                            label="Имя"
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="4">
+                          <v-text-field
+                            v-model="member.surName"
+                            :disabled="member.kinship == null"
+                            dense
+                            label="Отчество"
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="12">
+                          <v-autocomplete
+                            v-model="member.status"
+                            :disabled="member.kinship == null"
+                            :items="statuses"
+                            item-text="name"
+                            item-value="name"
+                            dense
+                            label="Статус"
+                            @keyup.enter="addMember"
+                          >
+                            <template #no-data>
+                              <v-menu
+                                v-model="menuStatus"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                transition="scale-transition"
+                                offset-y
+                                min-width="500"
+                              >
+                                <template #activator="{ on, attrs }">
                                   <v-btn
-                                    color="blue darken-1"
-                                    text
-                                    dense
-                                    @click="saveStatus"
+                                    color="primary"
+                                    dark
+                                    class="mb-2"
+                                    v-bind="attrs"
+                                    v-on="on"
                                   >
-                                    Сохранить
+                                    Добавить
                                   </v-btn>
-                                </v-card-actions>
-                              </v-card>
-                            </v-menu>
-                          </template>
-                        </v-autocomplete>
-                      </v-col>
-                    </v-row>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn
-                      text
-                      @click="addMember"
-                    >
-                      Сохранить
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
+                                </template>
+                                <v-form
+                                  ref="formStatus2"
+                                  v-model="formStatus2Valid"
+                                  @submit.prevent="saveStatus"
+                                >
+                                  <v-card>
+                                    <v-card-title>
+                                      <span class="text-h5">Добавить</span>
+                                    </v-card-title>
+
+                                    <v-card-text>
+                                      <v-container>
+                                        <v-row>
+                                          <v-col cols="12">
+                                            <v-text-field
+                                              v-model="status.name"
+                                              dense
+                                              label="Статус"
+                                              :rules="[rules.required]"
+                                              @keyup.enter="saveStatus"
+                                            />
+                                          </v-col>
+                                        </v-row>
+                                      </v-container>
+                                    </v-card-text>
+
+                                    <v-card-actions>
+                                      <v-spacer />
+                                      <v-btn
+                                        color="primary"
+                                        text
+                                        dense
+                                        @click="saveStatus"
+                                        :disabled="!formStatus2Valid"
+                                      >
+                                        Сохранить
+                                      </v-btn>
+                                    </v-card-actions>
+                                  </v-card>
+                                </v-form>
+                              </v-menu>
+                            </template>
+                          </v-autocomplete>
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn
+                        text
+                        @click="addMember"
+                        :disabled="!formFamilyValid"
+                      >
+                        Сохранить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-dialog>
             </v-tabs-items>
           </v-card-text>
@@ -888,7 +911,7 @@
             <v-row>
               <v-col cols="8">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     abit.family_social_status !== data.family_social_status
                   "
@@ -907,7 +930,7 @@
               </v-col>
               <v-col cols="4">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     String(abit.family_childrens) !==
                     String(data.family_childrens)
@@ -926,7 +949,7 @@
               </v-col>
               <v-col cols="12">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="abit.family_address !== data.family_address"
                   dot
                 >
@@ -938,82 +961,6 @@
                     @input="send('family_address', $event)"
                   />
                 </v-badge>
-                <!-- <Location
-                  :abit="this.abit || {}"
-                  @send-locationObject="getLocationFamily($event)"
-                  @send-locationText="getLocationTextFamily($event)"
-                /> -->
-                <!-- <v-badge
-                  color="green"
-                  :value="abit.family_address !== data.family_address"
-                  dot
-                >
-                  <v-autocomplete
-                    v-model="data.family_address"
-                    :items="addresses"
-                    item-text="name"
-                    item-value="name"
-                    dense
-                    label="Место жительства родителей"
-                    @input="send('family_address', $event)"
-                  >
-                    <template #no-data>
-                      <v-menu
-                        v-model="menuAddressFamily"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="500"
-                      >
-                        <template #activator="{ on, attrs }">
-                          <v-btn
-                            color="primary"
-                            dark
-                            class="mb-2"
-                            v-bind="attrs"
-                            v-on="on"
-                          >
-                            Добавить
-                          </v-btn>
-                        </template>
-                        <v-card>
-                          <v-card>
-                            <v-card-title>
-                              <span class="text-h5">Добавить</span>
-                            </v-card-title>
-
-                            <v-card-text>
-                              <v-container>
-                                <v-row>
-                                  <v-col cols="12">
-                                    <v-text-field
-                                      v-model="address.name"
-                                      dense
-                                      label="Адрес"
-                                    />
-                                  </v-col>
-                                </v-row>
-                              </v-container>
-                            </v-card-text>
-                          </v-card>
-
-                          <v-card-actions>
-                            <v-spacer />
-                            <v-btn
-                              color="blue darken-1"
-                              text
-                              dense
-                              @click="saveAddress"
-                            >
-                              Сохранить
-                            </v-btn>
-                          </v-card-actions>
-                        </v-card>
-                      </v-menu>
-                    </template>
-                  </v-autocomplete>
-                </v-badge> -->
               </v-col>
             </v-row>
           </v-card-text>
@@ -1023,7 +970,7 @@
             <v-row>
               <v-col cols="12">
                 <v-badge
-                  color="green"
+                  color="success"
                   :value="
                     (Object.assign({}, abit.specialty_military_commissariat)
                       .id !== data.specialty_military_commissariat &&
@@ -1042,6 +989,7 @@
                     :items="specialty"
                     :item-text="nameSpecialty"
                     item-value="id"
+                    clearable
                     label="Желаемая специальность"
                     @input="send('specialty_military_commissariat', $event)"
                   />
@@ -1075,8 +1023,14 @@ export default {
     return {
       data: {},
       differences: {},
+      formTelValid: false,
+      formFamilyValid: false,
+      formStatusValid: false,
+      formStatus2Valid: false,
       rules: {
         required: (value) => !!value || 'Обязательно.',
+        requiredTel: (value) =>
+          (!!value && value.length == 18) || 'Некорректный номер',
       },
       tabsFamily: 0,
       member: {},
@@ -1095,51 +1049,14 @@ export default {
         { value: 'note', text: 'Примечание' },
         { value: 'actions', text: 'Действие' },
       ],
-      personal_file_existence: [
-        { value: 'absent', title: 'отсутствует' },
-        { value: 'print', title: 'бумажное' },
-        { value: 'electro', title: 'электронное' },
-        { value: 'electro_print_and', title: 'электронное и бумажное' },
-      ],
-      genders: [
-        { value: 'men', title: 'Мужской' },
-        { value: 'women', title: 'Женский' },
-      ],
-      family_status: [
-        { value: 'single', title: 'холост' },
-        { value: 'married', title: 'женат' },
-        { value: 'divorced', title: 'разведён' },
-        { value: 'widower', title: 'вдовец' },
-      ],
-      secondCitizenship: [
-        { value: 'check', title: 'проверить' },
-        { value: 'present', title: 'имеет' },
-        { value: 'absent', title: 'не имеет' },
-      ],
-      family_social_status: [
-        { value: 'military', title: 'Военнослужащих' },
-        { value: 'civil_servant', title: 'Госслужащих' },
-        { value: 'teacher', title: 'Преподавателей' },
-        { value: 'service', title: 'Работников сферы услуг' },
-        { value: 'trader', title: 'Работников сферы торговли' },
-        { value: 'work', title: 'Рабочих' },
-        { value: 'SERVANT', title: 'Служащих' },
-        { value: 'SCIENCE', title: 'Учёных' },
-      ],
+      personal_file_existence: ['Отсутствует', 'Бумажное', 'Электронное'],
+      genders: ['Мужской', 'Женский'],
+      family_status: ['Холост', 'Женат', 'Разведён', 'Вдовец'],
+      secondCitizenship: ['Проверить', 'Имеет', 'Отсутствует'],
       kinships: ['Мать', 'Отец', 'Сестра', 'Брат', 'Отчим', 'Мачеха'],
-      // districts: [
-      //   { value: 'central', title: 'Центральный' },
-      //   { value: 'west', title: 'Западный' },
-      //   { value: 'east', title: 'Восточный' },
-      //   { value: 'south', title: 'Южный' },
-      //   { value: 'north', title: 'Северный флот' },
-      // ],
       residenceLocation: '',
       locationObjectResidence: {},
       editResidence: {},
-      //familyAddressLocation: '',
-      // locationObjectFamilyAddress: {},
-      //editFamilyAddress: {},
     }
   },
   computed: {
@@ -1167,10 +1084,8 @@ export default {
     },
     async data() {
       if (this.data.id) {
-        console.log({})
-        console.log(this.editResidence.region)
-        console.log(Object.assign({}, this.editResidence) != {})
         this.fetchTelephones(this.data.id)
+        console.log(this.telephones)
         this.fetchFamily(this.data.id)
 
         if (this.data.residence) {
@@ -1233,7 +1148,6 @@ export default {
     this.fetchNationality()
     this.fetchSpecialty()
     this.fetchMilitaryCommissariats()
-    this.fetchAddresses()
     this.fetchStatuses()
     this.fetchFamilySocialStatus()
     this.fetchLocations()
@@ -1255,8 +1169,6 @@ export default {
       'fetchMilitaryCommissariats',
       'addMilitaryCommissariat',
       'selectMilitaryCommissariat',
-      'fetchAddresses',
-      'addAddresses',
       'fetchStatuses',
       'addStatuses',
       'fetchFamilySocialStatus',
@@ -1278,6 +1190,12 @@ export default {
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
+    sendDate(key, value) {
+      this.data[key] = value
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
+    },
     clickOutsideFamily() {
       this.member = {}
       this.dialogFamily = false
@@ -1286,10 +1204,6 @@ export default {
     clickOutsideTelephone() {
       this.telephone = { number: '', note: '' }
       this.dialogTelNote = false
-    },
-    sendDate(key, value) {
-      this.data[key] = value
-      this.send(key, this.data[key])
     },
     sendMilitaryCommissariat(key, value) {
       this.send(key, value)
@@ -1337,13 +1251,6 @@ export default {
       this.member = {}
       this.dialogAddMember = false
     },
-    saveAddress() {
-      const newAddress = Object.assign({}, this.address)
-      this.addAddresses(newAddress)
-      this.menuAddress = false
-      this.fetchAddresses()
-      this.address = {}
-    },
     saveStatus() {
       const newStatus = Object.assign({}, this.status)
       this.addStatuses(newStatus)
@@ -1364,20 +1271,6 @@ export default {
       data[key] = event
       this.$emit('child-residence', event)
     },
-    // getLocationFamily(event) {
-    //   this.locationObjectFamilyAddress = event
-    //   this.sendFamilyAddress('family_address', event)
-    // },
-    // getLocationTextFamily(event) {
-    //   console.log(event)
-    //   this.familyAddressLocation = `${event}`
-    // },
-    // sendFamilyAddress(key, event) {
-    //   this.editFamilyAddress[key] = event
-    //   const data = {}
-    //   data[key] = event
-    //   this.$emit('child-residence', data)
-    // },
   },
 }
 </script>

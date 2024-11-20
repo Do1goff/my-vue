@@ -6,7 +6,7 @@
           <v-row>
             <v-col cols="6">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   formatDate(data.admission_date_reg) !==
                   formatDate(abit.admission_date_reg)
@@ -24,7 +24,7 @@
             </v-col>
             <v-col cols="6">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   formatDate(data.admission_date) !==
                   formatDate(abit.admission_date)
@@ -46,7 +46,7 @@
       <v-card tile>
         <v-card-title>
           <v-badge
-            color="green"
+            color="success"
             :value="data.sign !== abit.sign"
             dot
             >Признак</v-badge
@@ -61,25 +61,101 @@
           >
             <v-radio
               label="Основной"
-              value="main"
+              value="Основной"
             ></v-radio>
             <v-radio
               label="Кадет"
-              value="cadet"
+              value="Кадет"
             ></v-radio>
             <v-radio
               label="Хабаровск"
-              value="khabarovsk"
+              value="Хабаровск"
             ></v-radio>
             <v-radio
               label="Другой"
-              value="other"
+              value="Другой"
             ></v-radio>
             <v-radio
               label="Выездная группа"
-              value="offsite_group"
+              value="Выездная группа"
             ></v-radio>
           </v-radio-group>
+        </v-card-text>
+      </v-card>
+
+      <v-card tile>
+        <v-card-text>
+          <v-row>
+            <v-col cols="4">
+              <v-badge
+                color="success"
+                :value="
+                  (Object.assign({}, abit.specialty_1).id !==
+                    data.specialty_1 &&
+                    Object.assign({}, abit.specialty_1).id !==
+                      Object.assign({}, data.specialty_1).id) ||
+                  (abit.specialty_1 === null && data.specialty_1)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.specialty_1"
+                  dense
+                  :items="specialty"
+                  :item-text="nameSpecialty"
+                  item-value="id"
+                  label="1 Специальность"
+                  @input="sendSpecialty('specialty_1', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-badge
+                color="success"
+                :value="
+                  (Object.assign({}, abit.specialty_2).id !==
+                    data.specialty_2 &&
+                    Object.assign({}, abit.specialty_2).id !==
+                      Object.assign({}, data.specialty_2).id) ||
+                  (abit.specialty_2 === null && data.specialty_2)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.specialty_2"
+                  dense
+                  :items="specialty"
+                  :item-text="nameSpecialty"
+                  item-value="id"
+                  label="2 Специальность"
+                  @input="send('specialty_2', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="4">
+              <v-badge
+                color="success"
+                :value="
+                  (Object.assign({}, abit.specialty_3).id !==
+                    data.specialty_3 &&
+                    Object.assign({}, abit.specialty_3).id !==
+                      Object.assign({}, data.specialty_3).id) ||
+                  (abit.specialty_3 === null && data.specialty_3)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.specialty_3"
+                  dense
+                  :items="specialty"
+                  :item-text="nameSpecialty"
+                  item-value="id"
+                  label="3 Специальность"
+                  @input="send('specialty_3', $event)"
+                />
+              </v-badge>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
       <v-card tile>
@@ -87,7 +163,7 @@
           <v-row>
             <v-col cols="8">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   (Object.assign({}, abit.admission_commission).id !==
                     data.admission_commission &&
@@ -112,7 +188,7 @@
             </v-col>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   (Object.assign({}, abit.admission_examination_group).id !==
                     data.admission_examination_group &&
@@ -144,7 +220,10 @@
                       v-on="on"
                     />
                   </template>
-                  <v-card>
+                  <v-form
+                    ref="formGroup"
+                    v-model="formGroupValid"
+                  >
                     <v-card>
                       <v-card-title>
                         <span class="text-h5">Выбрать</span>
@@ -161,6 +240,7 @@
                                 :items="abbreviations"
                                 item-value="abbreviation"
                                 item-text="abbreviation"
+                                :rules="[rules.required]"
                               />
                             </v-col>
                             <v-col cols="4">
@@ -169,101 +249,28 @@
                                 dense
                                 type="number"
                                 label="Номер"
+                                :rules="[rules.required]"
                               />
                             </v-col>
                           </v-row>
                         </v-container>
                       </v-card-text>
-                    </v-card>
 
-                    <v-card-actions>
-                      <v-spacer />
-                      <v-btn
-                        color="blue darken-1"
-                        text
-                        dense
-                        @click="saveExaminationGroup"
-                      >
-                        Сохранить
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
+                      <v-card-actions>
+                        <v-spacer />
+                        <v-btn
+                          color="primary"
+                          text
+                          dense
+                          @click="saveExaminationGroup"
+                          :disabled="!formGroupValid"
+                        >
+                          Сохранить
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-form>
                 </v-menu>
-              </v-badge>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <v-card tile>
-        <v-card-text>
-          <v-row>
-            <v-col cols="4">
-              <v-badge
-                color="green"
-                :value="
-                  (Object.assign({}, abit.specialty_1).id !==
-                    data.specialty_1 &&
-                    Object.assign({}, abit.specialty_1).id !==
-                      Object.assign({}, data.specialty_1).id) ||
-                  (abit.specialty_1 === null && data.specialty_1)
-                "
-                dot
-              >
-                <v-autocomplete
-                  v-model="data.specialty_1"
-                  dense
-                  :items="specialty"
-                  :item-text="nameSpecialty"
-                  item-value="id"
-                  label="1 Специальность"
-                  @input="sendSpecialty('specialty_1', $event)"
-                />
-              </v-badge>
-            </v-col>
-            <v-col cols="4">
-              <v-badge
-                color="green"
-                :value="
-                  (Object.assign({}, abit.specialty_2).id !==
-                    data.specialty_2 &&
-                    Object.assign({}, abit.specialty_2).id !==
-                      Object.assign({}, data.specialty_2).id) ||
-                  (abit.specialty_2 === null && data.specialty_2)
-                "
-                dot
-              >
-                <v-autocomplete
-                  v-model="data.specialty_2"
-                  dense
-                  :items="specialty"
-                  :item-text="nameSpecialty"
-                  item-value="id"
-                  label="2 Специальность"
-                  @input="send('specialty_2', $event)"
-                />
-              </v-badge>
-            </v-col>
-            <v-col cols="4">
-              <v-badge
-                color="green"
-                :value="
-                  (Object.assign({}, abit.specialty_3).id !==
-                    data.specialty_3 &&
-                    Object.assign({}, abit.specialty_3).id !==
-                      Object.assign({}, data.specialty_3).id) ||
-                  (abit.specialty_3 === null && data.specialty_3)
-                "
-                dot
-              >
-                <v-autocomplete
-                  v-model="data.specialty_3"
-                  dense
-                  :items="specialty"
-                  :item-text="nameSpecialty"
-                  item-value="id"
-                  label="3 Специальность"
-                  @input="send('specialty_3', $event)"
-                />
               </v-badge>
             </v-col>
           </v-row>
@@ -275,7 +282,7 @@
       >
         <v-card-text>
           <v-badge
-            color="green"
+            color="success"
             :value="data.admission_note !== abit.admission_note"
             dot
           >
@@ -296,7 +303,7 @@
         <v-row>
           <v-col cols="4">
             <v-badge
-              color="green"
+              color="success"
               :value="
                 data.document_passport_presence !==
                 abit.document_passport_presence
@@ -313,7 +320,7 @@
           </v-col>
           <v-col cols="4">
             <v-badge
-              color="green"
+              color="success"
               :value="
                 data.document_birthday_presence !==
                 abit.document_birthday_presence
@@ -330,7 +337,7 @@
           </v-col>
           <v-col cols="4">
             <v-badge
-              color="green"
+              color="success"
               :value="
                 data.document_education_presence !==
                 abit.document_education_presence
@@ -350,7 +357,7 @@
       <v-card tile>
         <v-card-text>
           <v-badge
-            color="green"
+            color="success"
             :value="
               data.admission_source_information !==
               abit.admission_source_information
@@ -360,7 +367,6 @@
             <v-select
               v-model="data.admission_source_information"
               :items="source_information"
-              item-text="name"
               label="Источники информации об академии"
               multiple
               dense
@@ -369,7 +375,7 @@
             >
               <template v-slot:selection="{ item, index }">
                 <v-chip v-if="index < 2">
-                  <span>{{ item.name }}</span>
+                  <span>{{ item }}</span>
                 </v-chip>
                 <span
                   v-if="index === 2"
@@ -391,25 +397,20 @@
           <v-row>
             <v-col cols="6">
               <v-badge
-                color="green"
-                :value="
-                  (abit.expulsion &&
-                    JSON.parse(abit.expulsion).reason !==
-                      expulsionJSON.reason) ||
-                  (!abit.expulsion && expulsionJSON.reason !== ``)
-                "
+                color="success"
+                :value="data.expulsion_reason !== abit.expulsion_reason"
                 dot
               >
                 <v-autocomplete
                   class="small-text"
-                  v-model="expulsionJSON.reason"
+                  v-model="data.expulsion_reason"
                   :items="reasonExpulsion"
                   item-text="name"
-                  item-value="name"
+                  item-value="id"
                   clearable
                   dense
                   label="Причина"
-                  @input="sendExpulsion"
+                  @input="send('expulsion_reason', $event)"
                 >
                   <template #no-data>
                     <v-menu
@@ -455,7 +456,7 @@
                         <v-card-actions>
                           <v-spacer />
                           <v-btn
-                            color="blue darken-1"
+                            color="primary"
                             text
                             dense
                             @click="saveReasonExpulsion"
@@ -471,40 +472,35 @@
             </v-col>
             <v-col cols="6">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  (abit.expulsion &&
-                    JSON.parse(abit.expulsion).date !== expulsionJSON.date) ||
-                  (!abit.expulsion && expulsionJSON.date !== ``)
+                  formatDate(data.expulsion_date) !==
+                  formatDate(abit.expulsion_date)
                 "
                 dot
               >
                 <v-text-field
-                  :value="formatDate(expulsionJSON.date)"
+                  :value="formatDate(data.expulsion_date)"
                   label="Дата"
                   dense
                   type="date"
-                  @input="changeDateExpulsion"
+                  @input="send('expulsion_date', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="12">
               <v-badge
-                color="green"
-                :value="
-                  (abit.expulsion &&
-                    JSON.parse(abit.expulsion).note !== expulsionJSON.note) ||
-                  (!abit.expulsion && expulsionJSON.note !== ``)
-                "
+                color="success"
+                :value="data.expulsion_note !== abit.expulsion_note"
                 dot
               >
                 <v-textarea
                   class="small-text"
                   rows="2"
                   dense
-                  v-model="expulsionJSON.note"
+                  v-model="data.expulsion_note"
                   label="Комментарий"
-                  @input="sendExpulsion"
+                  @input="send('expulsion_note', $event)"
                 ></v-textarea>
               </v-badge>
             </v-col>
@@ -514,7 +510,7 @@
       <v-card tile>
         <v-card-title>
           <v-badge
-            color="green"
+            color="success"
             :value="data.recruitment !== abit.recruitment"
             dot
             >Волна</v-badge
@@ -529,15 +525,15 @@
           >
             <v-radio
               label="Основная"
-              value="main"
+              value="Основная"
             ></v-radio>
             <v-radio
               label="Кадет"
-              value="cadet"
+              value="Кадет"
             ></v-radio>
             <v-radio
               label="Донабор"
-              value="additional_set"
+              value="Донабор"
             ></v-radio>
           </v-radio-group>
         </v-card-text>
@@ -547,7 +543,7 @@
       <v-card tile>
         <v-card-text>
           <v-badge
-            color="green"
+            color="success"
             :value="
               (Object.assign({}, abit.arrivedFrom).id !== data.arrivedFrom &&
                 Object.assign({}, abit.arrivedFrom).id !==
@@ -572,7 +568,7 @@
       <v-card tile>
         <v-card-text>
           <v-badge
-            color="green"
+            color="success"
             :value="
               (Object.assign({}, abit.goneIn).id !== data.goneIn &&
                 Object.assign({}, abit.goneIn).id !==
@@ -615,23 +611,26 @@ export default {
       commission: {},
       examinationGroup: {},
       reason: {},
-      radios: null,
       menuAdmission: false,
       menuCommission: false,
       menuExaminationGroup: false,
       menuExpulsion: false,
       menuReasonExpulsion: false,
       source_information: [
-        { value: 'family', name: 'Родственники' },
-        { value: 'friends', name: 'Друзья/знакомые' },
-        { value: 'education', name: 'Место учёбы' },
-        { value: 'military_commissariat', name: 'Военкомат' },
-        { value: 'website', name: 'Сайт МО' },
-        { value: 'vk_group', name: 'Группа ВК' },
-        { value: 'telegram', name: 'Телеграм-канал' },
-        { value: 'academy', name: 'Обращение в академию' },
+        'Родственники',
+        'Друзья/знакомые',
+        'Место учёбы',
+        'Военкомат',
+        'Сайт МО',
+        'Группа ВК',
+        'Телеграм-канал',
+        'Обращение в академию',
       ],
       abbreviations: ['ХАБ', 'КАД', 'ВГ'],
+      formGroupValid: false,
+      rules: {
+        required: (value) => !!value || 'Обязательно.',
+      },
     }
   },
   computed: {
@@ -643,11 +642,6 @@ export default {
       'militaryInstitute',
       'countGroup',
     ]),
-    expulsionJSON() {
-      return this.data.expulsion
-        ? JSON.parse(this.data.expulsion)
-        : { reason: '', date: '', note: '' }
-    },
   },
   watch: {
     abit() {
@@ -722,12 +716,15 @@ export default {
       this.$emit('child-event', this.differences)
       this.differences = {}
 
-      if (this.data.admission_examination_group == null) {
-        if (value == 'khabarovsk') {
+      if (
+        this.data.admission_examination_group == null &&
+        (value == 'Хабаровск' || value == 'Кадет' || value == 'Выездная группа')
+      ) {
+        if (value == 'Хабаровск') {
           this.examinationGroup.abbreviation = 'ХАБ'
-        } else if (value == 'cadet') {
+        } else if (value == 'Кадет') {
           this.examinationGroup.abbreviation = 'КАД'
-        } else if (value == 'offsite_group') {
+        } else if (value == 'Выездная группа') {
           this.examinationGroup.abbreviation = 'ВГ'
         }
 
@@ -757,14 +754,6 @@ export default {
       this.differences[key] = value
       this.$emit('child-event', this.differences)
       this.differences = {}
-    },
-    sendDate(key, value) {
-      this.data[key] = value
-      this.send(key, this.data[key])
-    },
-    sendExpulsion() {
-      this.data.expulsion = JSON.stringify(this.expulsionJSON)
-      this.send('expulsion', this.data.expulsion)
     },
     saveCommission() {
       const newCommission = Object.assign({}, this.commission)
@@ -802,14 +791,11 @@ export default {
       const date = new Date(dateString)
       return moment(date).format('YYYY-MM-DD')
     },
-    changeDateExpulsion(event) {
-      this.expulsionJSON.date = event
-      this.sendExpulsion()
-    },
-    changeDateAdmission(event) {
-      this.data.admission_date = new Date(event).toISOString()
-      this.menuAdmission = false
-      this.send('admission_date', this.data.admission_date)
+    sendDate(key, value) {
+      this.data[key] = value
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
     },
     saveReasonExpulsion() {
       const newReason = Object.assign({}, this.reason)

@@ -5,10 +5,6 @@
         <data-table
           :message="message"
           :residenceChild="residenceChild"
-          :educationChild="educationChild"
-          :uncanceledEducationChild="uncanceledEducationChild"
-          :militaryServiceChild="militaryServiceChild"
-          :passportChild="passportChild"
           @checkSave="checkSave"
         />
       </v-col>
@@ -28,10 +24,6 @@
           @child-message="handleChildMessage($event)"
           @saveDifferences="saveDifferences"
           @child-residence="handleResidence"
-          @child-education="handleEducation"
-          @child-uncanceledEducation="handleUncanceledEducation"
-          @child-militaryService="handleMilitaryService"
-          @child-passport="handlePassport"
         />
       </v-col>
     </v-row>
@@ -50,21 +42,10 @@ export default {
     return {
       message: null,
       residenceChild: null,
-      educationChild: null,
-      uncanceledEducationChild: null,
-      militaryServiceChild: null,
-      passportChild: null,
     }
   },
   computed: {
-    ...mapGetters([
-      'selectedAbit',
-      'location',
-      'selectedEducation',
-      'selectedUncanceledEducation',
-      'selectedMilitaryService',
-      'selectedPassport',
-    ]),
+    ...mapGetters(['selectedAbit', 'location', 'user']),
   },
   methods: {
     ...mapActions([
@@ -72,18 +53,8 @@ export default {
       'addLocation',
       'updateLocation',
       'selectLocation',
-      'addEducation',
-      'updateEducation',
-      'selectEducation',
-      'addUncanceledEducation',
-      'updateUncanceledEducation',
-      'selectUncanceledEducation',
-      'addMilitaryService',
-      'updateMilitaryService',
-      'selectMilitaryService',
-      'addPassport',
-      'updatePassport',
-      'selectPassport',
+      'saveHistory',
+      'fetchHistory',
     ]),
     saveDifferences() {
       if (this.message != null) {
@@ -92,33 +63,32 @@ export default {
       if (this.residenceChild != null) {
         this.saveLocation()
       }
-      if (this.educationChild != null) {
-        this.educationChild.abitId = parseInt(this.$route.path.split('/')[2])
-        this.saveEducation()
-      }
-      if (this.uncanceledEducationChild != null) {
-        this.uncanceledEducationChild.abitId = parseInt(
-          this.$route.path.split('/')[2]
-        )
-        this.saveUncanceledEducation()
-      }
-      if (this.militaryServiceChild != null) {
-        this.militaryServiceChild.abitId = parseInt(
-          this.$route.path.split('/')[2]
-        )
-        this.saveMilitaryService()
-      }
-      if (this.passportChild != null) {
-        this.passportChild.abitId = parseInt(this.$route.path.split('/')[2])
-        this.savePassport()
-      }
       this.$emit('parentFE')
       this.editedTabs = []
+    },
+
+    saveHistoryMessage(data, entity) {
+      const newValueKeys = Object.keys(data)
+      console.log(newValueKeys)
+      let old = {}
+      for (let key in newValueKeys) {
+        old[newValueKeys[key]] = this.selectedAbit[newValueKeys[key]]
+      }
+      const history = {
+        abitId: parseInt(data.id ? data.id : data.abitId),
+        oldValue: JSON.stringify(old),
+        newValue: JSON.stringify(data),
+        changedBy: this.user.username,
+      }
+      this.saveHistory(history)
     },
 
     async saveMessage() {
       this.message.id = this.$route.path.split('/')[2]
       this.updateAbit(this.message)
+
+      this.saveHistoryMessage(this.message, 'message')
+
       this.message = null
     },
 
@@ -137,49 +107,9 @@ export default {
       this.residenceChild = null
       this.saveMessage()
     },
-    async saveEducation() {
-      if (typeof this.selectedEducation !== 'object') {
-        await this.addEducation(this.educationChild)
-      } else {
-        await this.updateEducation(this.educationChild)
-      }
-      await this.selectEducation(this.educationChild.abitId)
-      this.educationChild = null
-    },
-    async saveUncanceledEducation() {
-      if (typeof this.selectedUncanceledEducation !== 'object') {
-        await this.addUncanceledEducation(this.uncanceledEducationChild)
-      } else {
-        await this.updateUncanceledEducation(this.uncanceledEducationChild)
-      }
-      await this.selectUncanceledEducation(this.uncanceledEducationChild.abitId)
-      this.uncanceledEducationChild = null
-    },
-    async saveMilitaryService() {
-      if (typeof this.selectedMilitaryService !== 'object') {
-        await this.addMilitaryService(this.militaryServiceChild)
-      } else {
-        await this.updateMilitaryService(this.militaryServiceChild)
-      }
-      await this.selectMilitaryService(this.militaryServiceChild.abitId)
-      this.militaryServiceChild = null
-    },
-    async savePassport() {
-      if (typeof this.selectedPassport !== 'object') {
-        await this.addPassport(this.passportChild)
-      } else {
-        await this.updatePassport(this.passportChild)
-      }
-      await this.selectPassport(this.passportChild.abitId)
-      this.passportChild = null
-    },
 
     checkSave() {
       this.residenceChild = null
-      this.educationChild = null
-      this.uncanceledEducationChild = null
-      this.militaryServiceChild = null
-      this.passportChild = null
       this.message = null
       this.editedTabs = []
       this.$emit('parentFE')
@@ -189,18 +119,6 @@ export default {
     },
     handleResidence(event) {
       this.residenceChild = event
-    },
-    handleEducation(event) {
-      this.educationChild = event
-    },
-    handleUncanceledEducation(event) {
-      this.uncanceledEducationChild = event
-    },
-    handleMilitaryService(event) {
-      this.militaryServiceChild = event
-    },
-    handlePassport(event) {
-      this.passportChild = event
     },
     parentF() {
       this.$emit('parentFE')

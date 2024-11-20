@@ -4,10 +4,6 @@
     :abit="this.abit || {}"
     @child-event="HandleChild($event)"
     @child-residence="HandleResidence($event)"
-    @child-passport="HandlePassport($event)"
-    @child-education="HandleEducation($event)"
-    @child-uncanceledEducation="HandleUncanceledEducation($event)"
-    @child-militaryService="HandleMilitaryService($event)"
   />
 </template>
 
@@ -17,6 +13,7 @@ import Admission from '@/components/Admission.vue'
 import DataTable from '@/components/DataTable.vue'
 import Documents from '@/components/Documents.vue'
 import Results from '@/components/Results.vue'
+import Calls from '../components/Calls.vue'
 import FirstInfo from '../components/FirstInfo.vue'
 export default {
   name: 'ComponentView',
@@ -27,6 +24,7 @@ export default {
     Documents,
     Admission,
     Achievements,
+    Calls,
   },
   props: ['component', 'abit'],
   data() {
@@ -39,18 +37,6 @@ export default {
     },
     HandleResidence(event) {
       this.$emit('child-residence', event)
-    },
-    HandleEducation(event) {
-      this.$emit('child-education', event)
-    },
-    HandleUncanceledEducation(event) {
-      this.$emit('child-uncanceledEducation', event)
-    },
-    HandleMilitaryService(event) {
-      this.$emit('child-militaryService', event)
-    },
-    HandlePassport(event) {
-      this.$emit('child-passport', event)
     },
   },
 }

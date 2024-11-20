@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-row no-gutters>
     <v-col cols="6">
@@ -8,37 +7,32 @@
           <v-row>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  (abit.qualificationExam &&
-                    JSON.parse(abit.qualificationExam).mark !==
-                      qualificationExamJSON.mark) ||
-                  (!abit.qualificationExam && qualificationExamJSON.mark !== ``)
+                  abit.qualificationExam_mark !== data.qualificationExam_mark
                 "
                 dot
               >
                 <v-autocomplete
-                  v-model="qualificationExamJSON.mark"
+                  v-model="data.qualificationExam_mark"
                   :items="[5, 4, 3, 2]"
                   dense
                   label="КЭ"
-                  @input="sendQualificationExam"
-                />
+                  @input="send('qualificationExam_mark', $event)"
+                />{{ this.data.qualificationExam_results }}
               </v-badge>
             </v-col>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  (abit.qualificationExam &&
-                    JSON.parse(abit.qualificationExam).date !==
-                      qualificationExamJSON.date) ||
-                  (!abit.qualificationExam && qualificationExamJSON.date !== ``)
+                  formatDate(abit.qualificationExam_date) !==
+                  formatDate(data.qualificationExam_date)
                 "
                 dot
               >
                 <v-text-field
-                  :value="formatDate(qualificationExamJSON.date)"
+                  :value="formatDate(data.qualificationExam_date)"
                   dense
                   type="date"
                   label="Дата"
@@ -47,19 +41,16 @@
               </v-badge>
             </v-col>
             <v-col cols="4">
-              <v-autocomplete
-                v-model="data.admission_examination_group"
-                :items="examinationGroups"
+              <v-text-field
+                v-model="data.qualificationExam_group"
                 dense
-                readonly
-                item-text="name"
-                item-value="id"
                 label="Экзаменационная группа"
+                @input="send('qualificationExam_group', $event)"
               />
             </v-col>
             <v-col cols="6">
               <v-text-field
-                :value="sumSportScores"
+                :value="data.sport_score"
                 dense
                 readonly
                 label="ФП"
@@ -109,46 +100,60 @@
                     Добавить
                   </v-btn>
                 </template>
-                <v-card>
-                  <v-card-title> Добавить </v-card-title>
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="sportScore.score"
-                            :rules="[rules.score]"
-                            label="Баллы"
-                            type="number"
-                            max="100"
-                            min="0"
-                            @input="updateSport(parseInt($event, 10))"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-select
-                            :value="sportScore.exercises"
-                            :items="exercises"
-                            item-text="name"
-                            item-value="id"
-                            label="Норматив"
-                            @input="updateSportExercises"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn
-                      text
-                      @click="saveSportScore"
-                      :disabled="!sportScore.score || !sportScore.exercises"
-                    >
-                      Сохранить
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
+                <v-form
+                  ref="formSport"
+                  v-model="formSportValid"
+                >
+                  <v-card>
+                    <v-card-title> Добавить </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="12">
+                            <v-select
+                              :value="sportScore.exercises"
+                              :items="exercises"
+                              item-text="name"
+                              item-value="id"
+                              :rules="[rules.required]"
+                              label="Норматив"
+                              @input="updateSportExercises"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              :value="sportScore.score"
+                              :rules="[rules.score, rules.required]"
+                              label="Баллы"
+                              type="number"
+                              max="100"
+                              min="0"
+                              @input="updateSport(parseInt($event, 10))"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              :value="sportScore.result"
+                              label="Результат"
+                              :rules="[rules.required]"
+                              @input="updateSportRes($event)"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn
+                        text
+                        @click="saveSportScore"
+                        :disabled="!formSportValid"
+                      >
+                        Сохранить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-dialog>
             </v-toolbar>
           </template>
@@ -193,55 +198,60 @@
                     Добавить
                   </v-btn>
                 </template>
-                <v-card>
-                  <v-card-title> Добавить </v-card-title>
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="egeMark.mark"
-                            :rules="[rules.score]"
-                            label="Оценка"
-                            max="100"
-                            min="0"
-                            type="number"
-                            @input="updateEgeMark(parseInt($event, 10))"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-select
-                            v-model="egeMark.subject"
-                            :items="subjects"
-                            item-text="name"
-                            item-value="id"
-                            label="Предмет"
-                            @input="updateEgeMarkSubject"
-                          />
-                        </v-col>
-                        <v-col>
-                          <v-autocomplete
-                            v-model="egeMark.date"
-                            :items="years"
-                            label="год"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn
-                      text
-                      :disabled="
-                        !egeMark.mark || !egeMark.subject || !egeMark.date
-                      "
-                      @click="saveEgeMark"
-                    >
-                      Сохранить
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
+                <v-form
+                  ref="formEGE"
+                  v-model="formEGEValid"
+                >
+                  <v-card>
+                    <v-card-title> Добавить </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="6">
+                            <v-text-field
+                              :value="egeMark.mark"
+                              :rules="[rules.score, rules.required]"
+                              label="Оценка"
+                              max="100"
+                              min="0"
+                              type="number"
+                              @input="updateEgeMark(parseInt($event, 10))"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-select
+                              v-model="egeMark.subject"
+                              :items="subjects"
+                              :rules="[rules.required]"
+                              item-text="name"
+                              item-value="id"
+                              label="Предмет"
+                              @input="updateEgeMarkSubject"
+                            />
+                          </v-col>
+                          <v-col>
+                            <v-autocomplete
+                              v-model="egeMark.date"
+                              :items="years"
+                              :rules="[rules.required]"
+                              label="год"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn
+                        text
+                        @click="saveEgeMark"
+                        :disabled="!formEGEValid"
+                      >
+                        Сохранить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-dialog>
             </v-toolbar>
           </template>
@@ -289,87 +299,74 @@
                     Добавить
                   </v-btn>
                 </template>
-                <v-card>
-                  <v-card-title> Добавить </v-card-title>
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="entranceTestMark.mark"
-                            :rules="[rules.score]"
-                            label="Оценка"
-                            max="100"
-                            min="0"
-                            type="number"
-                            @input="
-                              updateEntranceTestMark(parseInt($event, 10))
-                            "
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-select
-                            :value="entranceTestMark.subject"
-                            :items="subjects"
-                            item-text="name"
-                            item-value="id"
-                            label="Предмет"
-                            @input="updateEntranceTestMarkSubject"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-select
-                            :value="entranceTestMark.form"
-                            :items="formsEntranceTest"
-                            item-text="name"
-                            item-value="id"
-                            label="Форма"
-                            @input="updateEntranceTestForm"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-text-field
-                            :value="formatDate(entranceTestMark.date)"
-                            label="Дата"
-                            type="date"
-                            @input="changeDateEntranceTestMark"
-                          />
-                          <!-- <v-menu
-                            v-model="menuEntranceTestMark"
-                            :close-on-content-click="false"
-                            :nudge-right="40"
-                            transition="scale-transition"
-                            offset-y
-                            min-width="auto"
-                          >
-                            <template #activator="{ on, attrs }">
-                              <v-text-field
-                                :value="formatDate(entranceTestMark.date)"
-                                label="Дата"
-                                prepend-icon="mdi-calendar"
-                                readonly
-                                v-bind="attrs"
-                                v-on="on"
-                              />
-                            </template>
-                            <v-date-picker
+                <v-form
+                  ref="formEntrance"
+                  v-model="formEntranceValid"
+                >
+                  <v-card>
+                    <v-card-title> Добавить </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="6">
+                            <v-text-field
+                              :value="entranceTestMark.mark"
+                              :rules="[rules.score, rules.required]"
+                              label="Оценка"
+                              max="100"
+                              min="0"
+                              type="number"
+                              @input="
+                                updateEntranceTestMark(parseInt($event, 10))
+                              "
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-select
+                              :value="entranceTestMark.subject"
+                              :items="subjects"
+                              :rules="[rules.required]"
+                              item-text="name"
+                              item-value="id"
+                              label="Предмет"
+                              @input="updateEntranceTestMarkSubject"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-select
+                              :value="entranceTestMark.form"
+                              :items="formsEntranceTest"
+                              :rules="[rules.required]"
+                              item-text="name"
+                              item-value="id"
+                              label="Форма"
+                              @input="updateEntranceTestForm"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-text-field
+                              :value="formatDate(entranceTestMark.date)"
+                              label="Дата"
+                              :rules="[rules.required]"
+                              type="date"
                               @input="changeDateEntranceTestMark"
                             />
-                          </v-menu> -->
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn
-                      text
-                      @click="saveEntranceTestMark"
-                    >
-                      Сохранить
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn
+                        text
+                        @click="saveEntranceTestMark"
+                        :disabled="!formEntranceValid"
+                      >
+                        Сохранить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-dialog>
             </v-toolbar>
           </template>
@@ -406,7 +403,6 @@ export default {
     return {
       data: {},
       differences: {},
-      result: {},
       egeMark: {},
       entranceTestMark: {},
       menuEgeMark: false,
@@ -436,7 +432,11 @@ export default {
       ],
       rules: {
         score: (value) => value <= 100 || '100-бальная шкала',
+        required: (value) => !!value || 'Обязательно.',
       },
+      formSportValid: false,
+      formEGEValid: false,
+      formEntranceValid: false,
     }
   },
   computed: {
@@ -446,17 +446,8 @@ export default {
       'egeMarks',
       'entranceTestMarks',
       'sportScores',
-      'examinationGroups',
       'formsEntranceTest',
     ]),
-    qualificationExamJSON() {
-      return this.data.qualificationExam
-        ? JSON.parse(this.data.qualificationExam)
-        : {
-            mark: '',
-            date: '',
-          }
-    },
     sumSportScores() {
       var xew = 0
       for (var i = 0; i < this.sportScores.length; i++) {
@@ -490,7 +481,6 @@ export default {
   created() {
     this.fetchSubjects()
     this.fetchExercises()
-    this.fetchExaminationGroups()
     this.fetchFormsEntranceTest()
   },
   methods: {
@@ -506,7 +496,6 @@ export default {
       'fetchSportScore',
       'addSportScore',
       'putSportScore',
-      'fetchExaminationGroups',
       'fetchFormsEntranceTest',
     ]),
     clickOutsideSport() {
@@ -547,6 +536,9 @@ export default {
     updateSport(event) {
       this.sportScore.score = event
     },
+    updateSportRes(event) {
+      this.sportScore.result = event
+    },
     updateSportExercises(event) {
       this.sportScore.exercises = this.exercises[event - 1]
     },
@@ -554,44 +546,65 @@ export default {
       this.dialogSport = true
       this.sportScore = item
     },
-    saveEgeMark() {
+    async saveEgeMark() {
       if (!this.egeMark.abitSubjectId) {
         this.egeMark.abitId = this.abit.id
+        console.log(this.egeMark.date)
         this.egeMark.date = moment(this.egeMark.date, 'YYYY').format(
           'YYYY-MM-DD'
         )
-        this.addEgeMark(this.egeMark)
+        await this.addEgeMark(this.egeMark)
         this.egeMark.mark = ''
         this.egeMark.subject = ''
         this.egeMark.date = ''
       } else {
-        this.putEgeMark(this.egeMark)
+        await this.putEgeMark(this.egeMark)
         this.dialog = false
       }
     },
-    saveEntranceTestMark() {
+    async saveEntranceTestMark() {
       if (!this.entranceTestMark.abitSubjectId) {
         this.entranceTestMark.abitId = this.abit.id
-        this.addEntranceTestMark(this.entranceTestMark)
+        await this.addEntranceTestMark(this.entranceTestMark)
         this.entranceTestMark.mark = ''
         this.entranceTestMark.subject = ''
         this.entranceTestMark.date = ''
         this.entranceTestMark.form = ''
       } else {
-        this.putEntranceTestMark(this.entranceTestMark)
+        await this.putEntranceTestMark(this.entranceTestMark)
         this.dialogEntranceTest = false
       }
     },
-    saveSportScore() {
+    async saveSportScore() {
       if (!this.sportScore.id) {
         this.sportScore.abitId = this.abit.id
-        this.addSportScore(this.sportScore)
+        await this.addSportScore(this.sportScore)
         this.sportScore.score = ''
         this.sportScore.exercises = ''
       } else {
-        this.putSportScore(this.sportScore)
+        await this.putSportScore(this.sportScore)
         this.dialogSport = false
       }
+      var sum = 0
+      var august = moment(`${moment().format('YYYY')}-08-01`)
+      var age = august.diff(
+        moment(this.abit.birthday).format('YYYY-MM-DD'),
+        'years'
+      )
+      for (var i = 0; i < this.sportScores.length; i++) {
+        sum += this.sportScores[i].score
+      }
+      if (age < 25) {
+        this.data.sport_score = sum - 95
+      } else {
+        this.data.sport_score = sum - 85
+      }
+      if (this.data.sport_score > 100) {
+        this.data.sport_score = 100
+      } else if (this.data.sport_score < 0) {
+        this.data.sport_score = 0
+      }
+      this.send('sport_score', this.data.sport_score)
     },
     sendSportDate(value) {
       this.data.sport_date = value
@@ -601,10 +614,6 @@ export default {
       this.differences[key] = value
       this.$emit('child-event', this.differences)
       this.differences = {}
-    },
-    sendQualificationExam() {
-      this.data.qualificationExam = JSON.stringify(this.qualificationExamJSON)
-      this.send('qualificationExam', this.data.qualificationExam)
     },
     formatDateEGE(dateString) {
       if (!dateString) return null
@@ -617,17 +626,15 @@ export default {
       return moment(date).format('YYYY-MM-DD')
     },
     changeDateEgeMark(event) {
-      // this.egeMark.date = new Date(event).toISOString()
       this.egeMark.date = moment(event, 'YYYY').format('YYYY-MM-DD')
       this.menuEgeMark = false
     },
     changeDateEntranceTestMark(event) {
       this.entranceTestMark.date = event
-      // this.menuEntranceTestMark = false
     },
     changeDateQualificationExam(event) {
-      this.qualificationExamJSON.date = event
-      this.sendQualificationExam()
+      const qualificationExam_date = event
+      this.send('qualificationExam_date', qualificationExam_date)
     },
   },
 }

@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-row no-gutters>
     <v-col cols="6">
@@ -7,7 +6,7 @@
           <v-row>
             <v-col cols="9">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   (Object.assign({}, abit.establishedQuota).id !==
                     data.establishedQuota &&
@@ -30,7 +29,7 @@
             </v-col>
             <v-col cols="3">
               <v-badge
-                color="green"
+                color="success"
                 dot
                 :value="
                   abit.establishedQuota_test != data.establishedQuota_test
@@ -41,6 +40,7 @@
                   hint="Подтверждение"
                   persistent-hint
                   class="no-wrap-hint"
+                  color="success"
                   dense
                   v-model="data.establishedQuota_test"
                   @change="send('establishedQuota_test', $event)"
@@ -55,7 +55,7 @@
           <v-row>
             <v-col cols="9">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   (Object.assign({}, abit.separateQuota).id !==
                     data.separateQuota &&
@@ -78,7 +78,7 @@
             </v-col>
             <v-col cols="3">
               <v-badge
-                color="green"
+                color="success"
                 dot
                 :value="abit.separateQuota_test != data.separateQuota_test"
               >
@@ -87,6 +87,7 @@
                   hint="Подтверждение"
                   persistent-hint
                   class="no-wrap-hint"
+                  color="success"
                   dense
                   v-model="data.separateQuota_test"
                   @change="send('separateQuota_test', $event)"
@@ -101,7 +102,7 @@
           <v-row>
             <v-col cols="9">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   (Object.assign({}, abit.priorityRight).id !==
                     data.priorityRight &&
@@ -125,7 +126,7 @@
             </v-col>
             <v-col cols="3">
               <v-badge
-                color="green"
+                color="success"
                 dot
                 :value="abit.priorityRight_test != data.priorityRight_test"
               >
@@ -134,6 +135,7 @@
                   hint="Подтверждение"
                   persistent-hint
                   class="no-wrap-hint"
+                  color="success"
                   dense
                   v-model="data.priorityRight_test"
                   @change="send('priorityRight_test', $event)"
@@ -149,7 +151,7 @@
       >
         <v-card-text>
           <v-badge
-            color="green"
+            color="success"
             :value="abit.note !== data.note"
             dot
           >
@@ -197,46 +199,44 @@
                     Добавить
                   </v-btn>
                 </template>
-                <v-card>
-                  <v-card-title> Добавить </v-card-title>
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col>
-                          <v-select
-                            :value="editAchievement.name"
-                            label="Достижение"
-                            :items="listAchievements"
-                            item-text="name"
-                            item-value="id"
-                            @input="updatePersonalAchievements"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn
-                      text
-                      @click="savePersonalAchievements"
-                    >
-                      Сохранить
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
+                <v-form
+                  ref="formAchievement"
+                  v-model="formAchievementValid"
+                >
+                  <v-card>
+                    <v-card-title> Добавить </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col>
+                            <v-select
+                              :value="editAchievement.name"
+                              label="Достижение"
+                              :items="listAchievements"
+                              item-text="name"
+                              item-value="id"
+                              :rules="[rules.required]"
+                              @input="updatePersonalAchievements"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn
+                        text
+                        @click="savePersonalAchievements"
+                        :disabled="!formAchievementValid"
+                      >
+                        Сохранить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-menu>
             </v-toolbar>
           </template>
-          <!-- <template #item.value="{ item }">
-            <v-switch
-              v-model="item.value"
-              dense
-              @change="
-                changeValueListAchievements(item.abitAchievementId, $event)
-              "
-            />
-          </template> -->
           <template #item.test="{ item }">
             <v-switch
               v-model="item.test"
@@ -271,9 +271,12 @@ export default {
       menuAchievement: false,
       headers: [
         { value: 'achievement.name', text: 'Наименование' },
-        // { value: 'value', text: 'Наличие' },
         { value: 'test', text: 'Подтверждение' },
       ],
+      formAchievementValid: false,
+      rules: {
+        required: (value) => !!value || 'Обязательно.',
+      },
     }
   },
   computed: {
@@ -318,13 +321,6 @@ export default {
       this.differences[key] = value
       this.$emit('child-event', this.differences)
       this.differences = {}
-    },
-    changeValueListAchievements(key, value) {
-      this.editAchievement.abitAchievementId = key
-      this.editAchievement.value = value
-      this.editAchievement.abitId = this.abit.id
-      this.putPersonalAchievements(this.editAchievement)
-      this.editAchievement = {}
     },
     changeTestListAchievements(key, value) {
       this.editAchievement.abitAchievementId = key

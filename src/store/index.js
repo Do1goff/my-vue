@@ -2,26 +2,26 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import abitModule from './abitModule'
 import achievementModule from './achievementModule'
-import addressModule from './addressModule'
 import admissionCommissionModule from './admissionCommissionModule'
-import educationModule from './educationModule'
 import egeMarksModule from './egeMarksModule'
 import entranceTestMarksModule from './entranceTestMarksModule'
 import examinationGroupModule from './examinationGroupModule'
+import exportModule from './exportModule'
 import familyModule from './familyModule'
 import fetchModule from './fetchModule'
+import filterModule from './filterModule'
 import instituteModule from './instituteModule'
 import locationsModule from './locationsModule'
 import militaryCommissariatModule from './militaryCommissariatModule'
-import militaryServiceModule from './militaryServiceModule'
 import militaryUnitsModule from './militaryUnitsModule'
 import passportIssuedModule from './passportIssuedModule'
-import passportModule from './passportModule'
 import reasonExpulsionModule from './reasonExpulsionModule'
 import schoolMarksModule from './schoolMarksModule'
 import sportScoresModule from './sportScoresModule'
 import statusModule from './statusModule'
 import telephoneModule from './telephoneModule'
+import usersModule from './usersModule'
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -30,6 +30,7 @@ export default new Vuex.Store({
   mutations: {},
   actions: {},
   modules: {
+    exportModule,
     abitModule,
     telephoneModule,
     sportScoresModule,
@@ -40,7 +41,6 @@ export default new Vuex.Store({
     entranceTestMarksModule,
     examinationGroupModule,
     fetchModule,
-    addressModule,
     achievementModule,
     admissionCommissionModule,
     egeMarksModule,
@@ -48,9 +48,8 @@ export default new Vuex.Store({
     statusModule,
     reasonExpulsionModule,
     locationsModule,
-    educationModule,
-    militaryServiceModule,
     militaryUnitsModule,
-    passportModule,
+    usersModule,
+    filterModule,
   },
 })

@@ -4,12 +4,14 @@ export default {
   state: {
     abits: [],
     selectedAbit: null,
+    history: [],
   },
   mutations: {
     SET_ABITS: (state, payload) => (state.abits = payload),
     SET_SELECTED_ABIT: (state, abit) => (state.selectedAbit = abit),
     ADD_ABIT: (state, newAbit) => state.abits.push(newAbit),
-
+    DELETE_HISTORY: (state, id) =>
+      (state.history = state.history.filter((history) => history.id !== id)),
     // DELETE_ABIT:(state,abitID)=>state.abits = state.abits.filter(abit => abit.id !== abitID),
     UPDATE_ABIT(state, updatedAbit) {
       const index = state.abits.findIndex((abit) => abit.id === updatedAbit.id)
@@ -18,10 +20,22 @@ export default {
       }
       state.selectedAbit = updatedAbit
     },
+    ADD_HISTORY: (state, history) => state.history.push(history),
+    SET_HISTORY: (state, payload) => (state.history = payload),
+    UPDATE_HISTORY(state, updatedHistory) {
+      const index = state.history.findIndex(
+        (history) => history.id === updatedHistory.id
+      )
+      if (index !== -1) {
+        state.history.splice(index, 1, updatedHistory)
+      }
+      state.selectedHistory = updatedHistory
+    },
   },
   getters: {
     allAbits: (state) => state.abits,
     selectedAbit: (state) => state.selectedAbit,
+    allHistory: (state) => state.history,
   },
   actions: {
     async fetchAbits({ commit }) {
@@ -44,6 +58,25 @@ export default {
     async updateAbit({ commit }, updatedAbit) {
       const response = await axios.put(`/abits/${updatedAbit.id}`, updatedAbit)
       commit('UPDATE_ABIT', response.data)
+    },
+    async saveHistory({ commit }, history) {
+      const response = await axios.post('/history', history)
+      commit('ADD_HISTORY', response.data)
+    },
+    async fetchHistory({ commit }) {
+      const response = await axios.get('/history')
+      commit('SET_HISTORY', response.data)
+    },
+    async updateHistory({ commit }, updatedHistory) {
+      const response = await axios.put(
+        `/history/${updatedHistory.id}`,
+        updatedHistory
+      )
+      commit('UPDATE_HISTORY', response.data)
+    },
+    async deleteHistory({ commit }, id) {
+      await axios.delete(`/history/${id}`)
+      commit('DELETE_HISTORY', id)
     },
   },
 }

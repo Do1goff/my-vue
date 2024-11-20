@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-data-table
     :headers="headers"
@@ -16,8 +15,8 @@
     <template #top>
       <v-toolbar>
         <v-toolbar-title>
-          <p>{{ $store.getters.allAbits.length }}</p></v-toolbar-title
-        >
+          <p>{{ $store.getters.allAbits.length }}</p>
+        </v-toolbar-title>
         <v-divider
           class="mx-4"
           inset
@@ -37,16 +36,16 @@
             <v-card-actions>
               <v-spacer />
               <v-btn
-                color="primary"
-                @click="cancelChange"
-              >
-                Вернуться
-              </v-btn>
-              <v-btn
-                color="light-grey"
+                color="secondary"
                 @click="changeAbit"
               >
                 Продолжить
+              </v-btn>
+              <v-btn
+                color="success"
+                @click="cancelChange"
+              >
+                Вернуться
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -75,6 +74,7 @@
               <v-card-text>
                 <v-form
                   ref="form"
+                  v-model="formValid"
                   @submit.prevent="saveAbitData"
                 >
                   <v-container>
@@ -84,31 +84,225 @@
                           v-model="data.lastName"
                           label="Фамилия"
                           :rules="[rules.required]"
-                          @input="normalizationText"
+                          required
+                          @keydown.space.prevent="focusField('first')"
+                          @input="normalizationText('lastName')"
                         />
                       </v-col>
                       <v-col cols="3">
                         <v-text-field
                           v-model="data.firstName"
+                          ref="first"
                           label="Имя"
+                          required
                           :rules="[rules.required]"
+                          @keydown.space.prevent="focusField('sur')"
+                          @input="normalizationText('firstName')"
                         />
                       </v-col>
                       <v-col cols="3">
                         <v-text-field
                           v-model="data.surName"
+                          ref="sur"
                           label="Отчество"
+                          @keydown.space.prevent="focusField('birth')"
+                          @input="normalizationText('surName')"
                         />
                       </v-col>
                       <v-col cols="3">
                         <v-text-field
                           v-model="data.birthday"
+                          ref="birth"
                           label="Дата рождения"
                           type="date"
+                          required
                           :rules="[rules.required]"
                           @keyup.enter="saveAbitData"
                         />
                       </v-col>
+
+                      <v-spacer />
+
+                      <v-btn
+                        icon
+                        @click="show = !show"
+                      >
+                        <v-icon>{{
+                          show ? 'mdi-chevron-up' : 'mdi-chevron-down'
+                        }}</v-icon>
+                      </v-btn>
+
+                      <v-expand-transition>
+                        <v-container>
+                          <div v-show="show">
+                            <v-divider></v-divider>
+                            <v-row>
+                              <v-col cols="3">
+                                <v-text-field
+                                  v-model="data.admission_date_reg"
+                                  label="Дата регистрации заявления"
+                                  type="date"
+                                />
+                              </v-col>
+                              <v-col cols="3">
+                                <v-text-field
+                                  v-model="data.admission_date"
+                                  label="Дата прибытия"
+                                  type="date"
+                                />
+                              </v-col>
+                              <v-col cols="3"
+                                ><v-radio-group
+                                  v-model="data.sign"
+                                  row
+                                  @change="sendSign('sign', $event)"
+                                  dense
+                                >
+                                  <v-radio
+                                    label="Основной"
+                                    value="Основной"
+                                  ></v-radio>
+                                  <v-radio
+                                    label="Кадет"
+                                    value="Кадет"
+                                  ></v-radio>
+                                  <v-radio
+                                    label="Хабаровск"
+                                    value="Хабаровск"
+                                  ></v-radio>
+                                  <v-radio
+                                    label="Другой"
+                                    value="Другой"
+                                  ></v-radio>
+                                  <v-radio
+                                    label="Выездная группа"
+                                    value="Выездная группа"
+                                  ></v-radio>
+                                </v-radio-group>
+                              </v-col>
+                              <v-col cols="3">
+                                <v-autocomplete
+                                  v-model="data.specialty_1"
+                                  dense
+                                  :items="specialty"
+                                  :item-text="nameSpecialty"
+                                  item-value="id"
+                                  label="1 Специальность"
+                                  @input="sendSpecialty('specialty_1', $event)"
+                                />
+                              </v-col>
+                              <v-col cols="3">
+                                <v-autocomplete
+                                  v-model="data.specialty_2"
+                                  dense
+                                  :items="specialty"
+                                  :item-text="nameSpecialty"
+                                  item-value="id"
+                                  label="2 Специальность"
+                                />
+                              </v-col>
+                              <v-col cols="3">
+                                <v-autocomplete
+                                  v-model="data.specialty_3"
+                                  dense
+                                  :items="specialty"
+                                  :item-text="nameSpecialty"
+                                  item-value="id"
+                                  label="3 Специальность"
+                                />
+                              </v-col>
+                              <v-col cols="3">
+                                <v-autocomplete
+                                  class="small-text"
+                                  v-model="data.admission_commission"
+                                  :items="commissions"
+                                  :item-text="nameCommissions"
+                                  item-value="id"
+                                  dense
+                                  label="Приёмная комиссия"
+                                />
+                              </v-col>
+                              <v-col cols="3">
+                                <v-menu
+                                  v-model="menuExaminationGroup"
+                                  :close-on-content-click="false"
+                                  :nudge-right="40"
+                                  transition="scale-transition"
+                                  offset-y
+                                  min-width="auto"
+                                >
+                                  <template #activator="{ on, attrs }">
+                                    <v-autocomplete
+                                      v-model="data.admission_examination_group"
+                                      :items="examinationGroups"
+                                      item-text="name"
+                                      item-value="id"
+                                      dense
+                                      label="Экз. группа"
+                                      v-bind="attrs"
+                                      v-on="on"
+                                    />
+                                  </template>
+                                  <v-form
+                                    ref="formGroup"
+                                    v-model="formGroupValid"
+                                  >
+                                    <v-card>
+                                      <v-card-title>
+                                        <span class="text-h5">Выбрать</span>
+                                      </v-card-title>
+
+                                      <v-card-text>
+                                        <v-container>
+                                          <v-row>
+                                            <v-col cols="8">
+                                              <v-autocomplete
+                                                v-model="
+                                                  examinationGroup.abbreviation
+                                                "
+                                                dense
+                                                label="Специальность"
+                                                :items="abbreviations"
+                                                item-value="abbreviation"
+                                                item-text="abbreviation"
+                                                :rules="[rules.required]"
+                                              />
+                                            </v-col>
+                                            <v-col cols="4">
+                                              <v-text-field
+                                                v-model="
+                                                  examinationGroup.number
+                                                "
+                                                dense
+                                                type="number"
+                                                label="Номер"
+                                                :rules="[rules.required]"
+                                              />
+                                            </v-col>
+                                          </v-row>
+                                        </v-container>
+                                      </v-card-text>
+
+                                      <v-card-actions>
+                                        <v-spacer />
+                                        <v-btn
+                                          color="primary"
+                                          text
+                                          dense
+                                          @click="saveExaminationGroup"
+                                          :disabled="!formGroupValid"
+                                        >
+                                          Сохранить
+                                        </v-btn>
+                                      </v-card-actions>
+                                    </v-card>
+                                  </v-form>
+                                </v-menu>
+                              </v-col>
+                            </v-row>
+                          </div>
+                        </v-container>
+                      </v-expand-transition>
                     </v-row>
                   </v-container>
                 </v-form>
@@ -118,16 +312,17 @@
             <v-card-actions>
               <v-spacer />
               <v-btn
-                color="blue darken-1"
+                color="primary"
                 text
                 @click="closeAdd"
               >
                 Отмена
               </v-btn>
               <v-btn
-                color="blue darken-1"
+                color="primary"
                 text
                 @click="saveAbitData"
+                :disabled="!formValid"
               >
                 Сохранить
               </v-btn>
@@ -166,7 +361,7 @@
         </td>
         <td
           class="fixed-column"
-          style="font-size: 12px; padding: 0; margin: 0; text-align: center"
+          style="font-size: 12px; padding: 0; margin: 0; text-align: start"
         >
           {{ item.lastName }} {{ item.firstName }} {{ item.surName }}
         </td>
@@ -186,18 +381,13 @@ import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'DataTableComponent',
-  props: [
-    'message',
-    'educationChild',
-    'residenceChild',
-    'uncanceledEducationChild',
-    'militaryServiceChild',
-    'passportChild',
-  ],
+  props: ['message', 'residenceChild'],
   data() {
     return {
       data: {},
       search: '',
+      show: false,
+      formValid: false,
       headers: [
         {
           text: 'ID',
@@ -243,6 +433,7 @@ export default {
       ],
       selectedAbitId: null,
       menu: false,
+      dialogFilter: false,
       dialogAdd: false,
       dialogCheck: false,
       defaultAbit: {
@@ -255,25 +446,95 @@ export default {
       },
       formValid: false,
       editBirthday: '',
+
+      filters: [],
+      values: [],
+      filteredAbits: [],
+      filterFields: [
+        { name: 'Фамилия', id: 'lastName' },
+        { name: 'Имя', id: 'firstName' },
+        { name: 'Отчество', id: 'surName' },
+        { name: 'ID', id: 'id' },
+        { name: 'Национальность', id: 'nationality' },
+        { name: 'Дата рождения', id: 'birthday' },
+        { name: 'Примечание', id: 'note' },
+        { name: 'Второе гражданство', id: 'secondCitizenship' },
+        { name: 'Номер личного дела (счёт)', id: 'personal_file_number_count' },
+        { name: 'Номер личного дела', id: 'personal_file_number' },
+        { name: 'Наличие личного дела', id: 'personal_file_existence' },
+        { name: 'Семейное положение', id: 'family_status' },
+        { name: 'Адрес родителей', id: 'family_address' },
+        { name: 'Социальный статус', id: 'family_social_status' },
+        { name: 'Детей в семье', id: 'family_childrens' },
+        { name: 'Наличие детей', id: 'abit_childrens' },
+        { name: 'Личный номер', id: 'personal_number' },
+        { name: 'Набор', id: 'recruitment' },
+        { name: 'Признак', id: 'sign' },
+        { name: 'Дата регистрации', id: 'admission_date_reg' },
+        { name: 'Дата прибытия', id: 'admission_date' },
+        { name: 'Причина отчисления', id: 'expulsion_reason' },
+        { name: 'Дата отчисления', id: 'expulsion_date' },
+        { name: 'Дата прибытия', id: 'admission_date' },
+      ],
+      filterCompares: [
+        { name: 'Содержит', id: 'includes' },
+        { name: 'Не содержит', id: 'notIncludes' },
+        { name: 'Равно', id: '=' },
+        { name: 'Больше', id: '>' },
+        { name: 'Меньше', id: '<' },
+        { name: 'Больше или равно', id: '>=' },
+        { name: 'Меньше или равно', id: '<=' },
+        { name: 'Не заполнено', id: 'null' },
+        { name: 'Заполнено', id: 'notNull' },
+      ],
+      filterField: [],
+      filterCompare: [],
+      filterValue: [],
+      abbreviations: ['ХАБ', 'КАД', 'ВГ'],
+      commission: {},
+      examinationGroup: {},
+
+      menuAdmission: false,
+      menuCommission: false,
+      menuExaminationGroup: false,
+      formGroupValid: false,
+      examinationGroup: {},
     }
   },
 
   computed: {
-    ...mapGetters(['allAbits']),
+    ...mapGetters([
+      'allAbits',
+      'commissions',
+      'examinationGroups',
+      'specialty',
+      'countGroup',
+    ]),
   },
 
-  created() {
+  async created() {
     this.fetchAbits()
+    this.fetchAdmissionCommissions()
+    this.fetchExaminationGroups()
+    await this.fetchSpecialty()
+    this.specialty.forEach((title, index) => {
+      this.abbreviations.push(title.abbreviation)
+    })
   },
 
   methods: {
     moment,
-    ...mapActions(['addAbit', 'fetchAbits', 'selectAbit']),
-    normalizationText(event) {
-      this.data.lastName = event
-        .replace(/\s+/g, '')
-        .replace(/\b\w/g, (l) => l.toUpperCase())
-    },
+    ...mapActions([
+      'addAbit',
+      'fetchAbits',
+      'selectAbit',
+      'fetchSpecialty',
+      'fetchAdmissionCommissions',
+      'addAdmissionCommission',
+      'fetchExaminationGroups',
+      'addExaminationGroup',
+      'fetchCountGroup',
+    ]),
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
@@ -281,16 +542,16 @@ export default {
     },
     async saveAdd() {
       const newAbit = Object.assign({}, this.data)
-      newAbit.birthday = new Date(this.data.birthday)
+      console.log(newAbit)
       await this.addAbit(newAbit)
       this.data = Object.assign({}, this.defaultAbit)
       this.editBirthday = ''
       this.dialogAdd = false
       this.$router.replace({
-        name: 'component',
-        params: { id: this.allAbits.length },
+        name: 'abit',
+        params: { id: this.allAbits[this.allAbits.length - 1].id },
       })
-      this.selectedAbitId = this.allAbits.length
+      this.selectedAbitId = this.id
     },
     closeAdd() {
       this.dialogAdd = false
@@ -298,14 +559,7 @@ export default {
     },
     checkChangeAbit(item) {
       if (`${item.id}` !== this.$route.path.split('/')[2]) {
-        if (
-          this.message ||
-          this.educationChild ||
-          this.uncanceledEducationChild ||
-          this.residenceChild ||
-          this.passportChild ||
-          this.militaryServiceChild
-        ) {
+        if (this.message || this.residenceChild) {
           this.dialogCheck = true
           this.selectedAbitId = item.id
         } else {
@@ -334,21 +588,124 @@ export default {
       this.$emit('checkSave')
     },
     saveAbitData() {
-      this.formValid = true
-      if (!this.$refs.form.validate()) {
-        this.formValid = false
-        return
+      if (this.$refs.form.validate()) {
+        this.saveAdd()
       }
-      this.saveAdd()
     },
     getClass(item) {
       if (this.$route.path.split('/')[2] === `${item.id}`) {
         return 'selected'
       } else if (
-        item.expulsion ? JSON.parse(item.expulsion).reason !== null : false
+        item.expulsion_reason ? item.expulsion_reason !== null : false
       ) {
         return 'expulsed'
       }
+    },
+    focusField(nextField) {
+      if (nextField) {
+        this.$refs[nextField].focus()
+      }
+    },
+    normalizationText(key) {
+      if (this.data[key].length > 0) {
+        this.data[key] =
+          this.data[key].charAt(0).toUpperCase() +
+          this.data[key].slice(1).toLowerCase()
+      }
+    },
+
+    async sendSign(key, value) {
+      if (
+        this.data.admission_examination_group == null &&
+        (value == 'Хабаровск' || value == 'Кадет' || value == 'Выездная группа')
+      ) {
+        if (value == 'Хабаровск') {
+          this.examinationGroup.abbreviation = 'ХАБ'
+        } else if (value == 'Кадет') {
+          this.examinationGroup.abbreviation = 'КАД'
+        } else if (value == 'Выездная группа') {
+          this.examinationGroup.abbreviation = 'ВГ'
+        }
+
+        let test = null
+        this.examinationGroups.forEach((title, index) => {
+          if (
+            this.examinationGroup.abbreviation == title.abbreviation &&
+            title.number < 30
+          ) {
+            test = title
+          }
+        })
+        if (test != null) {
+          await this.fetchCountGroup(test.id)
+          if (this.countGroup < 30) {
+            this.examinationGroup.number = test.number
+          } else {
+            this.examinationGroup.number = test.number + 1
+          }
+        } else {
+          this.examinationGroup.number = 1
+        }
+        this.saveExaminationGroup()
+      }
+    },
+
+    nameSpecialty(item) {
+      return `(${item.abbreviation}) ${item.name}`
+    },
+
+    async sendSpecialty(key, value) {
+      if (this.data.admission_examination_group == null) {
+        this.specialty.forEach((title, index) => {
+          if (value == title.id) {
+            this.examinationGroup.abbreviation = title.abbreviation
+          }
+        })
+        let test = null
+        this.examinationGroups.forEach((title, index) => {
+          if (
+            this.examinationGroup.abbreviation == title.abbreviation &&
+            title.number < 30
+          ) {
+            test = title
+          }
+        })
+        if (test != null) {
+          await this.fetchCountGroup(test.id)
+          if (this.countGroup < 30) {
+            this.examinationGroup.number = test.number
+          } else {
+            this.examinationGroup.number = test.number + 1
+          }
+        } else {
+          this.examinationGroup.number = 1
+        }
+        this.saveExaminationGroup()
+      }
+    },
+
+    nameCommissions(item) {
+      return `${item.region}-${item.name}`
+    },
+    async saveExaminationGroup() {
+      this.examinationGroup.name = `${this.examinationGroup.abbreviation}-${this.examinationGroup.number}`
+      this.examinationGroup.number = parseInt(this.examinationGroup.number)
+      const newExaminationGroup = Object.assign({}, this.examinationGroup)
+      const m = []
+      this.examinationGroups.forEach((title, index) => {
+        m.push(title.name)
+      })
+      if (!m.includes(this.examinationGroup.name)) {
+        await this.addExaminationGroup(newExaminationGroup)
+      }
+      await this.fetchExaminationGroups()
+      this.examinationGroups.forEach((title, index) => {
+        if (this.examinationGroup.name == title.name) {
+          this.data.admission_examination_group = title.id
+        }
+      })
+      this.menuExaminationGroup = false
+      this.examinationGroup = {}
     },
   },
 }

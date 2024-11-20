@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-row no-gutters>
     <v-col cols="6">
@@ -6,7 +5,7 @@
         <v-tabs
           v-model="tabsEducation"
           fixed-tabs
-          background-color="red"
+          background-color="info"
           dark
         >
           <v-tab> Образование </v-tab>
@@ -19,59 +18,52 @@
                 <v-row>
                   <v-col cols="4">
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedEducation
-                          ? (Object.assign({}, selectedEducation.category)
-                              .id !== editEducation.category &&
-                              Object.assign({}, selectedEducation.category)
-                                .id !==
-                                Object.assign({}, editEducation.category).id) ||
-                            (selectedEducation.category === null &&
-                              editEducation.category)
-                          : editEducation.category != null
+                        (Object.assign({}, abit.education_category).id !==
+                          data.education_category &&
+                          Object.assign({}, abit.education_category).id !==
+                            Object.assign({}, data.education_category).id) ||
+                        (abit.education_category === null &&
+                          data.education_category)
                       "
                       dot
                     >
                       <v-autocomplete
                         class="small-text"
-                        v-model="editEducation.category"
+                        v-model="data.education_category"
                         :items="categoryEducation"
                         item-text="name"
+                        clearable
                         item-value="id"
                         label="Категория"
-                        @input="sendEducation('category', $event)"
+                        @input="inputSend('education_category', $event)"
                       />
                     </v-badge>
                   </v-col>
                   <v-col cols="4">
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedEducation
-                          ? formatDateYear(selectedEducation.date_end) !=
-                            formatDateYear(editEducation.date_end)
-                          : formatDateYear(editEducation.date_end) != null
+                        formatDateYear(abit.education_date_end) !==
+                        formatDateYear(data.education_date_end)
                       "
                       dot
                     >
                       <v-autocomplete
-                        :value="formatDateYear(editEducation.date_end)"
-                        :disabled="editEducation.category == null"
+                        :value="formatDateYear(data.education_date_end)"
+                        :disabled="data.education_category == null"
                         :items="years"
                         label="Год окончания"
-                        @input="sendEducationDate($event)"
+                        @input="sendDate('education_date_end', $event)"
                       />
                     </v-badge>
                   </v-col>
                   <v-col cols="4">
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedEducation
-                          ? selectedEducation.document_education !=
-                            editEducation.document_education
-                          : editEducation.document_education != null
+                        data.education_document != abit.education_document
                       "
                       dot
                     >
@@ -87,7 +79,7 @@
                           <v-btn
                             :color="colorBtnDocumentEducation"
                             dark
-                            :disabled="editEducation.category == null"
+                            :disabled="data.education_category == null"
                             class="mb-2"
                             v-bind="attrs"
                             v-on="on"
@@ -133,30 +125,29 @@
                   </v-col>
                   <v-col cols="12">
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedEducation
-                          ? (Object.assign({}, selectedEducation.institute)
-                              .id != editEducation.institute &&
-                              Object.assign({}, selectedEducation.institute)
-                                .id !=
-                                Object.assign({}, editEducation.institute)
-                                  .id) ||
-                            (selectedEducation.institute === null &&
-                              editEducation.institute != null)
-                          : editEducation.institute != null
+                        (Object.assign({}, abit.education_institute).id !==
+                          data.education_institute &&
+                          Object.assign({}, abit.education_institute).id !==
+                            Object.assign({}, data.education_institute).id) ||
+                        (abit.education_institute === null &&
+                          data.education_institute)
                       "
                       dot
                     >
                       <v-autocomplete
-                        v-model="editEducation.institute"
+                        v-model="data.education_institute"
                         :items="institutes"
-                        :disabled="editEducation.category == null"
+                        :disabled="data.education_category == null"
                         item-text="name"
                         item-value="id"
                         label="Образовательное учреждение"
+                        clearable
                         persistent-hint
-                        @input="sendEducationInstitute('institute', $event)"
+                        @input="
+                          sendEducationInstitute('education_institute', $event)
+                        "
                       >
                         <template #no-data>
                           <v-menu
@@ -178,7 +169,11 @@
                                 Добавить
                               </v-btn>
                             </template>
-                            <v-card>
+
+                            <v-form
+                              ref="formEducationInstitute"
+                              v-model="formEducationInstituteValid"
+                            >
                               <v-card>
                                 <v-card-title>
                                   <span class="text-h5">Добавить</span>
@@ -191,6 +186,7 @@
                                         <v-text-field
                                           v-model="institute.name"
                                           dense
+                                          :rules="[rules.required]"
                                           label="Образовательное учреждение"
                                         />
                                       </v-col>
@@ -199,6 +195,7 @@
                                           class="small-text"
                                           rows="2"
                                           label="Адрес"
+                                          :rules="[rules.required]"
                                           :value="newEducationLocation"
                                           readonly
                                         />
@@ -216,20 +213,21 @@
                                     </v-row>
                                   </v-container>
                                 </v-card-text>
-                              </v-card>
 
-                              <v-card-actions>
-                                <v-spacer />
-                                <v-btn
-                                  color="blue darken-1"
-                                  text
-                                  dense
-                                  @click="saveInstituteEducation"
-                                >
-                                  Сохранить
-                                </v-btn>
-                              </v-card-actions>
-                            </v-card>
+                                <v-card-actions>
+                                  <v-spacer />
+                                  <v-btn
+                                    color="primary"
+                                    text
+                                    dense
+                                    @click="saveInstituteEducation"
+                                    :disabled="!formEducationInstituteValid"
+                                  >
+                                    Сохранить
+                                  </v-btn>
+                                </v-card-actions>
+                              </v-card>
+                            </v-form>
                           </v-menu>
                         </template>
                       </v-autocomplete>
@@ -238,7 +236,7 @@
                       dense
                       class="small-text"
                       :value="educationLocation"
-                      :disabled="editEducation.category == null"
+                      :disabled="data.education_category == null"
                       readonly
                       label="Адрес"
                       rows="2"
@@ -257,36 +255,31 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? (Object.assign(
-                              {},
-                              selectedUncanceledEducation.category
-                            ).id != editUncanceledEducation.category &&
-                              Object.assign(
-                                {},
-                                selectedUncanceledEducation.category
-                              ).id !=
-                                Object.assign(
-                                  {},
-                                  editUncanceledEducation.category
-                                ).id) ||
-                            (selectedUncanceledEducation.category == null &&
-                              editUncanceledEducation.category)
-                          : editUncanceledEducation.category != null
+                        (Object.assign({}, abit.uncanceledEducation_category)
+                          .id !== data.uncanceledEducation_category &&
+                          Object.assign({}, abit.uncanceledEducation_category)
+                            .id !==
+                            Object.assign({}, data.uncanceledEducation_category)
+                              .id) ||
+                        (abit.uncanceledEducation_category === null &&
+                          data.uncanceledEducation_category)
                       "
                       dot
                     >
                       <v-autocomplete
                         class="small-text"
                         dense
-                        v-model="editUncanceledEducation.category"
+                        v-model="data.uncanceledEducation_category"
                         :items="categoryUncanceledEducation"
                         item-text="name"
                         item-value="id"
+                        clearable
                         label="Категория"
-                        @input="sendUncanceledEducation('category', $event)"
+                        @input="
+                          inputSend('uncanceledEducation_category', $event)
+                        "
                       />
                     </v-badge>
                   </v-col>
@@ -295,26 +288,24 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? formatDateYear(
-                              selectedUncanceledEducation.date_end
-                            ) !=
-                            formatDateYear(editUncanceledEducation.date_end)
-                          : editUncanceledEducation.date_end != null
+                        formatDateYear(data.uncanceledEducation_date_end) !=
+                        formatDateYear(abit.uncanceledEducation_date_end)
                       "
                       dot
                     >
                       <v-autocomplete
                         dense
                         :value="
-                          formatDateYear(editUncanceledEducation.date_end)
+                          formatDateYear(data.uncanceledEducation_date_end)
                         "
                         :items="years"
-                        :disabled="editUncanceledEducation.category == null"
+                        :disabled="data.uncanceledEducation_category == null"
                         label="Год окончания"
-                        @input="sendUncanceledEducationDate('date_end', $event)"
+                        @input="
+                          sendDate('uncanceledEducation_date_end', $event)
+                        "
                       />
                     </v-badge>
                   </v-col>
@@ -323,29 +314,27 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? formatDateYear(
-                              selectedUncanceledEducation.date_admission
-                            ) !=
-                            formatDateYear(
-                              editUncanceledEducation.date_admission
-                            )
-                          : editUncanceledEducation.date_admission != null
+                        formatDateYear(
+                          data.uncanceledEducation_date_admission
+                        ) !=
+                        formatDateYear(abit.uncanceledEducation_date_admission)
                       "
                       dot
                     >
                       <v-autocomplete
                         dense
                         :value="
-                          formatDateYear(editUncanceledEducation.date_admission)
+                          formatDateYear(
+                            data.uncanceledEducation_date_admission
+                          )
                         "
-                        :disabled="editUncanceledEducation.category == null"
+                        :disabled="data.uncanceledEducation_category == null"
                         :items="years"
                         label="Год поступления"
                         @input="
-                          sendUncanceledEducationDate('date_admission', $event)
+                          sendDate('uncanceledEducation_date_admission', $event)
                         "
                       />
                     </v-badge>
@@ -355,12 +344,10 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? selectedUncanceledEducation.period_study !=
-                            editUncanceledEducation.period_study
-                          : editUncanceledEducation.period_study != null
+                        data.uncanceledEducation_period_study !=
+                        abit.uncanceledEducation_period_study
                       "
                       dot
                     >
@@ -377,7 +364,9 @@
                           <v-text-field
                             class="small-text"
                             :value="computedPeriodStudy"
-                            :disabled="editUncanceledEducation.category == null"
+                            :disabled="
+                              data.uncanceledEducation_category == null
+                            "
                             label="Период обучения"
                             v-bind="attrs"
                             v-on="on"
@@ -428,42 +417,38 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? selectedUncanceledEducation.course !=
-                            editUncanceledEducation.course
-                          : editUncanceledEducation.course != null
+                        data.uncanceledEducation_course !=
+                        abit.uncanceledEducation_course
                       "
                       dot
                     >
                       <v-autocomplete
                         dense
-                        v-model="editUncanceledEducation.course"
-                        :disabled="editUncanceledEducation.category == null"
+                        v-model="data.uncanceledEducation_course"
+                        :disabled="data.uncanceledEducation_category == null"
                         :items="courses"
                         label="Курс"
-                        @input="sendUncanceledEducation('course', $event)"
+                        @input="send('uncanceledEducation_course', $event)"
                       />
                     </v-badge>
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? selectedUncanceledEducation.semesters_end !=
-                            editUncanceledEducation.semesters_end
-                          : editUncanceledEducation.semesters_end != null
+                        data.uncanceledEducation_semesters_end !=
+                        abit.uncanceledEducation_semesters_end
                       "
                       dot
                     >
                       <v-autocomplete
                         dense
-                        v-model="editUncanceledEducation.semesters_end"
-                        :disabled="editUncanceledEducation.category == null"
+                        v-model="data.uncanceledEducation_semesters_end"
+                        :disabled="data.uncanceledEducation_category == null"
                         :items="semesters"
                         label="Семестров закрыто"
                         @input="
-                          sendUncanceledEducation('semesters_end', $event)
+                          send('uncanceledEducation_semesters_end', $event)
                         "
                       />
                     </v-badge>
@@ -473,12 +458,10 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? selectedUncanceledEducation.note !=
-                            editUncanceledEducation.note
-                          : editUncanceledEducation.note != null
+                        data.uncanceledEducation_note !=
+                        abit.uncanceledEducation_note
                       "
                       dot
                     >
@@ -487,10 +470,10 @@
                         class="small-text"
                         dense
                         rows="2"
-                        :disabled="editUncanceledEducation.category == null"
-                        v-model="editUncanceledEducation.note"
+                        :disabled="data.uncanceledEducation_category == null"
+                        v-model="data.uncanceledEducation_note"
                         label="Примечание"
-                        @input="sendUncanceledEducation('note', $event)"
+                        @input="send('uncanceledEducation_note', $event)"
                       />
                     </v-badge>
                   </v-col>
@@ -499,34 +482,29 @@
                     dense
                   >
                     <v-badge
-                      color="green"
+                      color="success"
                       :value="
-                        selectedUncanceledEducation
-                          ? (Object.assign(
+                        (Object.assign({}, abit.uncanceledEducation_institute)
+                          .id !== data.uncanceledEducation_institute &&
+                          Object.assign({}, abit.uncanceledEducation_institute)
+                            .id !==
+                            Object.assign(
                               {},
-                              selectedUncanceledEducation.institute
-                            ).id != editUncanceledEducation.institute &&
-                              Object.assign(
-                                {},
-                                selectedUncanceledEducation.institute
-                              ).id !=
-                                Object.assign(
-                                  {},
-                                  editUncanceledEducation.institute
-                                ).id) ||
-                            (selectedUncanceledEducation.institute === null &&
-                              editUncanceledEducation.institute != null)
-                          : editUncanceledEducation.institute != null
+                              data.uncanceledEducation_institute
+                            ).id) ||
+                        (abit.uncanceledEducation_institute === null &&
+                          data.uncanceledEducation_institute)
                       "
                       dot
                     >
                       <v-autocomplete
                         dense
-                        v-model="editUncanceledEducation.institute"
-                        :disabled="editUncanceledEducation.category == null"
+                        v-model="data.uncanceledEducation_institute"
+                        :disabled="data.uncanceledEducation_category == null"
                         :items="institutes"
                         item-text="name"
                         item-value="id"
+                        clearable
                         label="Образовательное учреждение"
                         @input="
                           sendUncanceledEducationInstitute('institute', $event)
@@ -552,7 +530,10 @@
                                 Добавить
                               </v-btn>
                             </template>
-                            <v-card>
+                            <v-form
+                              ref="formUncanceledEducationInstitute"
+                              v-model="formUncanceledEducationInstituteValid"
+                            >
                               <v-card>
                                 <v-card-title>
                                   <span class="text-h5">Добавить</span>
@@ -565,6 +546,7 @@
                                         <v-text-field
                                           v-model="institute.name"
                                           dense
+                                          :rules="[rules.required]"
                                           label="Образовательное учреждение"
                                         />
                                       </v-col>
@@ -573,6 +555,7 @@
                                           class="small-text"
                                           rows="2"
                                           label="Адрес"
+                                          :rules="[rules.required]"
                                           :value="
                                             newUncanceledEducationLocation
                                           "
@@ -596,20 +579,21 @@
                                     </v-row>
                                   </v-container>
                                 </v-card-text>
-                              </v-card>
 
-                              <v-card-actions>
-                                <v-spacer />
-                                <v-btn
-                                  color="blue darken-1"
-                                  text
-                                  dense
-                                  @click="saveInstituteUncanceledEducation"
-                                >
-                                  Сохранить
-                                </v-btn>
-                              </v-card-actions>
-                            </v-card>
+                                <v-card-actions>
+                                  <v-spacer />
+                                  <v-btn
+                                    color="primary"
+                                    text
+                                    dense
+                                    @click="saveInstituteUncanceledEducation"
+                                    :disabled="!formUncanceledInstituteValid"
+                                  >
+                                    Сохранить
+                                  </v-btn>
+                                </v-card-actions>
+                              </v-card>
+                            </v-form>
                           </v-menu>
                         </template>
                       </v-autocomplete>
@@ -618,7 +602,7 @@
                       dense
                       class="small-text"
                       :value="uncanceledEducationLocation"
-                      :disabled="editUncanceledEducation.category == null"
+                      :disabled="data.uncanceledEducation_category == null"
                       readonly
                       label="Адрес"
                       rows="2"
@@ -636,80 +620,71 @@
           <v-row>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedPassport
-                    ? selectedPassport.series != editPassport.series
-                    : editPassport.series != null
+                  data.passport_series
+                    ? parseInt(data.passport_series, 10) !==
+                      parseInt(abit.passport_series, 10)
+                    : false
                 "
                 dot
               >
                 <v-text-field
-                  v-model="editPassport.series"
+                  v-model="data.passport_series"
                   v-mask="'####'"
                   dense
                   label="серия"
-                  @input="sendPassport('series', parseInt($event, 10))"
+                  @input="send('passport_series', parseInt($event, 10))"
                 />
               </v-badge>
             </v-col>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedPassport
-                    ? selectedPassport.num != editPassport.num
-                    : editPassport.num != null
+                  data.passport_num
+                    ? parseInt(data.passport_num, 10) !=
+                      parseInt(abit.passport_num, 10)
+                    : false
                 "
                 dot
               >
                 <v-text-field
-                  v-model="editPassport.num"
+                  v-model="data.passport_num"
                   v-mask="'######'"
                   dense
                   label="номер"
-                  @input="sendPassport('num', parseInt($event, 10))"
+                  @input="send('passport_num', parseInt($event, 10))"
                 />
               </v-badge>
             </v-col>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedPassport
-                    ? formatDate(selectedPassport.date_issue) !=
-                      formatDate(editPassport.date_issue)
-                    : formatDate(editPassport.date_issue) != null
+                  formatDate(data.passport_date_issue) !==
+                  formatDate(abit.passport_date_issue)
                 "
                 dot
               >
                 <v-text-field
-                  v-model="editPassport.date_issue"
+                  :value="formatDate(data.passport_date_issue)"
                   type="date"
                   dense
                   label="Дата выдачи"
-                  @input="sendPassportDate('date_issue', $event)"
+                  @input="sendDate('passport_date_issue', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="8">
               <v-badge
-                color="green"
-                :value="
-                  selectedPassport
-                    ? (Object.assign({}, selectedPassport.issued_by).id !==
-                        editPassport.issued_by &&
-                        Object.assign({}, selectedPassport.issued_by).id !==
-                          Object.assign({}, editPassport.issued_by).id) ||
-                      (selectedPassport.issued_by == null &&
-                        editPassport.issued_by != undefined)
-                    : editPassport.issued_by != null
-                "
+                color="success"
+                :value="data.passport_issued_by !== abit.passport_issued_by"
                 dot
               >
                 <v-autocomplete
                   class="small-text"
-                  v-model="editPassport.issued_by"
+                  v-model="data.passport_issued_by"
                   :items="passportIssued"
                   :item-text="namePassportIssued"
                   item-value="id"
@@ -737,47 +712,55 @@
                           Добавить
                         </v-btn>
                       </template>
-                      <v-card>
+                      <v-form
+                        ref="formPassport"
+                        v-model="formPassportValid"
+                      >
                         <v-card>
-                          <v-card-title>
-                            <span class="text-h5">Добавить</span>
-                          </v-card-title>
+                          <v-card>
+                            <v-card-title>
+                              <span class="text-h5">Добавить</span>
+                            </v-card-title>
 
-                          <v-card-text>
-                            <v-container>
-                              <v-row>
-                                <v-col cols="12">
-                                  <v-text-field
-                                    v-model="issued_by.name"
-                                    dense
-                                    label="Кем выдан"
-                                  />
-                                </v-col>
-                                <v-col cols="12">
-                                  <v-text-field
-                                    v-model="issued_by.department_code"
-                                    v-mask="'###-###'"
-                                    dense
-                                    label="Код подразделения"
-                                  />
-                                </v-col>
-                              </v-row>
-                            </v-container>
-                          </v-card-text>
+                            <v-card-text>
+                              <v-container>
+                                <v-row>
+                                  <v-col cols="12">
+                                    <v-text-field
+                                      v-model="issued_by.name"
+                                      dense
+                                      :rules="[rules.required]"
+                                      label="Кем выдан"
+                                    />
+                                  </v-col>
+                                  <v-col cols="12">
+                                    <v-text-field
+                                      v-model="issued_by.department_code"
+                                      v-mask="'###-###'"
+                                      dense
+                                      :rules="[rules.department_code]"
+                                      label="Код подразделения"
+                                    />
+                                  </v-col>
+                                </v-row>
+                              </v-container>
+                            </v-card-text>
+                          </v-card>
+
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              color="primary"
+                              text
+                              dense
+                              @click="savePassportIssued"
+                              :disabled="!formPassportValid"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
                         </v-card>
-
-                        <v-card-actions>
-                          <v-spacer />
-                          <v-btn
-                            color="blue darken-1"
-                            text
-                            dense
-                            @click="savePassportIssued"
-                          >
-                            Сохранить
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
+                      </v-form>
                     </v-menu>
                   </template>
                 </v-autocomplete>
@@ -785,7 +768,7 @@
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="editPassport.department_code"
+                v-model="data.passport_department_code"
                 readonly
                 dense
                 label="код подразделения"
@@ -793,20 +776,16 @@
             </v-col>
             <v-col cols="12">
               <v-badge
-                color="green"
-                :value="
-                  selectedPassport
-                    ? selectedPassport.birthplace != editPassport.birthplace
-                    : editPassport.birthplace != null
-                "
+                color="success"
+                :value="data.passport_birthplace !== abit.passport_birthplace"
                 dot
               >
                 <v-text-field
-                  v-model="editPassport.birthplace"
+                  v-model="data.passport_birthplace"
                   class="small-text"
                   dense
                   label="место рождения"
-                  @input="sendPassport('birthplace', $event)"
+                  @input="send('passport_birthplace', $event)"
                 />
               </v-badge>
             </v-col>
@@ -818,7 +797,7 @@
           <v-row>
             <v-col cols="6">
               <v-badge
-                color="green"
+                color="success"
                 :value="data.document_inn !== abit.document_inn"
                 dot
               >
@@ -833,7 +812,7 @@
             </v-col>
             <v-col cols="6">
               <v-badge
-                color="green"
+                color="success"
                 :value="data.document_snils !== abit.document_snils"
                 dot
               >
@@ -854,7 +833,7 @@
           <v-row>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   data.document_secrets_access !== abit.document_secrets_access
                 "
@@ -866,8 +845,6 @@
                   dense
                   clearable
                   :items="document_secrets_access"
-                  item-text="title"
-                  item-value="value"
                   label="Допуск к ССГТ"
                   @input="send('document_secrets_access', $event)"
                 />
@@ -875,7 +852,7 @@
             </v-col>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   data.document_medical_certificate !==
                   abit.document_medical_certificate
@@ -888,8 +865,6 @@
                   dense
                   clearable
                   :items="document_medical_certificate"
-                  item-text="title"
-                  item-value="value"
                   label="Мед. справка"
                   @change="send('document_medical_certificate', $event)"
                 />
@@ -899,7 +874,7 @@
               <v-row no-gutters>
                 <v-col cols="9">
                   <v-badge
-                    color="green"
+                    color="success"
                     :value="data.document_ppo_group !== abit.document_ppo_group"
                     dot
                   >
@@ -909,8 +884,6 @@
                       dense
                       clearable
                       :items="document_ppo_group"
-                      item-text="title"
-                      item-value="value"
                       label="Кат. ПП от ВК/ВЧ"
                       @input="send('document_ppo_group', $event)"
                     />
@@ -918,7 +891,7 @@
                 </v-col>
                 <v-col cols="3">
                   <v-badge
-                    color="green"
+                    color="success"
                     :value="
                       data.document_ppo_group_card !==
                       abit.document_ppo_group_card
@@ -939,7 +912,7 @@
             </v-col>
             <v-col cols="5">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   data.document_mvd_availability !==
                   abit.document_mvd_availability
@@ -950,8 +923,6 @@
                   v-model="data.document_mvd_availability"
                   clearable
                   :items="document_mvd_availability"
-                  item-text="title"
-                  item-value="value"
                   label="Справка МВД"
                   @change="send('document_mvd_availability', $event)"
                 />
@@ -959,10 +930,9 @@
             </v-col>
             <v-col cols="7">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  data.document_mvd_prosecution !==
-                  abit.document_mvd_prosecution
+                  data.document_mvd_prosecution != abit.document_mvd_prosecution
                 "
                 dot
               >
@@ -971,7 +941,6 @@
                   dense
                   :items="document_mvd_prosecution"
                   :disabled="data.document_mvd_availability !== 'true'"
-                  item-text="title"
                   label="Привлечение к ответственности"
                   multiple
                   chips
@@ -1026,114 +995,127 @@
                     Добавить
                   </v-btn>
                 </template>
-                <v-card>
-                  <v-card-title>
-                    {{ computedEditMark }}
-                    <v-spacer />
-                    <v-dialog
-                      v-model="dialogMarkList"
-                      max-width="800px"
-                      @click:outside="clickOutsideMarks"
-                      v-if="editList"
-                    >
-                      <template #activator="{ on, attrs }">
-                        <v-btn
-                          color="primary"
-                          dark
-                          class="mb-2"
-                          v-bind="attrs"
-                          v-on="on"
+                <v-form
+                  ref="formMark"
+                  v-model="formMarkValid"
+                >
+                  <v-card>
+                    <v-card-title>
+                      {{ computedEditMark }}
+                      <v-spacer />
+                      <v-dialog
+                        v-model="dialogMarkList"
+                        max-width="800px"
+                        @click:outside="clickOutsideMarks"
+                        v-if="editList"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            color="primary"
+                            dark
+                            class="mb-2"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            Список
+                          </v-btn>
+                        </template>
+                        <v-form
+                          ref="formMarks"
+                          v-model="formMarksValid"
                         >
-                          Список
-                        </v-btn>
-                      </template>
-                      <v-card>
-                        <v-card-title>
-                          Добавить
-                          <v-spacer />
-                        </v-card-title>
-                        <v-card-text>
-                          <v-container>
-                            <v-row>
-                              <v-col>
+                          <v-card>
+                            <v-card-title>
+                              Добавить
+                              <v-spacer />
+                            </v-card-title>
+                            <v-card-text>
+                              <v-container>
                                 <v-row>
-                                  <v-col
-                                    v-for="(
-                                      n, index
-                                    ) in notUsedSchoolMarksSubjects"
-                                    :key="index"
-                                    cols="6"
-                                  >
+                                  <v-col>
                                     <v-row>
-                                      <v-col cols="5">
-                                        {{ n.name }}
-                                      </v-col>
-                                      <v-col cols="6">
-                                        <v-text-field
-                                          v-model="markList[index]"
-                                          dense
-                                          v-mask="'#'"
-                                          :rules="[rules.mark]"
-                                          :items="marks"
-                                          label="Оценка"
-                                          @keyup.enter="saveMarkList"
-                                        />
+                                      <v-col
+                                        v-for="(
+                                          n, index
+                                        ) in notUsedSchoolMarksSubjects"
+                                        :key="index"
+                                        cols="6"
+                                      >
+                                        <v-row>
+                                          <v-col cols="5">
+                                            {{ n.name }}
+                                          </v-col>
+                                          <v-col cols="6">
+                                            <v-text-field
+                                              v-model="markList[index]"
+                                              dense
+                                              v-mask="'#'"
+                                              :rules="[rules.mark]"
+                                              :items="marks"
+                                              label="Оценка"
+                                              @keyup.enter="saveMarkList"
+                                            />
+                                          </v-col>
+                                        </v-row>
                                       </v-col>
                                     </v-row>
                                   </v-col>
                                 </v-row>
-                              </v-col>
-                            </v-row>
-                          </v-container>
-                        </v-card-text>
-                        <v-card-actions>
-                          <v-spacer />
-                          <v-btn
-                            text
-                            @click="saveMarkList"
-                          >
-                            Сохранить
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
-                    </v-dialog>
-                  </v-card-title>
-                  <v-card-text>
-                    <v-container>
-                      <v-row>
-                        <v-col cols="6">
-                          <v-autocomplete
-                            :value="mark.mark"
-                            :items="marks"
-                            label="Оценка"
-                            @input="updateMark(parseInt($event, 10))"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <v-select
-                            v-model="mark.subject"
-                            :items="
-                              editList ? notUsedSchoolMarksSubjects : subjects
-                            "
-                            item-text="name"
-                            item-value="id"
-                            label="Предмет"
-                            @input="updateMarkSubject"
-                          />
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn
-                      text
-                      @click="saveMark"
-                    >
-                      Сохранить
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
+                              </v-container>
+                            </v-card-text>
+                            <v-card-actions>
+                              <v-spacer />
+                              <v-btn
+                                text
+                                @click="saveMarkList"
+                              >
+                                Сохранить
+                              </v-btn>
+                            </v-card-actions>
+                          </v-card>
+                        </v-form>
+                      </v-dialog>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="6">
+                            <v-autocomplete
+                              :value="mark.mark"
+                              :items="marks"
+                              :rules="[rules.required]"
+                              label="Оценка"
+                              @input="updateMark(parseInt($event, 10))"
+                            />
+                          </v-col>
+                          <v-col cols="6">
+                            <v-select
+                              v-model="mark.subject"
+                              :items="
+                                editList ? notUsedSchoolMarksSubjects : subjects
+                              "
+                              item-text="name"
+                              item-value="id"
+                              label="Предмет"
+                              :rules="[rules.required]"
+                              @input="updateMarkSubject"
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer />
+                      <v-btn
+                        text
+                        @click="saveMark"
+                        :disabled="!formMarkValid"
+                      >
+                        Сохранить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-dialog>
             </v-toolbar>
           </template>
@@ -1151,21 +1133,18 @@
         <v-card-title>
           Военная служба <v-spacer />
           <v-badge
-            color="green"
+            color="success"
             :value="
-              selectedMilitaryService
-                ? selectedMilitaryService.dismissed !=
-                  editMilitaryService.dismissed
-                : editMilitaryService.dismissed != null
+              data.militaryService_dismissed !== abit.militaryService_dismissed
             "
             dot
           >
             <v-checkbox
-              v-model="editMilitaryService.dismissed"
-              :disabled="editMilitaryService.rank == null"
+              v-model="data.militaryService_dismissed"
+              :disabled="data.militaryService_rank == null"
               dense
               label="В запасе?"
-              @change="sendMilitaryService('dismissed', $event)"
+              @change="send('militaryService_dismissed', $event)"
             />
           </v-badge>
         </v-card-title>
@@ -1173,197 +1152,182 @@
           <v-row>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? (Object.assign({}, selectedMilitaryService.rank).id !=
-                        editMilitaryService.rank &&
-                        Object.assign({}, selectedMilitaryService.rank).id !=
-                          Object.assign({}, editMilitaryService.rank).id) ||
-                      (selectedMilitaryService.rank === null &&
-                        editMilitaryService.rank != null)
-                    : editMilitaryService.rank != null
+                  (Object.assign({}, abit.militaryService_rank).id !==
+                    data.militaryService_rank &&
+                    Object.assign({}, abit.militaryService_rank).id !==
+                      Object.assign({}, data.militaryService_rank).id) ||
+                  (abit.militaryService_rank === null &&
+                    data.militaryService_rank)
                 "
                 dot
               >
                 <v-select
                   class="small-text"
-                  v-model="editMilitaryService.rank"
+                  v-model="data.militaryService_rank"
                   :items="militaryRanks"
                   item-text="name"
                   item-value="id"
                   dense
+                  clearable
                   label="Воинское звание"
-                  @input="sendMilitaryService('rank', $event)"
+                  @input="inputSend('militaryService_rank', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="3">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? selectedMilitaryService.category !=
-                      editMilitaryService.category
-                    : editMilitaryService.category != null
+                  data.militaryService_category !==
+                  abit.militaryService_category
                 "
                 dot
               >
                 <v-select
                   class="small-text"
-                  v-model="editMilitaryService.category"
+                  v-model="data.militaryService_category"
                   dense
                   :items="categories"
                   item-text="title"
                   item-value="value"
-                  :disabled="editMilitaryService.rank == null"
+                  :disabled="data.militaryService_rank == null"
                   label="Категория"
-                  @input="sendMilitaryService('category', $event)"
+                  @input="send('militaryService_category', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="3">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? selectedMilitaryService.mobilization !=
-                      editMilitaryService.mobilization
-                    : editMilitaryService.mobilization != null
+                  data.militaryService_mobilization !==
+                  abit.militaryService_mobilization
                 "
                 dot
               >
                 <v-checkbox
-                  v-model="editMilitaryService.mobilization"
+                  v-model="data.militaryService_mobilization"
                   dense
                   hint="Мобилизован"
                   persistent-hint
                   class="no-wrap-hint"
-                  :disabled="editMilitaryService.rank == null"
-                  @change="sendMilitaryService('mobilization', $event)"
+                  :disabled="data.militaryService_rank == null"
+                  @change="send('militaryService_mobilization', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="2">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? selectedMilitaryService.collection !=
-                      editMilitaryService.collection
-                    : editMilitaryService.collection != null
+                  data.militaryService_collection !==
+                  abit.militaryService_collection
                 "
                 dot
               >
                 <v-checkbox
-                  v-model="editMilitaryService.collection"
+                  v-model="data.militaryService_collection"
                   dense
                   hint="Сборы"
                   persistent-hint
                   class="no-wrap-hint"
-                  :disabled="editMilitaryService.rank == null"
-                  @change="sendMilitaryService('collection', $event)"
+                  :disabled="data.militaryService_rank == null"
+                  @change="send('militaryService_collection', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="6">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? (Object.assign({}, selectedMilitaryService.SVO).id !=
-                        editMilitaryService.SVO &&
-                        Object.assign({}, selectedMilitaryService.SVO).id !=
-                          Object.assign({}, editMilitaryService.SVO).id) ||
-                      (selectedMilitaryService.SVO === null &&
-                        editMilitaryService.SVO != null)
-                    : editMilitaryService.SVO != null
+                  (Object.assign({}, abit.militaryService_SVO).id !==
+                    data.militaryService_SVO &&
+                    Object.assign({}, abit.militaryService_SVO).id !==
+                      Object.assign({}, data.militaryService_SVO).id) ||
+                  (abit.militaryService_SVO === null &&
+                    data.militaryService_SVO)
                 "
                 dot
               >
                 <v-select
-                  v-model="editMilitaryService.SVO"
+                  v-model="data.militaryService_SVO"
                   :items="militarySVO"
                   item-text="name"
                   item-value="id"
                   dense
-                  :disabled="editMilitaryService.rank == null"
+                  :disabled="data.militaryService_rank == null"
                   label="СВО"
-                  @input="sendMilitaryService('SVO', $event)"
+                  @input="send('militaryService_SVO', $event)"
                 />
               </v-badge>
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? (Object.assign({}, selectedMilitaryService.place).id !=
-                        editMilitaryService.place &&
-                        Object.assign({}, selectedMilitaryService.place).id !=
-                          Object.assign({}, editMilitaryService.place).id) ||
-                      (selectedMilitaryService.place === null &&
-                        editMilitaryService.place != null)
-                    : editMilitaryService.place != null
+                  (Object.assign({}, abit.militaryService_place).id !==
+                    data.militaryService_place &&
+                    Object.assign({}, abit.militaryService_place).id !==
+                      Object.assign({}, data.militaryService_place).id) ||
+                  (abit.militaryService_place === null &&
+                    data.militaryService_place)
                 "
                 dot
               >
                 <v-select
-                  v-model="editMilitaryService.place"
+                  v-model="data.militaryService_place"
                   :items="militaryPlaces"
                   item-text="name"
-                  :disabled="editMilitaryService.rank == null"
+                  :disabled="data.militaryService_rank == null"
                   item-value="id"
                   dense
                   label="Где служит"
-                  @input="sendMilitaryService('place', $event)"
+                  @input="send('militaryService_place', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="6">
               <v-badge
-                color="green"
-                :value="
-                  selectedMilitaryService
-                    ? selectedMilitaryService.post != editMilitaryService.post
-                    : editMilitaryService.post != null
-                "
+                color="success"
+                :value="data.militaryService_post !== abit.militaryService_post"
                 dot
               >
                 <v-textarea
                   class="small-text"
                   height="75px"
                   rows="2"
-                  :disabled="editMilitaryService.rank == null"
-                  v-model="editMilitaryService.post"
+                  :disabled="data.militaryService_rank == null"
+                  v-model="data.militaryService_post"
                   dense
                   label="Должность"
-                  @input="sendMilitaryService('post', $event)"
+                  @input="send('militaryService_post', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="12">
               <v-badge
-                color="green"
+                color="success"
                 :value="
-                  selectedMilitaryService
-                    ? (Object.assign({}, selectedMilitaryService.unit).id !=
-                        editMilitaryService.unit &&
-                        Object.assign({}, selectedMilitaryService.unit).id !=
-                          Object.assign({}, editMilitaryService.unit).id) ||
-                      (selectedMilitaryService.unit === null &&
-                        editMilitaryService.unit != null)
-                    : editMilitaryService.unit != null
+                  (Object.assign({}, abit.militaryService_unit).id !==
+                    data.militaryService_unit &&
+                    Object.assign({}, abit.militaryService_unit).id !==
+                      Object.assign({}, data.militaryService_unit).id) ||
+                  (abit.militaryService_unit === null &&
+                    data.militaryService_unit)
                 "
                 dot
               >
                 <v-autocomplete
                   dense
-                  v-model="editMilitaryService.unit"
+                  v-model="data.militaryService_unit"
                   :items="militaryUnits"
                   item-text="name"
                   item-value="id"
-                  :disabled="editMilitaryService.rank == null"
+                  :disabled="data.militaryService_rank == null"
                   label="Воинская часть"
-                  @input="sendMilitaryServiceUnit('unit', $event)"
+                  @input="
+                    sendMilitaryServiceUnit('militaryService_unit', $event)
+                  "
                 >
                   <template #no-data>
                     <v-menu
@@ -1385,7 +1349,10 @@
                           Добавить
                         </v-btn>
                       </template>
-                      <v-card>
+                      <v-form
+                        ref="formUnit"
+                        v-model="formUnitValid"
+                      >
                         <v-card>
                           <v-card-title>
                             <span class="text-h5">Добавить</span>
@@ -1398,6 +1365,7 @@
                                   <v-text-field
                                     v-model="unit.name"
                                     dense
+                                    :rules="[rules.required]"
                                     label="Воинская часть"
                                   />
                                 </v-col>
@@ -1406,6 +1374,7 @@
                                     class="small-text"
                                     rows="2"
                                     label="Адрес"
+                                    :rules="[rules.required]"
                                     :value="newUnitLocation"
                                     readonly
                                   />
@@ -1423,20 +1392,21 @@
                               </v-row>
                             </v-container>
                           </v-card-text>
-                        </v-card>
 
-                        <v-card-actions>
-                          <v-spacer />
-                          <v-btn
-                            color="blue darken-1"
-                            text
-                            dense
-                            @click="saveMilitaryUnit"
-                          >
-                            Сохранить
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              color="primary"
+                              text
+                              dense
+                              @click="saveMilitaryUnit"
+                              :disabled="!formUnitValid"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-form>
                     </v-menu>
                   </template>
                 </v-autocomplete>
@@ -1444,7 +1414,7 @@
                   dense
                   class="small-text"
                   :value="unitLocation"
-                  :disabled="editMilitaryService.rank == null"
+                  :disabled="data.militaryService_rank == null"
                   readonly
                   label="Адрес"
                   rows="1"
@@ -1459,22 +1429,22 @@
           <v-row>
             <v-col cols="4">
               <v-badge
-                color="green"
+                color="success"
                 :value="data.personal_number !== abit.personal_number"
                 dot
               >
                 <v-text-field
                   v-model="data.personal_number"
-                  v-mask="'XX-######'"
                   dense
+                  :rules="[rules.personal_number]"
                   label="Личный номер"
-                  @input="send('personal_number', $event)"
+                  @input="normalizationSend('personal_number', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="8">
               <v-badge
-                color="green"
+                color="success"
                 :value="
                   data.personal_number_giving !== abit.personal_number_giving
                 "
@@ -1516,10 +1486,6 @@ export default {
     return {
       data: {},
       differences: {},
-      editMilitaryService: {},
-      editEducation: {},
-      editUncanceledEducation: {},
-      editPassport: {},
       courses: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       semesters: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       mark: {},
@@ -1545,40 +1511,43 @@ export default {
         { value: 'actions', text: 'Действие' },
       ],
       document_secrets_access: [
-        { value: 'group_1', title: '1 группа' },
-        { value: 'group_2', title: '2 группа' },
-        { value: 'group_1_in_process', title: '1 группа (в процессе)' },
-        { value: 'group_2_in_process', title: '2 группа (в процессе)' },
-        { value: 'group_3', title: '3 группа' },
-        { value: 'none', title: 'отсутствует' },
+        '1 группа',
+        '2 группа',
+        '1 группа (в процессе)',
+        '2 группа (в процессе)',
+        '3 группа',
+        'Отсутствует',
       ],
       document_ppo_group: [
-        { value: 'group_1', title: '1 группа' },
-        { value: 'group_2', title: '2 группа' },
-        { value: 'group_3', title: '3 группа' },
-        { value: 'group_4', title: '4 группа' },
-        { value: 'none', title: 'Отсутствует' },
+        '1 группа',
+        '2 группа',
+        '3 группа',
+        '4 группа',
+        'Отсутствует',
       ],
-      document_medical_certificate: [
-        { value: 'true', title: 'Имеется' },
-        { value: 'false', title: 'Отсутствует' },
-      ],
-      document_mvd_availability: [
-        { value: 'true', title: 'Имеется' },
-        { value: 'false', title: 'Отсутствует' },
-      ],
+      document_medical_certificate: ['Имеется', 'Отсутствует'],
+      document_mvd_availability: ['Имеется', 'Отсутствует'],
       document_mvd_prosecution: [
-        { value: 'criminal', title: 'Уголовная' },
-        { value: 'administrative', title: 'Административная' },
-        { value: 'accounting', title: 'Факт учёта в ОПДН' },
+        'Уголовная',
+        'Административная',
+        'Факт учёта в ОПДН',
       ],
-      categories: [
-        { value: 'conscription', title: 'По призыву' },
-        { value: 'contract', title: 'Контракт' },
-      ],
+      categories: ['По призыву', 'Контракт'],
       rules: {
         mark: (value) => value <= 5 || 'Оценка по 5-бальной шкале',
+        required: (value) => !!value || 'Обязательно.',
+        department_code: (value) =>
+          (!!value && value.length == 7) || 'Некорректно.',
+        personal_number: (value) =>
+          !value || value?.length < 10 || 'Некорректно.',
       },
+      formUnitValid: false,
+      formMarkValid: false,
+      formMarksValid: false,
+      formPassportValid: false,
+      formEducationInstituteValid: false,
+      formUncanceledEducationInstituteValid: false,
+      formUncanceledInstituteValid: false,
       newEducationLocation: '',
       educationLocation: '',
       locationObjectEducation: {},
@@ -1604,15 +1573,7 @@ export default {
       'militaryRanks',
       'militaryPlaces',
       'militarySVO',
-      'educations',
-      'uncanceledEducations',
-      'selectedEducation',
-      'selectedUncanceledEducation',
-      'selectedMilitaryService',
-      'militaryServices',
       'militaryUnits',
-      'passports',
-      'selectedPassport',
       'locations',
       'location',
       'regions',
@@ -1640,10 +1601,8 @@ export default {
       )
     },
     colorBtnDocumentEducation() {
-      return (this.selectedEducation
-        ? this.selectedEducation.document_education
-        : undefined) != undefined
-        ? 'green'
+      return (this.data ? this.data.education_document : undefined) != undefined
+        ? 'success'
         : 'primary'
     },
     computedPeriodStudy() {
@@ -1651,8 +1610,8 @@ export default {
         return `лет-${this.editPeriodStudy.years} мес.-${this.editPeriodStudy.months}`
       } else if (this.editPeriodStudy.years) {
         return `лет-${this.editPeriodStudy.years}`
-      } else if (this.editUncanceledEducation.period_study) {
-        return this.editUncanceledEducation.period_study
+      } else if (this.data.uncanceledEducation_period_study) {
+        return this.data.uncanceledEducation_period_study
       } else {
         return ''
       }
@@ -1667,22 +1626,14 @@ export default {
       if (this.data.id) {
         this.fetchSchoolMark(this.data.id)
 
-        await this.selectEducation(this.abit.id)
-        if (this.selectedEducation) {
-          this.editEducation = Object.assign({}, this.selectedEducation)
-          if (this.editEducation.document_education) {
-            this.editDocumentEducation = JSON.parse(
-              this.editEducation.document_education
-            )
-          } else {
-            this.editDocumentEducation = {}
-          }
+        if (this.data.education_document) {
+          this.editDocumentEducation = JSON.parse(this.data.education_document)
         } else {
-          this.editEducation = {}
+          this.editDocumentEducation = {}
         }
 
-        if (this.editEducation.institute) {
-          await this.selectInstitute(this.editEducation.institute.id)
+        if (this.data.education_institute) {
+          await this.selectInstitute(this.data.education_institute.id)
           await this.selectLocation(this.selectedInstitute.address.id)
           const foundRegion = this.regions.find(
             (obj) => obj.id === this.location.region.id
@@ -1722,18 +1673,8 @@ export default {
           this.educationLocation = null
         }
 
-        await this.selectUncanceledEducation(this.abit.id)
-        if (this.selectedUncanceledEducation) {
-          this.editUncanceledEducation = Object.assign(
-            {},
-            this.selectedUncanceledEducation
-          )
-        } else {
-          this.editUncanceledEducation = {}
-        }
-
-        if (this.editUncanceledEducation.institute) {
-          await this.selectInstitute(this.editUncanceledEducation.institute.id)
+        if (this.data.uncanceledEducation_institute) {
+          await this.selectInstitute(this.data.uncanceledEducation_institute.id)
           await this.selectLocation(this.selectedInstitute.address.id)
           const foundRegion = this.regions.find(
             (obj) => obj.id === this.location.region.id
@@ -1773,18 +1714,8 @@ export default {
           this.uncanceledEducationLocation = null
         }
 
-        await this.selectMilitaryService(this.abit.id)
-        if (this.selectedMilitaryService) {
-          this.editMilitaryService = Object.assign(
-            {},
-            this.selectedMilitaryService
-          )
-        } else {
-          this.editMilitaryService = {}
-        }
-
-        if (this.editMilitaryService.unit) {
-          await this.selectMilitaryUnit(this.editMilitaryService.unit.id)
+        if (this.data.militaryService_unit) {
+          await this.selectMilitaryUnit(this.data.militaryService_unit.id)
           await this.selectLocation(this.selectedMilitaryUnit.address.id)
           const foundRegion = this.regions.find(
             (obj) => obj.id === this.location.region.id
@@ -1823,16 +1754,6 @@ export default {
         } else {
           this.unitLocation = null
         }
-
-        await this.selectPassport(this.abit.id)
-        if (this.selectedPassport) {
-          this.editPassport = Object.assign({}, this.selectedPassport)
-          this.editPassport.date_issue = this.formatDate(
-            this.selectedPassport.date_issue
-          )
-        } else {
-          this.editPassport = {}
-        }
       }
     },
   },
@@ -1846,11 +1767,7 @@ export default {
     this.fetchMilitaryRanks()
     this.fetchMilitaryPlaces()
     this.fetchMilitarySVO()
-    this.fetchEducations()
-    this.fetchUncanceledEducations()
-    this.fetchMilitaryServices()
     this.fetchMilitaryUnits()
-    this.fetchPassports()
     this.fetchLocations()
     this.fetchRegions()
     this.fetchDistricts()
@@ -1876,24 +1793,8 @@ export default {
       'fetchMilitaryRanks',
       'fetchMilitaryPlaces',
       'fetchMilitarySVO',
-      'fetchEducations',
-      'fetchUncanceledEducations',
-      'selectEducation',
-      'selectUncanceledEducation',
-      'addEducation',
-      'addUncanceledEducation',
-      'updateEducation',
-      'updateUncanceledEducation',
-      'fetchMilitaryServices',
-      'selectMilitaryService',
-      'addMilitaryService',
-      'updateMilitaryService',
       'fetchMilitaryUnits',
       'addMilitaryUnit',
-      'fetchPassports',
-      'selectPassport',
-      'addPassport',
-      'updatePassport',
       'fetchLocations',
       'selectLocation',
       'addLocation',
@@ -1919,7 +1820,40 @@ export default {
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
+    sendDate(key, value) {
+      this.data[key] = value
 
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
+    },
+    inputSend(key, value) {
+      this.send(key, value)
+      if (value === null) {
+        if (key == 'militaryService_rank') {
+          this.send('militaryService_post', null)
+          this.send('militaryService_place', null)
+          this.send('militaryService_unit', null)
+          this.send('militaryService_category', null)
+          this.send('militaryService_dismissed', false)
+          this.send('militaryService_mobilization', false)
+          this.send('militaryService_collection', false)
+          this.send('militaryService_SVO', null)
+        } else if (key == 'education_category') {
+          this.send('education_date_end', null)
+          this.send('education_institute', null)
+          this.send('education_document', null)
+        } else if (key == 'uncanceledEducation_category') {
+          this.send('uncanceledEducation_date_admission', null)
+          this.send('uncanceledEducation_date_end', null)
+          this.send('uncanceledEducation_period_study', null)
+          this.send('uncanceledEducation_course', null)
+          this.send('uncanceledEducation_semesters_end', null)
+          this.send('uncanceledEducation_institute', null)
+          this.send('uncanceledEducation_note', null)
+        }
+      }
+    },
     clickOutsideMark() {
       this.mark = {}
     },
@@ -1982,24 +1916,12 @@ export default {
       this.issued_by = {}
     },
 
-    sendPassportDate(key, event) {
-      this.editPassport.date_issue = this.formatDate(event)
-      const data = {}
-      data[key] = this.editPassport.date_issue
-      this.$emit('child-passport', data)
-    },
-    sendPassport(key, event) {
-      this.editPassport[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-passport', data)
-    },
     sendPassportIssued(event) {
-      this.editPassport.issued_by = event
-      this.editPassport.department_code =
+      this.data.passport_issued_by = this.passportIssued[event - 1]
+      this.data.passport_department_code =
         this.passportIssued[event - 1].department_code
-      this.sendPassport('issued_by', this.editPassport.issued_by)
-      this.sendPassport('department_code', this.editPassport.department_code)
+      this.send('passport_issued_by', this.data.passport_issued_by)
+      this.send('passport_department_code', this.data.passport_department_code)
     },
 
     async saveInstituteEducation() {
@@ -2027,7 +1949,7 @@ export default {
       this.institute = {}
     },
     async sendEducationInstitute(key, event) {
-      await this.selectInstitute(this.editEducation.institute)
+      await this.selectInstitute(this.data.education_institute)
       await this.selectLocation(this.selectedInstitute.address.id)
       const foundRegion = this.regions.find(
         (obj) => obj.id === this.location.region.id
@@ -2064,30 +1986,16 @@ export default {
         this.educationLocation = locationDistrict
       }
 
-      this.editEducation[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-education', data)
+      this.send('education_institute', event)
     },
     sendDocumentEducation(event) {
       const data = JSON.stringify(event)
-      this.sendEducation('document_education', data)
+      this.data.education_document = data
+      this.send('education_document', data)
       this.menuDocumentEducation = false
     },
-    sendEducationDate(event) {
-      const data = moment(event, 'YYYY').format('YYYY-MM-DD')
-      this.sendEducation('date_end', data)
-    },
-    sendEducation(key, event) {
-      this.editEducation[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-education', data)
-    },
-
     async sendUncanceledEducationInstitute(key, event) {
-      console.log(1, event)
-      await this.selectInstitute(this.editUncanceledEducation.institute)
+      await this.selectInstitute(this.data.uncanceledEducation_institute)
       await this.selectLocation(this.selectedInstitute.address.id)
       const foundRegion = this.regions.find(
         (obj) => obj.id === this.location.region.id
@@ -2124,36 +2032,17 @@ export default {
         this.uncanceledEducationLocation = locationDistrict
       }
 
-      this.editUncanceledEducation[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-uncanceledEducation', data)
-    },
-    sendUncanceledEducation(key, event) {
-      this.editUncanceledEducation[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-uncanceledEducation', data)
-    },
-    sendUncanceledEducationDate(key, event) {
-      const data = moment(event, 'YYYY').format('YYYY-MM-DD')
-      this.sendUncanceledEducation(key, data)
+      this.send('uncanceledEducation_institute', event)
     },
     sendPeriodStudy() {
       const data = this.computedPeriodStudy
-      this.editPeriodStudy = {}
       this.menuPeriodStudy = false
-      this.sendUncanceledEducation('period_study', data)
+      this.data.uncanceledEducation_period_study = data
+      this.send('uncanceledEducation_period_study', data)
     },
 
-    sendMilitaryService(key, event) {
-      this.editMilitaryService[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-militaryService', data)
-    },
     async sendMilitaryServiceUnit(key, event) {
-      await this.selectMilitaryUnit(this.editMilitaryService.unit)
+      await this.selectMilitaryUnit(this.data.militaryService_unit)
       await this.selectLocation(this.selectedMilitaryUnit.address.id)
       const foundRegion = this.regions.find(
         (obj) => obj.id === this.location.region.id
@@ -2193,8 +2082,7 @@ export default {
       this.editUnitLocation[key] = event
       const data = {}
       data[key] = event
-      /////////////////////////////////////////////////////////////// store добавить
-      this.$emit('child-militaryService', data)
+      this.send('militaryService_unit', event)
     },
     async saveMilitaryUnit() {
       await this.addLocation(this.locationObjectUnit)
@@ -2207,6 +2095,18 @@ export default {
       this.menuMilitaryUnits = false
       this.fetchMilitaryUnits()
       this.unit = {}
+    },
+
+    normalizationSend(key, value) {
+      if (this.data[key].length > 0) {
+        this.data[key] =
+          this.data[key].charAt(0).toUpperCase() +
+          this.data[key].slice(1).toUpperCase()
+      }
+
+      this.differences[key] = value
+      this.$emit('child-event', this.differences)
+      this.differences = {}
     },
     getLocationEducation(event) {
       this.locationObjectEducation = event

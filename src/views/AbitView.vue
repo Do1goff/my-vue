@@ -9,23 +9,33 @@
         </h2>
       </div>
       <v-spacer />
-      <!-- <v-file-input
-        chips
-        truncate-length="50"
-      ></v-file-input> -->
+      <v-snackbar
+        :value="!(messageChild == null && residenceChild == null)"
+        top
+        color="success"
+        timeout="-1"
+      >
+        <span> Сохранить изменения? </span>
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            class="black--text"
+            elevation="24"
+            outlined
+            rounded
+            :disabled="messageChild === null && residenceChild == null"
+            @click="save"
+          >
+            Сохранить
+          </v-btn>
+        </template>
+      </v-snackbar>
       <v-btn
         class="BGclr"
         elevation="24"
         outlined
         rounded
-        :disabled="
-          messageChild === null &&
-          residenceChild == null &&
-          educationChild == null &&
-          uncanceledEducationChild == null &&
-          militaryServiceChild == null &&
-          passportChild == null
-        "
+        :disabled="messageChild === null && residenceChild == null"
         @click="save"
       >
         Сохранить
@@ -35,7 +45,7 @@
       <v-tabs
         v-model="tabs"
         fixed-tabs
-        background-color="indigo"
+        background-color="primary darken-1"
         dark
       >
         <v-tab
@@ -45,7 +55,7 @@
           @click="switchTab(component.value)"
         >
           <v-badge
-            color="green"
+            color="success"
             :value="badgeColor(component.value)"
             dot
           >
@@ -58,10 +68,6 @@
         :abit="abit || {}"
         @child-event="handleChild"
         @child-residence="handleResidence"
-        @child-education="handleEducation"
-        @child-uncanceledEducation="handleUncanceledEducation"
-        @child-militaryService="handleMilitaryService"
-        @child-passport="handlePassport"
       />
     </v-card-text>
   </v-card>
@@ -73,8 +79,8 @@ import Admission from '@/components/Admission.vue'
 import DataTable from '@/components/DataTable.vue'
 import Documents from '@/components/Documents.vue'
 import Results from '@/components/Results.vue'
-import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
+import Calls from '../components/Calls.vue'
 import FirstInfo from '../components/FirstInfo.vue'
 export default {
   name: 'AbitView',
@@ -85,16 +91,14 @@ export default {
     Documents,
     Admission,
     Achievements,
+    Calls,
   },
   props: ['id', 'parentF'],
   data() {
     return {
+      snackbar: true,
       messageChild: null,
       residenceChild: null,
-      educationChild: null,
-      uncanceledEducationChild: null,
-      militaryServiceChild: null,
-      passportChild: null,
       tabs: 0,
       editedTabs: [],
       headers: [
@@ -103,18 +107,12 @@ export default {
         { text: 'достижения', value: 'Achievements' },
         { text: 'прибытие', value: 'Admission' },
         { text: 'результаты', value: 'Results' },
+        { text: 'вызовы', value: 'Calls' },
       ],
     }
   },
   computed: {
-    ...mapGetters([
-      'selectedAbit',
-      'location',
-      'selectedEducation',
-      'selectedUncanceledEducation',
-      'selectedMilitaryService',
-      'selectedPassport',
-    ]),
+    ...mapGetters(['selectedAbit', 'location']),
     abit() {
       return this.selectedAbit
     },
@@ -123,15 +121,9 @@ export default {
     id() {
       this.selectAbit(this.id)
     },
-    tabs(newVal) {
-      localStorage.setItem('tabs', newVal)
-    },
   },
   created() {
     this.selectAbit(this.id)
-    if (localStorage.getItem('tabs')) {
-      this.tabs = parseInt(localStorage.getItem('tabs'))
-    }
     this.$parent.$on('parentFE', () => {
       this.childF()
     })
@@ -143,35 +135,16 @@ export default {
       'addLocation',
       'updateLocation',
       'selectLocation',
-      'addEducation',
-      'updateEducation',
-      'selectEducation',
-      'addUncanceledEducation',
-      'updateUncanceledEducation',
-      'selectUncanceledEducation',
-      'addMilitaryService',
-      'updateMilitaryService',
-      'selectMilitaryService',
-      'addPassport',
-      'updatePassport',
-      'selectPassport',
     ]),
     childF() {
       this.messageChild = null
       this.residenceChild = null
-      this.educationChild = null
-      this.uncanceledEducationChild = null
-      this.militaryServiceChild = null
-      this.passportChild = null
       this.editedTabs = []
     },
 
     async handleResidence(event) {
       const tab = 'FirstInfo'
 
-      // if (this.abit[Object.keys(event)[0]]) {
-      //   await this.selectLocation(this.abit[Object.keys(event)[0]].id)
-      // }
       this.residenceChild = {
         ...this.residenceChild,
         ...event,
@@ -180,217 +153,6 @@ export default {
       this.editedTabs.push(tab)
 
       this.$emit('child-residence', this.residenceChild)
-    },
-
-    async handleEducation(event) {
-      const tab = 'Documents'
-      await this.selectEducation(this.abit.id)
-      if (
-        Object.keys(event)[0] === 'date_end' &&
-        typeof this.selectedEducation === 'object'
-      ) {
-        this.selectedEducation.date_end = moment(
-          this.selectedEducation.date_end
-        ).format('YYYY-MM-DD')
-      }
-      if (
-        typeof this.selectedEducation[Object.keys(event)[0]] === 'object' &&
-        this.selectedEducation[Object.keys(event)[0]] !== null &&
-        this.selectedEducation[Object.keys(event)[0]].id ===
-          event[Object.keys(event)[0]]
-      ) {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.educationChild !== null) {
-          delete this.educationChild[Object.keys(event)[0]]
-          if (Object.keys(this.educationChild).length === 0) {
-            this.educationChild = null
-          }
-        }
-      } else if (
-        event[Object.keys(event)[0]] !==
-          this.selectedEducation[Object.keys(event)[0]] ||
-        (this.selectedEducation[Object.keys(event)[0]] === null &&
-          event[Object.keys(event)[0]])
-      ) {
-        if (
-          this.educationChild === null ||
-          !this.educationChild[Object.keys(event)[0]]
-        ) {
-          this.editedTabs.push(tab)
-        }
-        this.educationChild = { ...this.educationChild, ...event }
-      } else {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.educationChild !== null) {
-          delete this.educationChild[Object.keys(event)[0]]
-          if (Object.keys(this.educationChild).length === 0) {
-            this.educationChild = null
-          }
-        }
-      }
-      this.$emit('child-education', this.educationChild)
-    },
-
-    async handleUncanceledEducation(event) {
-      const tab = 'Documents'
-      await this.selectUncanceledEducation(this.abit.id)
-
-      if (
-        Object.keys(event)[0] === 'date_end' &&
-        typeof this.selectedUncanceledEducation === 'object'
-      ) {
-        this.selectedUncanceledEducation.date_end = moment(
-          this.selectedUncanceledEducation.date_end
-        ).format('YYYY-MM-DD')
-      }
-      if (
-        Object.keys(event)[0] === 'date_admission' &&
-        typeof this.selectedUncanceledEducation === 'object'
-      ) {
-        this.selectedUncanceledEducation.date_admission = moment(
-          this.selectedUncanceledEducation.date_admission
-        ).format('YYYY-MM-DD')
-      }
-
-      if (
-        typeof this.selectedUncanceledEducation[Object.keys(event)[0]] ===
-          'object' &&
-        this.selectedUncanceledEducation[Object.keys(event)[0]] !== null &&
-        this.selectedUncanceledEducation[Object.keys(event)[0]].id ===
-          event[Object.keys(event)[0]]
-      ) {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.uncanceledEducationChild !== null) {
-          delete this.uncanceledEducationChild[Object.keys(event)[0]]
-          if (Object.keys(this.uncanceledEducationChild).length === 0) {
-            this.uncanceledEducationChild = null
-          }
-        }
-      } else if (
-        event[Object.keys(event)[0]] !==
-          this.selectedUncanceledEducation[Object.keys(event)[0]] ||
-        (this.selectedUncanceledEducation[Object.keys(event)[0]] === null &&
-          event[Object.keys(event)[0]])
-      ) {
-        if (
-          this.uncanceledEducationChild === null ||
-          !this.uncanceledEducationChild[Object.keys(event)[0]]
-        ) {
-          this.editedTabs.push(tab)
-        }
-        this.uncanceledEducationChild = {
-          ...this.uncanceledEducationChild,
-          ...event,
-        }
-      } else {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.uncanceledEducationChild !== null) {
-          delete this.uncanceledEducationChild[Object.keys(event)[0]]
-          if (Object.keys(this.uncanceledEducationChild).length === 0) {
-            this.uncanceledEducationChild = null
-          }
-        }
-      }
-      this.$emit('child-uncanceledEducation', this.uncanceledEducationChild)
-    },
-
-    async handleMilitaryService(event) {
-      const tab = 'Documents'
-      await this.selectMilitaryService(this.abit.id)
-      if (
-        typeof this.selectedMilitaryService[Object.keys(event)[0]] ===
-          'object' &&
-        this.selectedMilitaryService[Object.keys(event)[0]] !== null &&
-        this.selectedMilitaryService[Object.keys(event)[0]].id ===
-          event[Object.keys(event)[0]]
-      ) {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.militaryServiceChild !== null) {
-          delete this.militaryServiceChild[Object.keys(event)[0]]
-          if (Object.keys(this.militaryServiceChild).length === 0) {
-            this.militaryServiceChild = null
-          }
-        }
-      } else if (
-        event[Object.keys(event)[0]] !==
-          this.selectedMilitaryService[Object.keys(event)[0]] ||
-        (this.selectedMilitaryService[Object.keys(event)[0]] === null &&
-          event[Object.keys(event)[0]])
-      ) {
-        if (
-          this.militaryServiceChild === null ||
-          !this.militaryServiceChild[Object.keys(event)[0]]
-        ) {
-          this.editedTabs.push(tab)
-        }
-        this.militaryServiceChild = { ...this.militaryServiceChild, ...event }
-      } else {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.militaryServiceChild !== null) {
-          delete this.militaryServiceChild[Object.keys(event)[0]]
-          if (Object.keys(this.militaryServiceChild).length === 0) {
-            this.militaryServiceChild = null
-          }
-        }
-      }
-      this.$emit('child-militaryService', this.militaryServiceChild)
-    },
-
-    async handlePassport(event) {
-      const tab = 'Documents'
-      await this.selectPassport(this.abit.id)
-      if (
-        typeof this.selectedPassport[Object.keys(event)[0]] === 'object' &&
-        this.selectedPassport[Object.keys(event)[0]] !== null &&
-        this.selectedPassport[Object.keys(event)[0]].id ===
-          event[Object.keys(event)[0]]
-      ) {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.passportChild !== null) {
-          delete this.passportChild[Object.keys(event)[0]]
-          if (Object.keys(this.passportChild).length === 0) {
-            this.passportChild = null
-          }
-        }
-      } else if (
-        event[Object.keys(event)[0]] !==
-          this.selectedPassport[Object.keys(event)[0]] ||
-        (this.selectedPassport[Object.keys(event)[0]] === null &&
-          event[Object.keys(event)[0]])
-      ) {
-        if (
-          this.passportChild === null ||
-          !this.passportChild[Object.keys(event)[0]]
-        ) {
-          this.editedTabs.push(tab)
-        }
-        this.passportChild = { ...this.passportChild, ...event }
-      } else {
-        if (this.editedTabs.includes(tab)) {
-          this.editedTabs.pop(tab)
-        }
-        if (this.passportChild !== null) {
-          delete this.passportChild[Object.keys(event)[0]]
-          if (Object.keys(this.passportChild).length === 0) {
-            this.passportChild = null
-          }
-        }
-      }
-      this.$emit('child-passport', this.passportChild)
     },
 
     handleChild(data) {
@@ -444,18 +206,10 @@ export default {
       this.$emit('saveDifferences')
       this.messageChild = null
       this.residenceChild = null
-      this.educationChild = null
-      this.uncanceledEducationChild = null
-      this.militaryServiceChild = null
-      this.passportChild = null
     },
     checkSave() {
       this.messageChild = null
       this.residenceChild = null
-      this.educationChild = null
-      this.uncanceledEducationChild = null
-      this.militaryServiceChild = null
-      this.passportChild = null
       this.editedTabs = []
     },
     switchTab(value) {
