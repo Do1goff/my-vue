@@ -16,7 +16,7 @@
               <v-col cols="4">
                 <v-badge
                   color="success"
-                  :value="abit.personal_file_reg !== data.personal_file_reg"
+                  :value="abit.personal_file_reg != data.personal_file_reg"
                   dot
                 >
                   <v-text-field
@@ -126,6 +126,7 @@
                     :value="formatDate(data.birthday)"
                     dense
                     type="date"
+                    :rules="[rules.required]"
                     label="День рождения"
                     @input="sendDate('birthday', $event)"
                   />
@@ -144,6 +145,7 @@
                     class="small-text"
                     v-model="data.personal_file_existence"
                     dense
+                    clearable
                     :items="personal_file_existence"
                     label="Наличие личного дела"
                     @input="send('personal_file_existence', $event)"
@@ -310,6 +312,7 @@
                     item-text="name"
                     item-value="id"
                     label="Военный комиссариат"
+                    clearable
                     @input="
                       sendMilitaryCommissariat('militaryCommissariat', $event)
                     "
@@ -320,8 +323,8 @@
                 <v-text-field
                   class="small-text"
                   :value="
-                    militaryCommissariat.militaryDistrict
-                      ? militaryCommissariat.militaryDistrict.abbreviation
+                    militaryCommissariat?.militaryDistrict
+                      ? militaryCommissariat.militaryDistrict?.abbreviation
                       : ''
                   "
                   label="Округ"
@@ -332,7 +335,7 @@
               <v-col cols="9">
                 <v-text-field
                   class="small-text"
-                  :value="militaryCommissariat.address"
+                  :value="militaryCommissariat?.address"
                   label="Адрес"
                   dense
                   readonly
@@ -341,7 +344,7 @@
               <v-col cols="4">
                 <v-text-field
                   class="small-text"
-                  :value="militaryCommissariat.telephone"
+                  :value="militaryCommissariat?.telephone"
                   label="Телефон"
                   dense
                   readonly
@@ -350,7 +353,7 @@
               <v-col cols="4">
                 <v-text-field
                   class="small-text"
-                  :value="militaryCommissariat.director"
+                  :value="militaryCommissariat?.director"
                   label="Начальник"
                   dense
                   readonly
@@ -359,7 +362,7 @@
               <v-col cols="4">
                 <v-text-field
                   class="small-text"
-                  :value="militaryCommissariat.email"
+                  :value="militaryCommissariat?.email"
                   label="Email"
                   dense
                   readonly
@@ -617,7 +620,15 @@
                                   @keyup.enter="saveFamily"
                                 />
                               </v-col>
-                              <v-col cols="12">
+                              <v-col cols="3">
+                                <v-text-field
+                                  v-model="member.lastName_second"
+                                  dense
+                                  label="Фамилия(2)"
+                                  @keyup.enter="saveFamily"
+                                />
+                              </v-col>
+                              <v-col cols="9">
                                 <v-autocomplete
                                   v-model="member.status"
                                   :items="statuses"
@@ -731,7 +742,15 @@
                         readonly
                       />
                     </v-col>
-                    <v-col cols="12">
+                    <v-col cols="3">
+                      <v-text-field
+                        dense
+                        :value="MEMBER.lastName_second"
+                        label="Фамилия(2)"
+                        readonly
+                      />
+                    </v-col>
+                    <v-col cols="9">
                       <v-text-field
                         dense
                         :value="MEMBER.status"
@@ -813,7 +832,16 @@
                             @keyup.enter="addMember"
                           />
                         </v-col>
-                        <v-col cols="12">
+                        <v-col cols="3">
+                          <v-text-field
+                            v-model="member.lastName_second"
+                            :disabled="member.kinship == null"
+                            dense
+                            label="Фамилия(2)"
+                            @keyup.enter="addMember"
+                          />
+                        </v-col>
+                        <v-col cols="9">
                           <v-autocomplete
                             v-model="member.status"
                             :disabled="member.kinship == null"
@@ -923,6 +951,7 @@
                     :items="familySocialStatus"
                     item-text="name"
                     item-value="id"
+                    clearable
                     label="Происхождение"
                     @input="send('family_social_status', $event)"
                   />
@@ -1085,7 +1114,6 @@ export default {
     async data() {
       if (this.data.id) {
         this.fetchTelephones(this.data.id)
-        console.log(this.telephones)
         this.fetchFamily(this.data.id)
 
         if (this.data.residence) {
@@ -1186,13 +1214,28 @@ export default {
       return `(${item.abbreviation}) ${item.name}`
     },
     send(key, value) {
-      this.differences[key] = value
+      if (typeof value == 'number' && isNaN(value)) {
+        this.differences[key] = null
+        this.data[key] = null
+      } else if (value != '') {
+        this.differences[key] = value
+      } else if (value === false) {
+        this.differences[key] = false
+      } else {
+        this.differences[key] = null
+        this.data[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
     sendDate(key, value) {
-      this.data[key] = value
-      this.differences[key] = value
+      if (value != '') {
+        this.data[key] = value
+        this.differences[key] = value
+      } else {
+        this.data[key] = null
+        this.differences[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },

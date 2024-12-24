@@ -6,7 +6,7 @@ export default {
     SET_AUTH(state, data) {
       state.token = data
       state.user = data
-      // localStorage.setItem('user', data)
+      sessionStorage.setItem('user', JSON.stringify(data))
     },
     CLEAR_AUTH(state) {
       state.token = null

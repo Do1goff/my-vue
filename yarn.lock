@@ -6315,6 +6315,11 @@ sirv@^2.0.3:
     mrmime "^2.0.0"
     totalist "^3.0.0"
 
+sklonenie@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/sklonenie/-/sklonenie-1.0.4.tgz"
+  integrity sha512-Ja8ibLrehhaeW8ULYbRoe8Ry23AW+EGKne7hYI0nF+wmEZkpR19InnutGqUL5dJuQuVGwRwTdXyMAYfZVLaPjQ==
+
 slash@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/slash/-/slash-3.0.0.tgz"

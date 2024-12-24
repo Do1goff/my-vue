@@ -637,8 +637,15 @@ export default {
       this.ALL = this.filteredAbits
     },
     async exportFilter() {
-      const data = { abits: this.ALL, fields: this.filteredHeaders }
-      this.exportFilterToExcel(data)
+      const exportData = this.ALL.map((abit) =>
+        Object.keys(abit)
+          .filter((key) => this.filteredHeaders.includes(key))
+          .reduce((obj, key) => {
+            obj[key] = abit[key]
+            return obj
+          }, {})
+      )
+      this.exportFilterToExcel(exportData)
     },
     async addTemplate() {
       const FILTERS = {
@@ -649,7 +656,7 @@ export default {
       }
       const data = {
         name: this.newTemplate,
-        author: this.user.username,
+        author: JSON.parse(sessionStorage.getItem('user'))?.username,
         headers: this.filteredHeaders,
         filters: JSON.stringify(FILTERS),
       }

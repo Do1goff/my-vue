@@ -58,7 +58,7 @@
           >
             <v-list-item>
               <v-list-item-title
-                ><v-icon>mdi-magnify</v-icon> Дырки
+                ><v-icon>mdi-magnify</v-icon> Несдача
               </v-list-item-title>
             </v-list-item>
           </router-link>
@@ -109,7 +109,6 @@ export default {
     return {
       drawer: false,
       group: null,
-      isReloading: false,
     }
   },
 
@@ -130,7 +129,6 @@ export default {
 
   methods: {
     handleBeforeUpload() {
-      console.log('beforeUnload')
       const message = 'Вы уверены?'
       event.returnValue = message
       return message

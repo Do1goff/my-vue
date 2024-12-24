@@ -22,6 +22,7 @@
                   :items="establishedQuota"
                   item-text="name"
                   item-value="id"
+                  clearable
                   label="Установленная квота"
                   @input="send('establishedQuota', $event)"
                 />
@@ -69,6 +70,7 @@
                   v-model="data.separateQuota"
                   dense
                   :items="separateQuota"
+                  clearable
                   item-text="name"
                   item-value="id"
                   label="Отдельная квота"
@@ -117,6 +119,7 @@
                   v-model="data.priorityRight"
                   dense
                   :items="priorityRight"
+                  clearable
                   item-text="name"
                   item-value="id"
                   label="Преимущественное право"
@@ -318,7 +321,17 @@ export default {
       'putPersonalAchievements',
     ]),
     send(key, value) {
-      this.differences[key] = value
+      if (typeof value == 'number' && isNaN(value)) {
+        this.differences[key] = null
+        this.data[key] = null
+      } else if (value != '') {
+        this.differences[key] = value
+      } else if (value === false) {
+        this.differences[key] = false
+      } else {
+        this.differences[key] = null
+        this.data[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },

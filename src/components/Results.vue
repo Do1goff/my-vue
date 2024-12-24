@@ -36,7 +36,7 @@
                   dense
                   type="date"
                   label="Дата"
-                  @input="changeDateQualificationExam"
+                  @input="sendDate('qualificationExam_date', $event)"
                 />
               </v-badge>
             </v-col>
@@ -50,7 +50,7 @@
             </v-col>
             <v-col cols="6">
               <v-text-field
-                :value="data.sport_score"
+                :value="this.getSportScore"
                 dense
                 readonly
                 label="ФП"
@@ -58,13 +58,21 @@
               />
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                :value="formatDate(data.sport_date)"
-                dense
-                type="date"
-                label="Дата"
-                @input="sendSportDate"
-              />
+              <v-badge
+                color="success"
+                :value="
+                  formatDate(abit.sport_date) !== formatDate(data.sport_date)
+                "
+                dot
+              >
+                <v-text-field
+                  :value="formatDate(data.sport_date)"
+                  dense
+                  type="date"
+                  label="Дата"
+                  @input="sendDate('sport_date', $event)"
+                />
+              </v-badge>
             </v-col>
           </v-row>
         </v-card-text>
@@ -447,6 +455,7 @@ export default {
       'entranceTestMarks',
       'sportScores',
       'formsEntranceTest',
+      'personalAchievements',
     ]),
     sumSportScores() {
       var xew = 0
@@ -462,6 +471,28 @@ export default {
       }
       return array
     },
+    getSportScore() {
+      var sum = 0
+      var august = moment(`${moment().format('YYYY')}-08-01`)
+      var age = august.diff(
+        moment(this.abit.birthday).format('YYYY-MM-DD'),
+        'years'
+      )
+      for (var i = 0; i < this.sportScores.length; i++) {
+        sum += this.sportScores[i].score
+      }
+      if (age < 25) {
+        this.data.sport_score = sum - 95
+      } else {
+        this.data.sport_score = sum - 85
+      }
+      if (this.data.sport_score > 100) {
+        this.data.sport_score = 100
+      } else if (this.data.sport_score < 0) {
+        this.data.sport_score = 0
+      }
+      return this.data.sport_score
+    },
   },
   watch: {
     abit() {
@@ -472,6 +503,7 @@ export default {
         this.fetchEgeMark(this.data.id)
         this.fetchEntranceTestMark(this.data.id)
         this.fetchSportScore(this.data.id)
+        this.fetchPersonalAchievements(this.data.id)
       }
     },
   },
@@ -497,6 +529,7 @@ export default {
       'addSportScore',
       'putSportScore',
       'fetchFormsEntranceTest',
+      'fetchPersonalAchievements',
     ]),
     clickOutsideSport() {
       this.sportScore = { score: 0, exercises: '' }
@@ -549,7 +582,6 @@ export default {
     async saveEgeMark() {
       if (!this.egeMark.abitSubjectId) {
         this.egeMark.abitId = this.abit.id
-        console.log(this.egeMark.date)
         this.egeMark.date = moment(this.egeMark.date, 'YYYY').format(
           'YYYY-MM-DD'
         )
@@ -606,12 +638,30 @@ export default {
       }
       this.send('sport_score', this.data.sport_score)
     },
-    sendSportDate(value) {
-      this.data.sport_date = value
-      this.send('sport_date', this.data.sport_date)
+
+    sendDate(key, value) {
+      if (value != '') {
+        this.data[key] = value
+        this.differences[key] = value
+      } else {
+        this.data[key] = null
+        this.differences[key] = null
+      }
+      this.$emit('child-event', this.differences)
+      this.differences = {}
     },
     send(key, value) {
-      this.differences[key] = value
+      if (typeof value == 'number' && isNaN(value)) {
+        this.differences[key] = null
+        this.data[key] = null
+      } else if (value != '') {
+        this.differences[key] = value
+      } else if (value === false) {
+        this.differences[key] = false
+      } else {
+        this.differences[key] = null
+        this.data[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
@@ -631,10 +681,6 @@ export default {
     },
     changeDateEntranceTestMark(event) {
       this.entranceTestMark.date = event
-    },
-    changeDateQualificationExam(event) {
-      const qualificationExam_date = event
-      this.send('qualificationExam_date', qualificationExam_date)
     },
   },
 }

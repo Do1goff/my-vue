@@ -19,7 +19,7 @@
               v-model="selected"
               hide-default-footer
               dense
-              sort-by="admission_examination_group.name"
+              sort-by="admission_examination_group"
               sort-desc
               multi-sort
             >
@@ -61,6 +61,27 @@
                 value="EGE"
               ></v-radio>
             </v-radio-group>
+            <div v-if="this.exam == 'EGE'">
+              <v-chip-group
+                multiple
+                v-model="egeRadio"
+                @change="selectHoles"
+              >
+                <v-chip
+                  v-for="tag in tags"
+                  :key="tag.value"
+                  :value="tag.value"
+                  :color="
+                    egeRadio.includes(tag.value)
+                      ? 'primary--text'
+                      : 'secondary--text'
+                  "
+                  dense
+                >
+                  {{ tag.text }}
+                </v-chip>
+              </v-chip-group>
+            </div>
             <v-checkbox
               v-model="holes"
               label="Не сдавал"
@@ -95,11 +116,21 @@ export default {
       holes: false,
       twos: false,
       exam: null,
+      egeRadio: [],
+      tags: [
+        { text: 'М', value: 'ege_math' },
+        { text: 'РЯ', value: 'ege_rus' },
+        { text: 'Ф', value: 'ege_phiz' },
+        { text: 'Инф', value: 'ege_inf' },
+        { text: 'Г', value: 'ege_geo' },
+        { text: 'О', value: 'ege_obsh' },
+        { text: 'Ист', value: 'ege_hist' },
+      ],
       ALL: [],
       selected: [],
       headers: [
         {
-          text: 'id Абитуриента',
+          text: 'id',
           value: 'id',
           align: 'center',
           width: '1%',
@@ -124,18 +155,18 @@ export default {
         },
         {
           text: 'Группа',
-          value: 'admission_examination_group.name',
+          value: 'admission_examination_group',
           align: 'center',
           width: '1%',
         },
         {
-          text: 'Специальность',
-          value: 'specialty_1.abbreviation',
+          text: 'Спец.',
+          value: 'specialty_1',
           align: 'center',
           width: '1%',
         },
         {
-          text: 'Профотбор',
+          text: 'ППО',
           value: 'qualificationExam_mark',
           align: 'center',
           width: '1%',
@@ -148,25 +179,43 @@ export default {
         },
         {
           text: 'М',
-          value: 'math.mark',
+          value: 'ege_math',
           align: 'center',
           width: '1%',
         },
         {
           text: 'РЯ',
-          value: 'rus.mark',
+          value: 'ege_rus',
           align: 'center',
           width: '1%',
         },
         {
-          text: '1 экз',
-          value: 'exam_1.mark',
+          text: 'Ф',
+          value: 'ege_phiz',
           align: 'center',
           width: '1%',
         },
         {
-          text: '2 экз',
-          value: 'exam_2.mark',
+          text: 'Инф',
+          value: 'ege_inf',
+          align: 'center',
+          width: '1%',
+        },
+        {
+          text: 'Г',
+          value: 'ege_geo',
+          align: 'center',
+          width: '1%',
+        },
+        {
+          text: 'О',
+          value: 'ege_obsh',
+          align: 'center',
+          width: '1%',
+        },
+        {
+          text: 'Ист',
+          value: 'ege_hist',
           align: 'center',
           width: '1%',
         },
@@ -180,52 +229,23 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['allAbits', 'allEgeMarks', 'subjects']),
+    ...mapGetters(['allAbits', 'allEgeMarks', 'subjects', 'fullAbits']),
   },
   async created() {
+    await this.fetchFullAbits()
     await this.fetchSubjects()
-    await this.fetchAbits()
     await this.fetchAllEgeMarks()
-    this.ALL = this.allAbits
-    this.ALL.map(
-      (abit) =>
-        (abit.math = this.allEgeMarks.filter(
-          (egeMark) =>
-            egeMark.abitId == abit.id && egeMark.subject.name == 'Математика'
-        )[0])
-    )
-    this.ALL.map(
-      (abit) =>
-        (abit.rus = this.allEgeMarks.filter(
-          (egeMark) =>
-            egeMark.abitId == abit.id && egeMark.subject.name == 'Русский язык'
-        )[0])
-    )
-    this.ALL.map(
-      (abit) =>
-        (abit.exam_1 = this.allEgeMarks.filter(
-          (egeMark) =>
-            egeMark.abitId == abit.id &&
-            egeMark.subject.name == abit.specialty_1.egeSubject_1
-        )[0])
-    )
-    await this.ALL.map(
-      (abit) =>
-        (abit.exam_2 = this.allEgeMarks.filter(
-          (egeMark) =>
-            egeMark.abitId == abit.id &&
-            egeMark.subject.name == abit.specialty_1.egeSubject_2
-        )[0])
-    )
+    this.ALL = this.fullAbits
   },
   methods: {
     ...mapActions([
-      'fetchAbits',
       'holesToStatements',
       'fetchAllEgeMarks',
       'fetchSubjects',
+      'fetchFullAbits',
     ]),
     selectHoles() {
+      console.log(this.egeRadio)
       this.selected = []
       var key =
         this.exam == 'PPO'
@@ -236,70 +256,84 @@ export default {
       var two = this.exam == 'PPO' ? 2 : this.exam == 'sport' ? 24 : 'minEGE'
       if (key != 'ege') {
         if (this.holes == false && this.twos == false) {
-          this.ALL = this.allAbits.filter(
+          this.ALL = this.fullAbits.filter(
             (abit) => abit[key] != null && abit[key] > two
           )
         } else if (this.holes == true && this.twos == false) {
-          this.ALL = this.allAbits.filter((abit) => abit[key] == null)
+          this.ALL = this.fullAbits.filter((abit) => abit[key] == null)
         } else if (this.holes == true && this.twos == true) {
-          this.ALL = this.allAbits.filter(
+          this.ALL = this.fullAbits.filter(
             (abit) => abit[key] == null || abit[key] <= two
           )
         } else if (this.holes == false && this.twos == true) {
-          this.ALL = this.allAbits.filter(
+          this.ALL = this.fullAbits.filter(
             (abit) => abit[key] != null && abit[key] <= two
           )
         }
       } else {
         two = {
-          math: this.subjects.filter((sub) => sub.name == 'Математика')[0]
+          ege_math: this.subjects.filter((sub) => sub.name == 'Математика')[0]
             .minEGE,
-          rus: this.subjects.filter((sub) => sub.name == 'Русский язык')[0]
+          ege_rus: this.subjects.filter((sub) => sub.name == 'Русский язык')[0]
             .minEGE,
-          phiz: this.subjects.filter((sub) => sub.name == 'Физика')[0].minEGE,
-          inf: this.subjects.filter((sub) => sub.name == 'Информатика')[0]
+          ege_phiz: this.subjects.filter((sub) => sub.name == 'Физика')[0]
             .minEGE,
-          obsh: this.subjects.filter((sub) => sub.name == 'Обществознание')[0]
+          ege_inf: this.subjects.filter((sub) => sub.name == 'Информатика')[0]
             .minEGE,
-          geo: this.subjects.filter((sub) => sub.name == 'География')[0].minEGE,
-          ist: this.subjects.filter((sub) => sub.name == 'История')[0].minEGE,
+          ege_obsh: this.subjects.filter(
+            (sub) => sub.name == 'Обществознание'
+          )[0].minEGE,
+          ege_geo: this.subjects.filter((sub) => sub.name == 'География')[0]
+            .minEGE,
+          ege_hist: this.subjects.filter((sub) => sub.name == 'История')[0]
+            .minEGE,
         }
         if (this.holes == false && this.twos == false) {
-          this.ALL = this.allAbits.filter(
-            (abit) =>
-              (abit.math != null && abit.math.mark > two.math) ||
-              (abit.rus != null && abit.rus.mark > two.rus) ||
-              (abit.exam_1 != null && abit.exam_1.mark > two.rus) ||
-              (abit.exam_2 != null && abit.exam_2.mark > two.rus)
-          )
+          this.ALL = []
+          for (let i of this.egeRadio) {
+            this.ALL = [
+              ...new Set([
+                ...(this.ALL || []),
+                ...this.fullAbits.filter(
+                  (abit) => abit[`${i}`] != null && abit[`${i}`] > two[`${i}`]
+                ),
+              ]),
+            ]
+          }
         } else if (this.holes == true && this.twos == false) {
-          this.ALL = this.allAbits.filter(
-            (abit) =>
-              abit.math == null ||
-              abit.rus == null ||
-              abit.exam_1 == null ||
-              abit.exam_2 == null
-          )
+          this.ALL = []
+          for (let i of this.egeRadio) {
+            this.ALL = [
+              ...new Set([
+                ...this.fullAbits.filter((abit) => abit[`${i}`] == null),
+                ...(this.ALL || []),
+              ]),
+            ]
+          }
         } else if (this.holes == true && this.twos == true) {
-          this.ALL = this.allAbits.filter(
-            (abit) =>
-              abit.math == null ||
-              abit.math.mark <= two.math ||
-              abit.rus == null ||
-              abit.rus.mark <= two.rus ||
-              abit.exam_1 == null ||
-              abit.exam_1.mark <= two.rus ||
-              abit.exam_2 == null ||
-              abit.exam_2.mark <= two.rus
-          )
+          this.ALL = []
+          for (let i of this.egeRadio) {
+            this.ALL = [
+              ...new Set([
+                ...(this.ALL || []),
+                ...this.fullAbits.filter(
+                  (abit) => abit[`${i}`] == null || abit[`${i}`] <= two[`${i}`]
+                ),
+              ]),
+            ]
+          }
         } else if (this.holes == false && this.twos == true) {
-          this.ALL = this.allAbits.filter(
-            (abit) =>
-              (abit.math != null && abit.math.mark <= two.math) ||
-              (abit.rus != null && abit.rus.mark <= two.rus) ||
-              (abit.exam_1 != null && abit.exam_1.mark <= two.rus) ||
-              (abit.exam_2 != null && abit.exam_2.mark <= two.rus)
-          )
+          this.ALL = []
+          for (let i of this.egeRadio) {
+            this.ALL = [
+              ...new Set([
+                ...(this.ALL || []),
+                ...this.fullAbits.filter(
+                  (abit) => abit[`${i}`] != null && abit[`${i}`] <= two[`${i}`]
+                ),
+              ]),
+            ]
+          }
         }
       }
     },
@@ -310,7 +344,7 @@ export default {
             fio: `${abit.lastName} ${abit.firstName} ${abit.surName}`,
             abitId: abit.id,
             space: '',
-            group: abit.admission_examination_group.name,
+            group: abit.admission_examination_group,
           })
       )
       var groups = [
@@ -318,7 +352,7 @@ export default {
           this.selected.map(
             (abit) =>
               (abit = abit.admission_examination_group
-                ? abit.admission_examination_group.name
+                ? abit.admission_examination_group
                 : null)
           )
         ),
@@ -338,6 +372,9 @@ export default {
 </script>
 
 <style>
+.v-data-table {
+  table-layout: fixed;
+}
 .BGclr {
   position: sticky;
   background: -webkit-linear-gradient(

@@ -102,7 +102,8 @@
                   v-model="data.specialty_1"
                   dense
                   :items="specialty"
-                  :item-text="nameSpecialty"
+                  clearable
+                  item-text="abbreviation"
                   item-value="id"
                   label="1 Специальность"
                   @input="sendSpecialty('specialty_1', $event)"
@@ -125,7 +126,8 @@
                   v-model="data.specialty_2"
                   dense
                   :items="specialty"
-                  :item-text="nameSpecialty"
+                  clearable
+                  item-text="abbreviation"
                   item-value="id"
                   label="2 Специальность"
                   @input="send('specialty_2', $event)"
@@ -148,7 +150,8 @@
                   v-model="data.specialty_3"
                   dense
                   :items="specialty"
-                  :item-text="nameSpecialty"
+                  clearable
+                  item-text="abbreviation"
                   item-value="id"
                   label="3 Специальность"
                   @input="send('specialty_3', $event)"
@@ -179,6 +182,7 @@
                   v-model="data.admission_commission"
                   :items="commissions"
                   :item-text="nameCommissions"
+                  clearable
                   item-value="id"
                   dense
                   label="Приёмная комиссия"
@@ -214,6 +218,7 @@
                       item-text="name"
                       item-value="id"
                       dense
+                      clearable
                       label="Экз. группа"
                       @input="send('admission_examination_group', $event)"
                       v-bind="attrs"
@@ -484,7 +489,7 @@
                   label="Дата"
                   dense
                   type="date"
-                  @input="send('expulsion_date', $event)"
+                  @input="sendDate('expulsion_date', $event)"
                 />
               </v-badge>
             </v-col>
@@ -751,7 +756,17 @@ export default {
       }
     },
     send(key, value) {
-      this.differences[key] = value
+      if (typeof value == 'number' && isNaN(value)) {
+        this.differences[key] = null
+        this.data[key] = null
+      } else if (value != '') {
+        this.differences[key] = value
+      } else if (value === false) {
+        this.differences[key] = false
+      } else {
+        this.differences[key] = null
+        this.data[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
@@ -792,8 +807,13 @@ export default {
       return moment(date).format('YYYY-MM-DD')
     },
     sendDate(key, value) {
-      this.data[key] = value
-      this.differences[key] = value
+      if (value != '') {
+        this.data[key] = value
+        this.differences[key] = value
+      } else {
+        this.data[key] = null
+        this.differences[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },

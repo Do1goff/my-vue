@@ -5,7 +5,7 @@
         <v-card-title>Вызов абитуриента</v-card-title>
         <v-card-text>
           <v-row>
-            <v-col cols="3">
+            <v-col cols="2">
               <v-badge
                 color="success"
                 :value="abit.call_number != data.call_number"
@@ -18,7 +18,7 @@
                 />
               </v-badge>
             </v-col>
-            <v-col cols="3">
+            <v-col cols="2">
               <v-badge
                 color="success"
                 :value="abit.call_date != data.call_date"
@@ -42,6 +42,20 @@
                   v-model="data.call_result"
                   label="Решение"
                   @input="send('call_result', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col cols="2">
+              <v-badge
+                color="success"
+                :value="abit.call_date_admission != data.call_date_admission"
+                dot
+              >
+                <v-text-field
+                  :value="formatDate(data.call_date_admission)"
+                  type="date"
+                  label="Дата прибытия"
+                  @input="sendDate('call_date_admission', $event)"
                 />
               </v-badge>
             </v-col>
@@ -143,13 +157,28 @@ export default {
   methods: {
     ...mapActions([]),
     send(key, value) {
-      this.differences[key] = value
+      if (typeof value == 'number' && isNaN(value)) {
+        this.differences[key] = null
+        this.data[key] = null
+      } else if (value != '') {
+        this.differences[key] = value
+      } else if (value === false) {
+        this.differences[key] = false
+      } else {
+        this.differences[key] = null
+        this.data[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
     sendDate(key, value) {
-      this.data[key] = value
-      this.differences[key] = value
+      if (value != '') {
+        this.data[key] = value
+        this.differences[key] = value
+      } else {
+        this.data[key] = null
+        this.differences[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },

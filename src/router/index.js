@@ -1,4 +1,3 @@
-import store from '@/store'
 import AuthView from '@/views/AuthView.vue'
 import ComponentView from '@/views/ComponentView.vue'
 import ExportDocuments from '@/views/ExportDocuments.vue'
@@ -45,21 +44,25 @@ const routes = [
     path: '/query',
     name: 'Query',
     component: MultiQuery,
+    meta: { requiresAuth: true },
   },
   {
     path: '/holes',
     name: 'Holes',
     component: Holes,
+    meta: { requiresAuth: true },
   },
   {
     path: '/upload',
     name: 'Upload',
     component: Upload,
+    meta: { requiresAuth: true },
   },
   {
     path: '/exportDocuments',
     name: 'ExportDocuments',
     component: ExportDocuments,
+    meta: { requiresAuth: true },
   },
   {
     path: '/auth',
@@ -75,10 +78,9 @@ const router = new VueRouter({
 })
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-  const userToken = store.getters['isAuthenticated']
-  // const userToken = !!localStorage.getItem('user')
+  const userToken = JSON.parse(sessionStorage.getItem('user'))?.username
   if (requiresAuth) {
-    if (userToken) {
+    if (userToken != undefined) {
       next()
     } else {
       next('/auth')

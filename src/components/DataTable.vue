@@ -509,6 +509,7 @@ export default {
       'examinationGroups',
       'specialty',
       'countGroup',
+      'user',
     ]),
   },
 
@@ -534,24 +535,39 @@ export default {
       'fetchExaminationGroups',
       'addExaminationGroup',
       'fetchCountGroup',
+      'saveHistory',
     ]),
     formatDate(dateString) {
       if (!dateString) return null
       const date = new Date(dateString)
       return moment(date).format('DD-MM-YYYY')
     },
+
+    saveHistoryAdd(createdAbit) {
+      const history = {
+        abitId: parseInt(createdAbit.id),
+        oldValue: JSON.stringify({ create: '' }),
+        newValue: JSON.stringify({ create: createdAbit.personal_file_number }),
+        changedBy: JSON.parse(sessionStorage.getItem('user'))?.username,
+      }
+      this.saveHistory(history)
+    },
+
     async saveAdd() {
       const newAbit = Object.assign({}, this.data)
-      console.log(newAbit)
       await this.addAbit(newAbit)
       this.data = Object.assign({}, this.defaultAbit)
-      this.editBirthday = ''
       this.dialogAdd = false
       this.$router.replace({
         name: 'abit',
         params: { id: this.allAbits[this.allAbits.length - 1].id },
       })
-      this.selectedAbitId = this.id
+      this.selectedAbitId = this.allAbits[this.allAbits.length - 1].id
+      const createdAbit = this.allAbits.find(
+        (abit) => abit.id == this.allAbits[this.allAbits.length - 1].id
+      )
+      console.log(createdAbit)
+      this.saveHistoryAdd(createdAbit)
     },
     closeAdd() {
       this.dialogAdd = false
@@ -649,11 +665,9 @@ export default {
         this.saveExaminationGroup()
       }
     },
-
     nameSpecialty(item) {
       return `(${item.abbreviation}) ${item.name}`
     },
-
     async sendSpecialty(key, value) {
       if (this.data.admission_examination_group == null) {
         this.specialty.forEach((title, index) => {
@@ -683,7 +697,6 @@ export default {
         this.saveExaminationGroup()
       }
     },
-
     nameCommissions(item) {
       return `${item.region}-${item.name}`
     },

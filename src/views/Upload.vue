@@ -33,11 +33,23 @@
                   ><span>Занесение результатов Профотбора</span>
                 </v-card-title>
                 <v-card-text>
-                  <v-file-input
-                    v-model="filePPO"
-                    label="Выберите файл"
-                    accept=".xls, .xlsx"
-                  />
+                  <v-row>
+                    <v-col cols="8">
+                      <v-file-input
+                        v-model="filePPO"
+                        label="Выберите файл"
+                        accept=".xls, .xlsx"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        :value="formatDate(QE_date)"
+                        type="date"
+                        label="Дата"
+                        @input="sendDateQE"
+                      />
+                    </v-col>
+                  </v-row>
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />
@@ -155,11 +167,24 @@
                   ><span>Занесение результатов традиционной формы</span>
                 </v-card-title>
                 <v-card-text>
-                  <v-file-input
-                    v-model="fileENTRANCE"
-                    label="Выберите файл"
-                    accept=".xls, .xlsx"
-                  />
+                  <v-row>
+                    <v-col cols="8">
+                      <v-file-input
+                        v-model="fileENTRANCE"
+                        label="Выберите файл"
+                        accept=".xls, .xlsx"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-select
+                        v-model="formEntranceTest"
+                        :items="formsEntranceTest"
+                        item-text="name"
+                        item-value="id"
+                        label="Форма"
+                      />
+                    </v-col>
+                  </v-row>
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer />
@@ -199,12 +224,149 @@
             </v-dialog>
           </v-col>
           <v-col cols="3">
-            <v-dialog v-model="dialogFile">
+            <v-dialog v-model="dialogFileSPORT">
               <template #activator="{ on, attrs }">
                 <v-btn
                   v-bind="attrs"
                   v-on="on"
                   color="secondary"
+                  width="300px"
+                >
+                  <v-icon>mdi-download-circle-outline</v-icon>
+                  ФП
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title
+                  ><span>Занесение результатов ФП</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="8">
+                      <v-file-input
+                        v-model="fileSPORT"
+                        label="Выберите файл"
+                        accept=".xls, .xlsx"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        :value="formatDate(sport_date)"
+                        type="date"
+                        label="Дата"
+                        @input="sendDateSport"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer />
+                  <v-btn
+                    @click="SPORTSave"
+                    text
+                    color="primary"
+                    >Внести</v-btn
+                  >
+                  <v-btn
+                    @click="SportCheck"
+                    text
+                    color="primary"
+                    >Проверить</v-btn
+                  >
+                  <v-btn
+                    @click="handleFileSPORT"
+                    text
+                    color="primary"
+                    >Просмотр</v-btn
+                  >
+                </v-card-actions>
+                <v-card-text>
+                  <v-data-table
+                    :headers="exportHeadersSPORT"
+                    :items="exportDataSPORT"
+                    item-key="id"
+                    height="600px"
+                    dense
+                    fixed-header
+                    disable-pagination
+                    hide-default-footer
+                  >
+                  </v-data-table>
+                </v-card-text>
+              </v-card>
+            </v-dialog>
+          </v-col>
+          <v-col cols="3">
+            <v-dialog v-model="dialogFileCALLS">
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  v-on="on"
+                  color="secondary"
+                  width="300px"
+                >
+                  <v-icon>mdi-download-circle-outline</v-icon>
+                  Вызовы
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title><span>Занесение вызовов</span> </v-card-title>
+                <v-card-text>
+                  <v-file-input
+                    v-model="fileCALLS"
+                    label="Выберите файл"
+                    accept=".xls, .xlsx"
+                  />
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer />
+                  <v-btn
+                    @click="CALLSSave"
+                    text
+                    color="primary"
+                    >Внести</v-btn
+                  >
+                  <v-btn
+                    @click="CALLSCheck"
+                    text
+                    color="primary"
+                    >Проверить</v-btn
+                  >
+                  <v-btn
+                    @click="handleFileCALLS"
+                    text
+                    color="primary"
+                    >Просмотр</v-btn
+                  >
+                </v-card-actions>
+                <v-card-text>
+                  <v-data-table
+                    :headers="exportHeadersCALLS"
+                    :items="exportDataCALLS"
+                    item-key="id"
+                    height="600px"
+                    dense
+                    fixed-header
+                    disable-pagination
+                    hide-default-footer
+                  >
+                  </v-data-table>
+                </v-card-text>
+              </v-card>
+            </v-dialog>
+          </v-col>
+        </v-row>
+        <v-row
+          align="center"
+          justify="center"
+        >
+          <v-col cols="3">
+            <v-dialog v-model="dialogFile">
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  v-on="on"
+                  color="warning"
                   width="300px"
                 >
                   <v-icon>mdi-download-circle-outline</v-icon>
@@ -258,6 +420,7 @@
 </template>
 <script>
 import moment from 'moment'
+import 'moment/locale/ru'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'UploadComponent',
@@ -267,18 +430,29 @@ export default {
       dialogFilePPO: false,
       dialogFileEGE: false,
       dialogFileENTRANCE: false,
+      dialogFileSPORT: false,
+      dialogFileCALLS: false,
       file: null,
       filePPO: null,
+      QE_date: null,
       fileEGE: null,
       fileENTRANCE: null,
+      formEntranceTest: null,
+      fileSPORT: null,
+      sport_date: null,
+      fileCALLS: null,
       exportData: [],
       exportDataPPO: [],
       exportDataEGE: [],
       exportDataENTRANCE: [],
+      exportDataSPORT: [],
+      exportDataCALLS: [],
       exportHeaders: [],
       exportHeadersPPO: [],
       exportHeadersEGE: [],
       exportHeadersENTRANCE: [],
+      exportHeadersSPORT: [],
+      exportHeadersCALLS: [],
     }
   },
   computed: {
@@ -287,30 +461,43 @@ export default {
       'ppo_results',
       'ege_results',
       'entrance_results',
+      'sport_results',
+      'calls_results',
       'subjects',
+      'exercises',
       'importedData',
       'allAbits',
+      'user',
+      'formsEntranceTest',
     ]),
   },
   watch: {},
   mounted() {},
   created() {
     this.fetchSubjects()
+    this.fetchExercises()
     this.fetchAbits()
+    this.fetchFormsEntranceTest()
   },
 
   methods: {
     ...mapActions([
       'fetchSubjects',
+      'fetchExercises',
       'fetchAbits',
       'egeFromExcel',
       'entranceFromExcel',
+      'sportFromExcel',
       'ppoFromExcel',
+      'callsFromExcel',
       'importFromExcel',
       'exportToWord',
       'updateAbit',
       'addEgeMark',
       'addEntranceTestMark',
+      'addSportScore',
+      'saveHistory',
+      'fetchFormsEntranceTest',
     ]),
     async Save() {
       this.exportData = []
@@ -339,19 +526,38 @@ export default {
       this.exportHeaders = headersKeys
       this.exportData = this.importedData
     },
+
+    saveHistoryMessage(data) {
+      const newValueKeys = Object.keys(data)
+      let old = {}
+      for (let key in newValueKeys) {
+        old[newValueKeys[key]] = this.allAbits.find(
+          (abit) => abit.id == data.id
+        )[newValueKeys[key]]
+      }
+      const history = {
+        abitId: parseInt(data.id ? data.id : data.abitId),
+        oldValue: JSON.stringify(old),
+        newValue: JSON.stringify(data),
+        changedBy: JSON.parse(sessionStorage.getItem('user'))?.username,
+      }
+      this.saveHistory(history)
+    },
+
     async PpoSave() {
       this.exportDataPPO = []
       let items = []
       for (let x in this.ppo_results) {
         if (this.ppo_results[x].test == true) {
-          console.log(this.ppo_results[x])
-          this.updateAbit({
+          const updatedData = {
             id: this.ppo_results[x].abitId,
             qualificationExam_mark: this.ppo_results[x].mark,
-            qualificationExam_date: moment().format('YYYY-MM-DD'),
+            qualificationExam_date: moment(this.QE_date).format('YYYY-MM-DD'),
             qualificationExam_group: this.ppo_group,
             qualificationExam_results: this.ppo_results[x].results,
-          })
+          }
+          this.updateAbit(updatedData)
+          this.saveHistoryMessage(updatedData)
           const item = this.allAbits.find(
             (abit) => abit.id == this.ppo_results[x].abitId
           )
@@ -398,10 +604,16 @@ export default {
       this.exportDataEGE = []
       for (let x in this.ege_results) {
         if (this.ege_results[x].id !== null) {
+          this.ege_results[x].subject =
+            this.ege_results[x].subject.toLowerCase() == 'математика профильная'
+              ? 'математика'
+              : this.ege_results[x].subject
           this.addEgeMark({
             abitId: this.ege_results[x].id,
             mark: this.ege_results[x].mark,
-            date: this.ege_results[x].date,
+            date: moment(this.ege_results[x].date, 'M/DD/YYYY').format(
+              'YYYY-MM-DD'
+            ),
             subject: this.subjects.find(
               (sub) =>
                 sub.name.toLowerCase() ===
@@ -416,7 +628,7 @@ export default {
     async EgeCheck() {
       this.exportDataEGE = []
       for (let x in this.ege_results) {
-        if (this.ege_results[x].test == null) {
+        if (this.ege_results[x].id == null) {
           this.exportDataEGE.push(this.ege_results[x])
         }
       }
@@ -434,8 +646,68 @@ export default {
       this.exportHeadersEGE = headersKeys
       this.exportDataEGE = this.ege_results
     },
+    async SPORTSave() {
+      this.exportDataSPORT = []
+      for (let x in this.sport_results) {
+        if (this.sport_results[x].id !== null) {
+          const updatedData = {
+            id: this.sport_results[x].id,
+            sport_date: this.sport_date,
+          }
+          this.updateAbit(updatedData)
+          this.addSportScore({
+            abitId: this.sport_results[x].id,
+            score: this.sport_results[x].exercise_1_score,
+            result: this.sport_results[x].exercise_1_result,
+            exercises: this.exercises.find((sub) =>
+              sub.name.includes(`№${this.sport_results[x].exercise_1_num} `)
+            ),
+          })
+          this.addSportScore({
+            abitId: this.sport_results[x].id,
+            score: this.sport_results[x].exercise_2_score,
+            result: this.sport_results[x].exercise_2_result,
+            exercises: this.exercises.find((sub) =>
+              sub.name.includes(`№${this.sport_results[x].exercise_2_num} `)
+            ),
+          })
+          this.addSportScore({
+            abitId: this.sport_results[x].id,
+            score: this.sport_results[x].exercise_3_score,
+            result: this.sport_results[x].exercise_3_result,
+            exercises: this.exercises.find((sub) =>
+              sub.name.includes(`№${this.sport_results[x].exercise_3_num} `)
+            ),
+          })
+        } else {
+          this.exportDataSPORT.push(this.sport_results[x])
+        }
+      }
+    },
+    async SportCheck() {
+      this.exportDataSPORT = []
+      for (let x in this.sport_results) {
+        if (this.sport_results[x].id == null) {
+          this.exportDataSPORT.push(this.sport_results[x])
+        }
+      }
+    },
+    async handleFileSPORT() {
+      const formData = new FormData()
+      formData.append('file', this.fileSPORT)
+      await this.sportFromExcel(formData)
+      console.log(this.sport_results)
+      const keys = Object.keys(this.sport_results[0])
+      const headersKeys = []
+      for (let x in keys) {
+        headersKeys.push({ text: keys[x], value: keys[x] })
+      }
+      this.exportHeadersSPORT = headersKeys
+      this.exportDataSPORT = this.sport_results
+    },
     async ENTRANCESave() {
       this.exportDataENTRANCE = []
+      const items = []
       for (let x in this.entrance_results) {
         if (this.entrance_results[x].id !== null) {
           this.addEntranceTestMark({
@@ -447,16 +719,44 @@ export default {
                 sub.name.toLowerCase() ===
                 this.entrance_results[x].subject.toLowerCase()
             ),
+            form: this.formEntranceTest,
+          })
+          const item = this.allAbits.find(
+            (abit) => abit.id == this.entrance_results[x].id
+          )
+          items.push({
+            num: `${items.length + 1}.`,
+            fio: `${item.militaryService_rank?.name ?? ''} ${item.lastName.toUpperCase()} ${item.firstName} ${item.surName}`,
+            personal_file_number: `${item.personal_file_number}`,
+            mark: `${this.entrance_results[x].mark}`,
           })
         } else {
-          this.exportDataENTRANCE.push(this.entrance_results[x])
+          this.exportDataENTRANCE.push(this.ppo_results[x])
         }
+      }
+      const fileName = 'ET.docx'
+      const datas = []
+      for (let i = 0; i < items.length; i += 30) {
+        const chunk = items.slice(i, i + 30)
+        datas.push(chunk)
+      }
+      const sklonenie = require('sklonenie')
+      for (let i in datas) {
+        const data = {
+          subject: sklonenie(
+            this.entrance_results[0].subject.toLowerCase()
+          )[2][0],
+          date: this.entrance_results[0].date,
+          items: datas[i],
+          state: parseInt(i) + 1,
+        }
+        await this.exportToWord({ data, fileName })
       }
     },
     async EntranceCheck() {
       this.exportDataENTRANCE = []
       for (let x in this.entrance_results) {
-        if (this.entrance_results[x].test == null) {
+        if (this.entrance_results[x].id == null) {
           this.exportDataENTRANCE.push(this.entrance_results[x])
         }
       }
@@ -473,6 +773,66 @@ export default {
       }
       this.exportHeadersENTRANCE = headersKeys
       this.exportDataENTRANCE = this.entrance_results
+    },
+    async CALLSSave() {
+      moment.locale('ru')
+      this.exportDataCALLS = []
+      for (let x in this.calls_results) {
+        if (this.calls_results[x].test == true) {
+          const updatedData = {
+            id: this.allAbits.find(
+              (abit) => abit.personal_file_number == this.calls_results[x].ld
+            ).id,
+            call_number: this.calls_results[x].num,
+            call_date: moment(this.calls_results[x].date, 'M/DD/YYYY').format(
+              'YYYY-MM-DD'
+            ),
+            call_date_admission: moment(
+              this.calls_results[x].date_admission,
+              'D MMMM YYYY г.'
+            ).format('YYYY-MM-DD'),
+          }
+          console.log(updatedData)
+          this.updateAbit(updatedData)
+          this.saveHistoryMessage(updatedData)
+        } else {
+          this.exportDataCALLS.push(this.calls_results[x])
+        }
+      }
+    },
+    async CALLSCheck() {
+      this.exportDataCALLS = []
+      for (let x in this.calls_results) {
+        if (this.calls_results[x].test == false) {
+          this.exportDataCALLS.push(this.calls_results[x])
+        }
+      }
+    },
+    async handleFileCALLS() {
+      const formData = new FormData()
+      formData.append('file', this.fileCALLS)
+      await this.callsFromExcel(formData)
+      console.log(this.calls_results)
+
+      const keys = Object.keys(this.calls_results[0])
+      const headersKeys = []
+      for (let x in keys) {
+        headersKeys.push({ text: keys[x], value: keys[x] })
+      }
+      this.exportHeadersCALLS = headersKeys
+      this.exportDataCALLS = this.calls_results
+    },
+
+    sendDateQE(event) {
+      this.QE_date = event
+    },
+    sendDateSport(event) {
+      this.sport_date = event
+    },
+    formatDate(dateString) {
+      if (!dateString) return null
+      const date = new Date(dateString)
+      return moment(date).format('YYYY-MM-DD')
     },
   },
 }

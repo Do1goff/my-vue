@@ -17,7 +17,7 @@ export default {
       const response = await axios.post('/filter', filters)
       commit('FILTER', response.data)
     },
-    async exportFilterToExcel(data) {
+    async exportFilterToExcel({ commit }, data) {
       const response = await axios.post('/filter/export', data, {
         responseType: 'blob',
       })

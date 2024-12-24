@@ -22,9 +22,12 @@
       fixed-header
       disable-pagination
       hide-default-footer
+      group-by="changedBy"
+      show-group-by
     >
       <template v-slot:item.actions="{ item }">
         <v-btn
+          v-if="item.entityName != 'create'"
           color="primary"
           icon
           @click="backChange(item)"

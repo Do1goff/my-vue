@@ -3,11 +3,13 @@ import axios from 'axios'
 export default {
   state: {
     abits: [],
+    fullAbits: [],
     selectedAbit: null,
     history: [],
   },
   mutations: {
     SET_ABITS: (state, payload) => (state.abits = payload),
+    SET_FULL_ABITS: (state, payload) => (state.fullAbits = payload),
     SET_SELECTED_ABIT: (state, abit) => (state.selectedAbit = abit),
     ADD_ABIT: (state, newAbit) => state.abits.push(newAbit),
     DELETE_HISTORY: (state, id) =>
@@ -34,6 +36,7 @@ export default {
   },
   getters: {
     allAbits: (state) => state.abits,
+    fullAbits: (state) => state.fullAbits,
     selectedAbit: (state) => state.selectedAbit,
     allHistory: (state) => state.history,
   },
@@ -41,6 +44,10 @@ export default {
     async fetchAbits({ commit }) {
       const response = await axios.get('/abits')
       commit('SET_ABITS', response.data)
+    },
+    async fetchFullAbits({ commit }) {
+      const response = await axios.get('/filter')
+      commit('SET_FULL_ABITS', response.data)
     },
     async selectAbit({ commit }, abitID) {
       const response = await axios.get(`/abits/${abitID}`)

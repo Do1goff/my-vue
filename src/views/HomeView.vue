@@ -22,8 +22,8 @@
           class="BG"
           :parentF="parentF"
           @child-message="handleChildMessage($event)"
-          @saveDifferences="saveDifferences"
           @child-residence="handleResidence"
+          @saveDifferences="saveDifferences"
         />
       </v-col>
     </v-row>
@@ -69,7 +69,6 @@ export default {
 
     saveHistoryMessage(data, entity) {
       const newValueKeys = Object.keys(data)
-      console.log(newValueKeys)
       let old = {}
       for (let key in newValueKeys) {
         old[newValueKeys[key]] = this.selectedAbit[newValueKeys[key]]
@@ -78,7 +77,7 @@ export default {
         abitId: parseInt(data.id ? data.id : data.abitId),
         oldValue: JSON.stringify(old),
         newValue: JSON.stringify(data),
-        changedBy: this.user.username,
+        changedBy: JSON.parse(sessionStorage.getItem('user'))?.username,
       }
       this.saveHistory(history)
     },

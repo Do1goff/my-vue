@@ -55,82 +55,44 @@
             </v-dialog>
           </v-col>
           <v-col cols="3">
-            <v-dialog v-model="dialogWord">
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  color="secondary"
-                  width="300px"
-                >
-                  <v-icon>mdi-download-circle-outline</v-icon>
-                  Данные Word
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title><span>Занесение данных</span> </v-card-title>
-                <v-card-actions>
-                  <v-btn
-                    @click="ExportWord"
-                    text
-                    color="primary"
-                    >Внести</v-btn
-                  >
-                </v-card-actions>
-                <v-card-text>
-                  <v-text-field
-                    label="COntent"
-                    v-model="wordContent"
-                    @input="log"
-                  />
-                  <v-data-table
-                    :headers="exportHeaders"
-                    :items="exportData"
-                    item-key="id"
-                    height="600px"
-                    dense
-                    fixed-header
-                    disable-pagination
-                    hide-default-footer
-                  >
-                  </v-data-table>
-                </v-card-text>
-              </v-card>
-            </v-dialog>
+            <v-btn
+              @click="ExportCALLS"
+              color="secondary"
+              width="300px"
+            >
+              <v-icon>mdi-download-circle-outline</v-icon>
+              Вызовы
+            </v-btn>
           </v-col>
-
           <v-col cols="3">
-            <v-dialog v-model="dialogFile">
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  color="secondary"
-                  width="300px"
-                >
-                  <v-icon>mdi-download-circle-outline</v-icon>
-                  Word
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title><span>Занесение данных</span> </v-card-title>
-                <v-card-text>
-                  <v-file-input
-                    v-model="file"
-                    label="Выберите файл"
-                    accept=".doc, .docx"
-                  />
-                </v-card-text>
-                <v-card-actions>
-                  <v-spacer />
-                  <v-btn
-                    text
-                    color="primary"
-                    >Просмотр</v-btn
-                  >
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
+            <v-btn
+              @click="ExportMED"
+              color="secondary"
+              width="300px"
+            >
+              <v-icon>mdi-download-circle-outline</v-icon>
+              Медицина
+            </v-btn>
+          </v-col>
+          <v-col cols="3">
+            <v-btn
+              @click="ExportAchievements"
+              color="secondary"
+              width="300px"
+            >
+              <v-icon>mdi-download-circle-outline</v-icon>
+              Достижения
+            </v-btn>
+          </v-col>
+          <v-col cols="3">
+            <v-btn
+              @click="ExportEgeToCSV"
+              color="secondary"
+              width="300px"
+            >
+              <v-icon>mdi-download-circle-outline</v-icon>
+              ЕГЭ csv
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
@@ -138,50 +100,117 @@
   </v-container>
 </template>
 <script>
+import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'ExportDocumentsComponent',
   data() {
     return {
       dialogExcel: false,
-      dialogWord: false,
-      wordContent: null,
-      file: null,
+
       exportData: [],
       exportHeaders: [],
-
-      dialogFile: false,
-      file: null,
     }
   },
   computed: {
-    ...mapGetters(['subjects', 'importedData', 'exportedData']),
+    ...mapGetters(['exportedData', 'fullAbits']),
   },
   watch: {},
   mounted() {},
-  created() {
-    this.fetchSubjects()
+  async created() {
+    await this.fetchFullAbits()
   },
 
   methods: {
     ...mapActions([
-      'fetchSubjects',
-      'importFromExcel',
-      'importFromWord',
-      'updateAbit',
       'exportToExcel',
       'exportToWord',
+      'exportCALLStoExcel',
+      'exportToTemplateExcel',
+      'fetchFullAbits',
+      'egeToCSV',
     ]),
     async Export() {
       await this.exportToExcel()
-      console.log(this.exportedData)
     },
-    async ExportWord() {
-      await this.exportToWord(this.wordContent)
-      console.log(this.exportedData)
+    async ExportMED() {
+      let items = []
+      for (let item of this.fullAbits) {
+        items.push({
+          num: `${items.length + 1}`,
+          personal_file_number: `${item.personal_file_number}`,
+          rank: `${item.militaryService_rank ?? ''}`,
+          fio: `${item.lastName.toUpperCase()} ${item.firstName} ${item.surName}`,
+        })
+      }
+      const fileName = 'Med.docx'
+      const data = { items: items }
+      await this.exportToWord({ data, fileName })
     },
-    log() {
-      console.log(this.wordContent)
+    async ExportAchievements() {
+      let items = []
+      console.log(this.fullAbits)
+      for (let item of this.fullAbits) {
+        const note = item.personal_achievements
+          .map((achievement) =>
+            achievement.test
+              ? `${achievement.achievement.name}-${achievement.achievement.value}`
+              : ''
+          )
+          .join('; \n')
+        items.push({
+          num: `${items.length + 1}`,
+          ld: `${item.personal_file_number}`,
+          fio: `${item.militaryService_rank ?? ''} ${item.lastName.toUpperCase()} ${item.firstName} ${item.surName}`,
+          score: `${item.personal_achievements_score}`,
+          note: note,
+        })
+      }
+      const fileName = 'Achievements.xlsx'
+      const data = { items: items }
+      await this.exportToTemplateExcel({ data, fileName })
+    },
+    async ExportCALLS() {
+      let items = []
+      for (let item of this.fullAbits) {
+        if (item.militaryService_unit) {
+          items.push({
+            num: `${items.length + 1}`,
+            personal_file_number: `${item.personal_file_number}`,
+            rank: `${item.militaryService_rank ?? ''}`,
+            fio: `${item.lastName.toUpperCase()} ${item.firstName} ${item.surName}`,
+            birthday: `${moment(item.birthday).format('DD.MM.YYYY')}`,
+            region: ``,
+            militaryCommissariat: `${item.militaryService_unit}(${item.militaryService_place})\r\nДислокация:${item.militaryService_unit_address}`,
+          })
+        } else if (item.education_category?.includes('МО')) {
+          items.push({
+            num: `${items.length + 1}`,
+            personal_file_number: `${item.personal_file_number}`,
+            rank: ``,
+            fio: `${item.lastName.toUpperCase()} ${item.firstName} ${item.surName}`,
+            birthday: `${moment(item.birthday).format('DD.MM.YYYY')}`,
+            region: `суворовец`,
+            militaryCommissariat: `${item.education_institute}`,
+          })
+        } else {
+          items.push({
+            num: `${items.length + 1}`,
+            personal_file_number: `${item.personal_file_number}`,
+            rank: `${item.militaryService_rank ?? ''}`,
+            fio: `${item.lastName.toUpperCase()} ${item.firstName} ${item.surName}`,
+            birthday: `${moment(item.birthday).format('DD.MM.YYYY')}`,
+            region: `${item.militaryCommissariat_region_address}`,
+            militaryCommissariat: `${item.militaryCommissariat_name}`,
+          })
+        }
+      }
+      const fileName = 'CALLS.xlsx'
+      const data = { items: items }
+      await this.exportToTemplateExcel({ data, fileName })
+    },
+    async ExportEgeToCSV() {
+      await this.egeToCSV()
     },
   },
 }

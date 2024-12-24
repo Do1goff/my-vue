@@ -621,12 +621,7 @@
             <v-col cols="4">
               <v-badge
                 color="success"
-                :value="
-                  data.passport_series
-                    ? parseInt(data.passport_series, 10) !==
-                      parseInt(abit.passport_series, 10)
-                    : false
-                "
+                :value="data.passport_series != abit.passport_series"
                 dot
               >
                 <v-text-field
@@ -634,19 +629,14 @@
                   v-mask="'####'"
                   dense
                   label="серия"
-                  @input="send('passport_series', parseInt($event, 10))"
+                  @input="send('passport_series', $event)"
                 />
               </v-badge>
             </v-col>
             <v-col cols="4">
               <v-badge
                 color="success"
-                :value="
-                  data.passport_num
-                    ? parseInt(data.passport_num, 10) !=
-                      parseInt(abit.passport_num, 10)
-                    : false
-                "
+                :value="data.passport_num != abit.passport_num"
                 dot
               >
                 <v-text-field
@@ -654,7 +644,7 @@
                   v-mask="'######'"
                   dense
                   label="номер"
-                  @input="send('passport_num', parseInt($event, 10))"
+                  @input="send('passport_num', $event)"
                 />
               </v-badge>
             </v-col>
@@ -940,7 +930,7 @@
                   v-model="data.document_mvd_prosecution"
                   dense
                   :items="document_mvd_prosecution"
-                  :disabled="data.document_mvd_availability !== 'true'"
+                  :disabled="!data.document_mvd_availability"
                   label="Привлечение к ответственности"
                   multiple
                   chips
@@ -948,7 +938,7 @@
                 >
                   <template #selection="{ item, index }">
                     <v-chip v-if="index < 1">
-                      <span>{{ item.title }}</span>
+                      <span>{{ item }}</span>
                     </v-chip>
                     <span
                       v-if="index === 1"
@@ -1816,14 +1806,28 @@ export default {
     },
 
     send(key, value) {
-      this.differences[key] = value
+      if (typeof value == 'number' && isNaN(value)) {
+        this.differences[key] = null
+        this.data[key] = null
+      } else if (value != '') {
+        this.differences[key] = value
+      } else if (value === false) {
+        this.differences[key] = false
+      } else {
+        this.differences[key] = null
+        this.data[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
     sendDate(key, value) {
-      this.data[key] = value
-
-      this.differences[key] = value
+      if (value != '') {
+        this.data[key] = value
+        this.differences[key] = value
+      } else {
+        this.data[key] = null
+        this.differences[key] = null
+      }
       this.$emit('child-event', this.differences)
       this.differences = {}
     },
@@ -2103,10 +2107,7 @@ export default {
           this.data[key].charAt(0).toUpperCase() +
           this.data[key].slice(1).toUpperCase()
       }
-
-      this.differences[key] = value
-      this.$emit('child-event', this.differences)
-      this.differences = {}
+      this.send('personal_number', this.data[key])
     },
     getLocationEducation(event) {
       this.locationObjectEducation = event

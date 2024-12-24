@@ -58,6 +58,9 @@ export default {
       snackbar: false,
     }
   },
+  created() {
+    console.log(JSON.parse(sessionStorage.getItem('user'))?.username)
+  },
 
   computed: {
     ...mapGetters(['isAuthenticated']),
