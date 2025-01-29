@@ -1,11 +1,17 @@
 import axios from 'axios'
 
 export default {
-  state: { institutes: [], selectedInstitute: null },
+  state: {
+    institutes: [],
+    selectedInstitute: null,
+    selectedSuvorovets: null,
+  },
   mutations: {
     ADD_INSTITUTE: (state, newInstitute) => state.institutes.push(newInstitute),
     SET_INSTITUTES: (state, payload) => (state.institutes = payload),
     SET_INSTITUTE: (state, institute) => (state.selectedInstitute = institute),
+    ADD_SUVOROVETS: (state, newSuvorovets) =>
+      state.suvorovetss.push(newSuvorovets),
   },
   getters: {
     institutes: (state) => state.institutes,

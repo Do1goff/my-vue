@@ -133,7 +133,7 @@ export default {
       this.updateAbit(change)
 
       let keys = Object.keys(JSON.parse(item.item.newValue)).filter(
-        (key) => key != item.entityName
+        (key) => key != item.entityName,
       )
       if (keys.length == 1) {
         await this.deleteHistory(item.item.id)

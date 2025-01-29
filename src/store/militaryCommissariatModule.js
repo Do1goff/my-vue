@@ -22,13 +22,13 @@ export default {
     async addMilitaryCommissariat({ commit }, newMilitaryCommissariat) {
       const response = await axios.post(
         '/military_commissariat',
-        newMilitaryCommissariat
+        newMilitaryCommissariat,
       )
       commit('ADD_MILITARY_COMMISSARIAT', response.data)
     },
     async selectMilitaryCommissariat({ commit }, militaryCommissariatId) {
       const response = await axios.get(
-        `/military_commissariat/${militaryCommissariatId}`
+        `/military_commissariat/${militaryCommissariatId}`,
       )
       commit('SET_MILITARY_COMMISSARIAT', response.data)
     },

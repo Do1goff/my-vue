@@ -15,7 +15,7 @@
           v-if="this.$route.path === '/abit'"
         >
           <v-card-text>
-            <h1>Выбери или добавь абитуриента</h1>
+            <h1 class="black--text">Выбери или добавь абитуриента</h1>
           </v-card-text>
         </v-card>
         <router-view

@@ -13,7 +13,7 @@
         </v-tabs>
         <v-tabs-items v-model="tabsEducation">
           <v-tab-item>
-            <v-card height="320px">
+            <v-card height="280px">
               <v-card-text>
                 <v-row>
                   <v-col cols="4">
@@ -34,6 +34,7 @@
                         v-model="data.education_category"
                         :items="categoryEducation"
                         item-text="name"
+                        return-object
                         clearable
                         item-value="id"
                         label="Категория"
@@ -138,12 +139,13 @@
                     >
                       <v-autocomplete
                         v-model="data.education_institute"
-                        :items="institutes"
+                        :items="getInstitutes"
                         :disabled="data.education_category == null"
                         item-text="name"
                         item-value="id"
                         label="Образовательное учреждение"
                         clearable
+                        return-object
                         persistent-hint
                         @input="
                           sendEducationInstitute('education_institute', $event)
@@ -190,24 +192,13 @@
                                           label="Образовательное учреждение"
                                         />
                                       </v-col>
-                                      <v-col cols="9">
+                                      <v-col cols="12">
                                         <v-textarea
                                           class="small-text"
-                                          rows="2"
+                                          rows="1"
                                           label="Адрес"
                                           :rules="[rules.required]"
-                                          :value="newEducationLocation"
-                                          readonly
-                                        />
-                                      </v-col>
-                                      <v-col cols="3">
-                                        <Location
-                                          @send-locationObject="
-                                            getLocationEducation($event)
-                                          "
-                                          @send-locationText="
-                                            getLocationTextEducation($event)
-                                          "
+                                          v-model="institute.address"
                                         />
                                       </v-col>
                                     </v-row>
@@ -235,7 +226,7 @@
                     <v-textarea
                       dense
                       class="small-text"
-                      :value="educationLocation"
+                      :value="data.education_institute?.address"
                       :disabled="data.education_category == null"
                       readonly
                       label="Адрес"
@@ -247,7 +238,7 @@
             </v-card>
           </v-tab-item>
           <v-tab-item>
-            <v-card height="320px">
+            <v-card height="280px">
               <v-card-text>
                 <v-row dense>
                   <v-col
@@ -317,7 +308,7 @@
                       color="success"
                       :value="
                         formatDateYear(
-                          data.uncanceledEducation_date_admission
+                          data.uncanceledEducation_date_admission,
                         ) !=
                         formatDateYear(abit.uncanceledEducation_date_admission)
                       "
@@ -327,7 +318,7 @@
                         dense
                         :value="
                           formatDateYear(
-                            data.uncanceledEducation_date_admission
+                            data.uncanceledEducation_date_admission,
                           )
                         "
                         :disabled="data.uncanceledEducation_category == null"
@@ -490,7 +481,7 @@
                             .id !==
                             Object.assign(
                               {},
-                              data.uncanceledEducation_institute
+                              data.uncanceledEducation_institute,
                             ).id) ||
                         (abit.uncanceledEducation_institute === null &&
                           data.uncanceledEducation_institute)
@@ -505,6 +496,7 @@
                         item-text="name"
                         item-value="id"
                         clearable
+                        return-object
                         label="Образовательное учреждение"
                         @input="
                           sendUncanceledEducationInstitute('institute', $event)
@@ -553,27 +545,10 @@
                                       <v-col cols="9">
                                         <v-textarea
                                           class="small-text"
-                                          rows="2"
+                                          rows="1"
                                           label="Адрес"
                                           :rules="[rules.required]"
-                                          :value="
-                                            newUncanceledEducationLocation
-                                          "
-                                          readonly
-                                        />
-                                      </v-col>
-                                      <v-col cols="3">
-                                        <Location
-                                          @send-locationObject="
-                                            getLocationUncanceledEducation(
-                                              $event
-                                            )
-                                          "
-                                          @send-locationText="
-                                            getLocationTextUncanceledEducation(
-                                              $event
-                                            )
-                                          "
+                                          v-model="institute.address"
                                         />
                                       </v-col>
                                     </v-row>
@@ -601,11 +576,11 @@
                     <v-textarea
                       dense
                       class="small-text"
-                      :value="uncanceledEducationLocation"
+                      :value="data.uncanceledEducation_institute?.address"
                       :disabled="data.uncanceledEducation_category == null"
                       readonly
                       label="Адрес"
-                      rows="2"
+                      rows="1"
                     />
                   </v-col>
                 </v-row>
@@ -959,7 +934,7 @@
         <v-data-table
           :headers="headers"
           :items="schoolMarks"
-          height="355px"
+          height="315px"
           dense
           disable-pagination
           hide-default-footer
@@ -1248,7 +1223,7 @@
                   item-value="id"
                   dense
                   :disabled="data.militaryService_rank == null"
-                  label="СВО"
+                  label="ВБД/СВО"
                   @input="send('militaryService_SVO', $event)"
                 />
               </v-badge>
@@ -1315,6 +1290,8 @@
                   item-value="id"
                   :disabled="data.militaryService_rank == null"
                   label="Воинская часть"
+                  return-object
+                  clearable
                   @input="
                     sendMilitaryServiceUnit('militaryService_unit', $event)
                   "
@@ -1357,28 +1334,27 @@
                                     dense
                                     :rules="[rules.required]"
                                     label="Воинская часть"
+                                    hint="Воинская часть №"
                                   />
                                 </v-col>
-                                <v-col cols="9">
+                                <v-col cols="12">
                                   <v-textarea
                                     class="small-text"
-                                    rows="2"
+                                    rows="1"
                                     label="Адрес"
+                                    hint="ИНДЕКС, обл.,г."
                                     :rules="[rules.required]"
-                                    :value="newUnitLocation"
-                                    readonly
+                                    v-model="unit.address"
                                   />
                                 </v-col>
-                                <v-col cols="3">
-                                  <Location
-                                    @send-locationObject="
-                                      getLocationUnit($event)
-                                    "
-                                    @send-locationText="
-                                      getLocationTextUnit($event)
-                                    "
+                                <v-col cols="12">
+                                  <v-text-field
+                                    v-model="unit.mail"
+                                    dense
+                                    label="Почта/ЗС СПД/СЭД"
                                   />
                                 </v-col>
+                                <v-col cols="3"> </v-col>
                               </v-row>
                             </v-container>
                           </v-card-text>
@@ -1403,7 +1379,7 @@
                 <v-textarea
                   dense
                   class="small-text"
-                  :value="unitLocation"
+                  :value="data.militaryService_unit?.address"
                   :disabled="data.militaryService_rank == null"
                   readonly
                   label="Адрес"
@@ -1457,14 +1433,10 @@
 </template>
 
 <script>
-import Location from '@/components/Location.vue'
 import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'DocumentsComponent',
-  components: {
-    Location,
-  },
   props: {
     abit: {
       type: Object,
@@ -1538,18 +1510,6 @@ export default {
       formEducationInstituteValid: false,
       formUncanceledEducationInstituteValid: false,
       formUncanceledInstituteValid: false,
-      newEducationLocation: '',
-      educationLocation: '',
-      locationObjectEducation: {},
-      editEducationLocation: {},
-      newUncanceledEducationLocation: '',
-      uncanceledEducationLocation: '',
-      locationObjectUncanceledEducation: {},
-      editUncanceledEducationLocation: {},
-      newUnitLocation: '',
-      unitLocation: '',
-      locationObjectUnit: {},
-      editUnitLocation: {},
     }
   },
   computed: {
@@ -1564,14 +1524,28 @@ export default {
       'militaryPlaces',
       'militarySVO',
       'militaryUnits',
-      'locations',
-      'location',
       'regions',
       'districts',
       'cities',
       'selectedInstitute',
       'selectedMilitaryUnit',
     ]),
+
+    getInstitutes() {
+      if (this.data.education_category?.abbreviation == 'ПКУ') {
+        return this.institutes.filter((s) => s.type == 'ПКУ')
+      } else if (this.data.education_category?.abbreviation == 'СВУ') {
+        return this.institutes.filter((s) => s.type == 'СВУ')
+      } else if (this.data.education_category?.abbreviation == 'КК') {
+        return this.institutes.filter((s) => s.type == 'КК')
+      } else if (this.data.education_category?.abbreviation == 'ВМУ') {
+        return this.institutes.filter((s) => s.type == 'НВМУ')
+      } else if (this.data.education_category?.abbreviation == 'ОШИ с ПЛП') {
+        return this.institutes.filter((s) => s.type == 'ПЛП')
+      } else {
+        return this.institutes.filter((s) => s.type == null)
+      }
+    },
     years() {
       const array = []
       for (let i = moment().year() - 20; i <= moment().year() + 10; i++) {
@@ -1587,7 +1561,7 @@ export default {
     },
     notUsedSchoolMarksSubjects() {
       return this.subjects.filter(
-        (item) => !this.usedSchoolMarksSubjects.includes(item.id)
+        (item) => !this.usedSchoolMarksSubjects.includes(item.id),
       )
     },
     colorBtnDocumentEducation() {
@@ -1621,129 +1595,6 @@ export default {
         } else {
           this.editDocumentEducation = {}
         }
-
-        if (this.data.education_institute) {
-          await this.selectInstitute(this.data.education_institute.id)
-          await this.selectLocation(this.selectedInstitute.address.id)
-          const foundRegion = this.regions.find(
-            (obj) => obj.id === this.location.region.id
-          )
-          const foundDistrict = this.districts.find(
-            (obj) => obj.id === this.location.district.id
-          )
-          if (this.location.city !== null) {
-            const foundCity = this.cities.find(
-              (obj) => obj.id === this.location.city.id
-            )
-            const locationCity =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}` +
-              ', ' +
-              `${foundCity.status.name}` +
-              ' ' +
-              `${foundCity.name}`
-            this.educationLocation = locationCity
-          } else {
-            const locationDistrict =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}`
-            this.educationLocation = locationDistrict
-          }
-        } else {
-          this.educationLocation = null
-        }
-
-        if (this.data.uncanceledEducation_institute) {
-          await this.selectInstitute(this.data.uncanceledEducation_institute.id)
-          await this.selectLocation(this.selectedInstitute.address.id)
-          const foundRegion = this.regions.find(
-            (obj) => obj.id === this.location.region.id
-          )
-          const foundDistrict = this.districts.find(
-            (obj) => obj.id === this.location.district.id
-          )
-          if (this.location.city !== null) {
-            const foundCity = this.cities.find(
-              (obj) => obj.id === this.location.city.id
-            )
-            const locationCity =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}` +
-              ', ' +
-              `${foundCity.status.name}` +
-              ' ' +
-              `${foundCity.name}`
-            this.uncanceledEducationLocation = locationCity
-          } else {
-            const locationDistrict =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}`
-            this.uncanceledEducationLocation = locationDistrict
-          }
-        } else {
-          this.uncanceledEducationLocation = null
-        }
-
-        if (this.data.militaryService_unit) {
-          await this.selectMilitaryUnit(this.data.militaryService_unit.id)
-          await this.selectLocation(this.selectedMilitaryUnit.address.id)
-          const foundRegion = this.regions.find(
-            (obj) => obj.id === this.location.region.id
-          )
-          const foundDistrict = this.districts.find(
-            (obj) => obj.id === this.location.district.id
-          )
-          if (this.location.city !== null) {
-            const foundCity = this.cities.find(
-              (obj) => obj.id === this.location.city.id
-            )
-            const locationCity =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}` +
-              ', ' +
-              `${foundCity.status.name}` +
-              ' ' +
-              `${foundCity.name}`
-            this.unitLocation = locationCity
-          } else {
-            const locationDistrict =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}`
-            this.unitLocation = locationDistrict
-          }
-        } else {
-          this.unitLocation = null
-        }
       }
     },
   },
@@ -1758,7 +1609,6 @@ export default {
     this.fetchMilitaryPlaces()
     this.fetchMilitarySVO()
     this.fetchMilitaryUnits()
-    this.fetchLocations()
     this.fetchRegions()
     this.fetchDistricts()
     this.fetchCities()
@@ -1785,10 +1635,6 @@ export default {
       'fetchMilitarySVO',
       'fetchMilitaryUnits',
       'addMilitaryUnit',
-      'fetchLocations',
-      'selectLocation',
-      'addLocation',
-      'updateLocation',
       'fetchRegions',
       'fetchDistricts',
       'fetchCities',
@@ -1800,7 +1646,6 @@ export default {
         this.editPeriodStudy = {}
       }
     },
-
     namePassportIssued(item) {
       return `(${item.department_code}) ${item.name}`
     },
@@ -1822,8 +1667,8 @@ export default {
     },
     sendDate(key, value) {
       if (value != '') {
-        this.data[key] = value
-        this.differences[key] = value
+        this.data[key] = new Date(value)
+        this.differences[key] = new Date(value)
       } else {
         this.data[key] = null
         this.differences[key] = null
@@ -1832,7 +1677,7 @@ export default {
       this.differences = {}
     },
     inputSend(key, value) {
-      this.send(key, value)
+      this.send(key, value?.id ? value?.id : value)
       if (value === null) {
         if (key == 'militaryService_rank') {
           this.send('militaryService_post', null)
@@ -1929,11 +1774,6 @@ export default {
     },
 
     async saveInstituteEducation() {
-      await this.addLocation(this.locationObjectEducation)
-
-      this.institute.address = this.location.id
-      this.locationObjectEducation = null
-
       const newInstitute = Object.assign({}, this.institute)
       this.addInstitutes(newInstitute)
       this.menuInstitutes = false
@@ -1941,11 +1781,6 @@ export default {
       this.institute = {}
     },
     async saveInstituteUncanceledEducation() {
-      await this.addLocation(this.locationObjectUncanceledEducation)
-
-      this.institute.address = this.location.id
-      this.locationObjectUncanceledEducation = null
-
       const newInstitute = Object.assign({}, this.institute)
       this.addInstitutes(newInstitute)
       this.menuInstitutes = false
@@ -1953,44 +1788,8 @@ export default {
       this.institute = {}
     },
     async sendEducationInstitute(key, event) {
-      await this.selectInstitute(this.data.education_institute)
-      await this.selectLocation(this.selectedInstitute.address.id)
-      const foundRegion = this.regions.find(
-        (obj) => obj.id === this.location.region.id
-      )
-      const foundDistrict = this.districts.find(
-        (obj) => obj.id === this.location.district.id
-      )
-      if (this.location.city !== null) {
-        const foundCity = this.cities.find(
-          (obj) => obj.id === this.location.city.id
-        )
-        const locationCity =
-          `${foundRegion.name}` +
-          ' ' +
-          `${foundRegion.status.name}` +
-          ', ' +
-          `${foundDistrict.status.name}` +
-          ' ' +
-          `${foundDistrict.name}` +
-          ', ' +
-          `${foundCity.status.name}` +
-          ' ' +
-          `${foundCity.name}`
-        this.educationLocation = locationCity
-      } else {
-        const locationDistrict =
-          `${foundRegion.name}` +
-          ' ' +
-          `${foundRegion.status.name}` +
-          ', ' +
-          `${foundDistrict.status.name}` +
-          ' ' +
-          `${foundDistrict.name}`
-        this.educationLocation = locationDistrict
-      }
-
-      this.send('education_institute', event)
+      this.data.education_institute = event
+      this.send('education_institute', event?.id ? event?.id : null)
     },
     sendDocumentEducation(event) {
       const data = JSON.stringify(event)
@@ -1999,44 +1798,9 @@ export default {
       this.menuDocumentEducation = false
     },
     async sendUncanceledEducationInstitute(key, event) {
-      await this.selectInstitute(this.data.uncanceledEducation_institute)
-      await this.selectLocation(this.selectedInstitute.address.id)
-      const foundRegion = this.regions.find(
-        (obj) => obj.id === this.location.region.id
-      )
-      const foundDistrict = this.districts.find(
-        (obj) => obj.id === this.location.district.id
-      )
-      if (this.location.city !== null) {
-        const foundCity = this.cities.find(
-          (obj) => obj.id === this.location.city.id
-        )
-        const locationCity =
-          `${foundRegion.name}` +
-          ' ' +
-          `${foundRegion.status.name}` +
-          ', ' +
-          `${foundDistrict.status.name}` +
-          ' ' +
-          `${foundDistrict.name}` +
-          ', ' +
-          `${foundCity.status.name}` +
-          ' ' +
-          `${foundCity.name}`
-        this.uncanceledEducationLocation = locationCity
-      } else {
-        const locationDistrict =
-          `${foundRegion.name}` +
-          ' ' +
-          `${foundRegion.status.name}` +
-          ', ' +
-          `${foundDistrict.status.name}` +
-          ' ' +
-          `${foundDistrict.name}`
-        this.uncanceledEducationLocation = locationDistrict
-      }
+      this.data.uncanceledEducation_institute = event
 
-      this.send('uncanceledEducation_institute', event)
+      this.send('uncanceledEducation_institute', event?.id ? event?.id : null)
     },
     sendPeriodStudy() {
       const data = this.computedPeriodStudy
@@ -2046,54 +1810,10 @@ export default {
     },
 
     async sendMilitaryServiceUnit(key, event) {
-      await this.selectMilitaryUnit(this.data.militaryService_unit)
-      await this.selectLocation(this.selectedMilitaryUnit.address.id)
-      const foundRegion = this.regions.find(
-        (obj) => obj.id === this.location.region.id
-      )
-      const foundDistrict = this.districts.find(
-        (obj) => obj.id === this.location.district.id
-      )
-      if (this.location.city !== null) {
-        const foundCity = this.cities.find(
-          (obj) => obj.id === this.location.city.id
-        )
-        const locationCity =
-          `${foundRegion.name}` +
-          ' ' +
-          `${foundRegion.status.name}` +
-          ', ' +
-          `${foundDistrict.status.name}` +
-          ' ' +
-          `${foundDistrict.name}` +
-          ', ' +
-          `${foundCity.status.name}` +
-          ' ' +
-          `${foundCity.name}`
-        this.unitLocation = locationCity
-      } else {
-        const locationDistrict =
-          `${foundRegion.name}` +
-          ' ' +
-          `${foundRegion.status.name}` +
-          ', ' +
-          `${foundDistrict.status.name}` +
-          ' ' +
-          `${foundDistrict.name}`
-        this.unitLocation = locationDistrict
-      }
-
-      this.editUnitLocation[key] = event
-      const data = {}
-      data[key] = event
-      this.send('militaryService_unit', event)
+      this.data.militaryService_unit = event
+      this.send('militaryService_unit', event?.id ? event?.id : null)
     },
     async saveMilitaryUnit() {
-      await this.addLocation(this.locationObjectUnit)
-
-      this.unit.address = this.location.id
-      this.locationObjectUnit = null
-
       const newMilitaryUnit = Object.assign({}, this.unit)
       this.addMilitaryUnit(newMilitaryUnit)
       this.menuMilitaryUnits = false
@@ -2108,27 +1828,6 @@ export default {
           this.data[key].slice(1).toUpperCase()
       }
       this.send('personal_number', this.data[key])
-    },
-    getLocationEducation(event) {
-      this.locationObjectEducation = event
-    },
-    getLocationTextEducation(event) {
-      this.educationLocation = `${event}`
-      this.newEducationLocation = `${event}`
-    },
-    getLocationUncanceledEducation(event) {
-      this.locationObjectUncanceledEducation = event
-    },
-    getLocationTextUncanceledEducation(event) {
-      this.uncanceledEducationLocation = `${event}`
-      this.newUncanceledEducationLocation = `${event}`
-    },
-    getLocationUnit(event) {
-      this.locationObjectUnit = event
-    },
-    getLocationTextUnit(event) {
-      this.unitLocation = `${event}`
-      this.newUnitLocation = `${event}`
     },
   },
 }

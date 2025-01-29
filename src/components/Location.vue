@@ -257,6 +257,28 @@
             Сохранить
           </v-btn>
         </v-card-actions>
+        <v-card-text>
+          <v-autocomplete
+            :items="cities"
+            label="Выбор населенного пункта"
+            item-value="id"
+            return-object
+            @input="select"
+          >
+            <template v-slot:item="data">
+              <v-list-item-content>
+                <v-list-item-title
+                  v-html="`${data.item.status} ${data.item.name}`"
+                ></v-list-item-title>
+                <v-list-item-subtitle
+                  v-html="
+                    `${data.item.district_statusInEnd ? data.item.district_name : data.item.district_status} ${data.item.district_statusInEnd ? data.item.district_status : data.item.district_name} ${data.item.region_statusInEnd ? data.item.region_name : data.item.region_status} ${data.item.region_statusInEnd ? data.item.region_status : data.item.region_name}`
+                  "
+                ></v-list-item-subtitle>
+              </v-list-item-content>
+            </template>
+          </v-autocomplete>
+        </v-card-text>
       </v-card>
     </v-form>
   </v-dialog>
@@ -332,6 +354,9 @@ export default {
       'addLocation',
       'updateLocation',
     ]),
+    select(item) {
+      console.log(item)
+    },
     nameAndStatusRegions(item) {
       const foundRegion = this.regions.find((obj) => obj.id === item.id)
       return `${item.name} ${foundRegion ? foundRegion.status.name : ''}`
@@ -343,6 +368,9 @@ export default {
     nameAndStatusCities(item) {
       const foundCity = this.cities.find((obj) => obj.id === item.id)
       return `${item.name} ${foundCity ? foundCity.status.name : ''}`
+    },
+    nameCity(item) {
+      return `${item.name} ${item.status} `
     },
     addNewRegion() {
       this.addRegion(this.editRegion)
@@ -356,7 +384,7 @@ export default {
             obj.id ===
             (this.selectedRegion.id
               ? this.selectedRegion.id
-              : this.selectedRegion)
+              : this.selectedRegion),
         )
         this.fetchDistrictsByRegion(this.selectedRegion)
 
@@ -378,10 +406,10 @@ export default {
             obj.id ===
             (this.selectedRegion.id
               ? this.selectedRegion.id
-              : this.selectedRegion)
+              : this.selectedRegion),
         )
         const foundDistrict = this.districts.find(
-          (obj) => obj.id === this.selectedDistrict
+          (obj) => obj.id === this.selectedDistrict,
         )
         const locationDistrict =
           `${foundRegion.name}` +
@@ -410,14 +438,14 @@ export default {
           obj.id ===
           (this.selectedRegion.id
             ? this.selectedRegion.id
-            : this.selectedRegion)
+            : this.selectedRegion),
       )
       const foundDistrict = this.districts.find(
         (obj) =>
           obj.id ===
           (this.selectedDistrict.id
             ? this.selectedDistrict.id
-            : this.selectedDistrict)
+            : this.selectedDistrict),
       )
       const foundCity = this.cities.find((obj) => obj.id === this.selectedCity)
       const locationCity =

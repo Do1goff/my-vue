@@ -33,12 +33,20 @@ export default {
     },
     UPDATE_LOCATION(state, updatedLocation) {
       const index = state.locations.findIndex(
-        (location) => location.id === updatedLocation.id
+        (location) => location.id === updatedLocation.id,
       )
       if (index !== -1) {
         state.locations.splice(index, 1, updatedLocation)
       }
       state.location = updatedLocation
+    },
+    UPDATE_REGION(state, updatedRegion) {
+      const index = state.regions.findIndex(
+        (region) => region.id === updatedRegion.id,
+      )
+      if (index !== -1) {
+        state.regions.splice(index, 1, updatedRegion)
+      }
     },
   },
   getters: {
@@ -59,6 +67,10 @@ export default {
     async addRegion({ commit }, newData) {
       const response = await axios.post('/regions', newData)
       commit('ADD_REGION', response.data)
+    },
+    async updateRegion({ commit }, newData) {
+      const response = await axios.put(`/regions/${newData.id}`, newData)
+      commit('UPDATE_REGION', response.data)
     },
     async fetchDistricts({ commit }) {
       const response = await axios.get('/districts')
@@ -104,7 +116,7 @@ export default {
     async updateLocation({ commit }, updatedLocation) {
       const response = await axios.put(
         `/locations/${updatedLocation.id}`,
-        updatedLocation
+        updatedLocation,
       )
       commit('UPDATE_LOCATION', response.data)
     },

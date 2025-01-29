@@ -122,7 +122,7 @@
                 >
                   <v-select
                     v-model="filterCompare[index]"
-                    label="Оператор"
+                    label="Условие"
                     :items="filterCompares"
                     item-text="name"
                     item-value="id"
@@ -284,7 +284,6 @@ export default {
         { text: 'Регион комиссии', value: 'admission_commission_region' },
         { text: 'Экз. группа', value: 'admission_examination_group' },
         { text: 'Источники информации', value: 'admission_source_information' },
-        { text: 'Примечание прибытия', value: 'admission_note' },
         {
           text: 'Желаемая специальность',
           value: 'specialty_military_commissariat',
@@ -474,7 +473,6 @@ export default {
         { name: 'Регион комиссии', id: 'admission_commission_region' },
         { name: 'Экз. группа', id: 'admission_examination_group' },
         { name: 'Источники информации', id: 'admission_source_information' },
-        { name: 'Примечание прибытия', id: 'admission_note' },
         {
           name: 'Желаемая специальность',
           id: 'specialty_military_commissariat',
@@ -643,7 +641,7 @@ export default {
           .reduce((obj, key) => {
             obj[key] = abit[key]
             return obj
-          }, {})
+          }, {}),
       )
       this.exportFilterToExcel(exportData)
     },
@@ -675,8 +673,8 @@ export default {
       for (let x in this.filteredHeaders) {
         this.headers.push(
           this.filterHeaders.find(
-            (head) => head.value == this.filteredHeaders[x]
-          )
+            (head) => head.value == this.filteredHeaders[x],
+          ),
         )
       }
       this.headers.push({ text: 'Действие', value: 'actions' })

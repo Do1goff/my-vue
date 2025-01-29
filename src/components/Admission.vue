@@ -68,8 +68,8 @@
               value="Кадет"
             ></v-radio>
             <v-radio
-              label="Хабаровск"
-              value="Хабаровск"
+              label="ВУЗ"
+              value="ВУЗ"
             ></v-radio>
             <v-radio
               label="Другой"
@@ -85,8 +85,8 @@
 
       <v-card tile>
         <v-card-text>
-          <v-row>
-            <v-col cols="4">
+          <v-row justify="space-between">
+            <v-col>
               <v-badge
                 color="success"
                 :value="
@@ -102,7 +102,7 @@
                   v-model="data.specialty_1"
                   dense
                   :items="specialty"
-                  clearable
+                  class="small-text"
                   item-text="abbreviation"
                   item-value="id"
                   label="1 Специальность"
@@ -110,7 +110,7 @@
                 />
               </v-badge>
             </v-col>
-            <v-col cols="4">
+            <v-col>
               <v-badge
                 color="success"
                 :value="
@@ -126,7 +126,7 @@
                   v-model="data.specialty_2"
                   dense
                   :items="specialty"
-                  clearable
+                  class="small-text"
                   item-text="abbreviation"
                   item-value="id"
                   label="2 Специальность"
@@ -134,7 +134,7 @@
                 />
               </v-badge>
             </v-col>
-            <v-col cols="4">
+            <v-col>
               <v-badge
                 color="success"
                 :value="
@@ -150,11 +150,59 @@
                   v-model="data.specialty_3"
                   dense
                   :items="specialty"
-                  clearable
+                  class="small-text"
                   item-text="abbreviation"
                   item-value="id"
                   label="3 Специальность"
                   @input="send('specialty_3', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col>
+              <v-badge
+                color="success"
+                :value="
+                  (Object.assign({}, abit.specialty_4).id !==
+                    data.specialty_4 &&
+                    Object.assign({}, abit.specialty_4).id !==
+                      Object.assign({}, data.specialty_4).id) ||
+                  (abit.specialty_4 === null && data.specialty_4)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.specialty_4"
+                  dense
+                  :items="specialty"
+                  class="small-text"
+                  item-text="abbreviation"
+                  item-value="id"
+                  label="4 Специальность"
+                  @input="send('specialty_4', $event)"
+                />
+              </v-badge>
+            </v-col>
+            <v-col>
+              <v-badge
+                color="success"
+                :value="
+                  (Object.assign({}, abit.specialty_5).id !==
+                    data.specialty_5 &&
+                    Object.assign({}, abit.specialty_5).id !==
+                      Object.assign({}, data.specialty_5).id) ||
+                  (abit.specialty_5 === null && data.specialty_5)
+                "
+                dot
+              >
+                <v-autocomplete
+                  v-model="data.specialty_5"
+                  dense
+                  class="small-text"
+                  :items="specialty"
+                  item-text="abbreviation"
+                  item-value="id"
+                  label="5 Специальность"
+                  @input="send('specialty_5', $event)"
                 />
               </v-badge>
             </v-col>
@@ -288,15 +336,15 @@
         <v-card-text>
           <v-badge
             color="success"
-            :value="data.admission_note !== abit.admission_note"
+            :value="data.note !== abit.note"
             dot
           >
             <v-textarea
-              v-model="data.admission_note"
+              v-model="data.note"
               hide-details
               label="Примечания"
               rows="5"
-              @input="send('admission_note', $event)"
+              @input="send('note', $event)"
             />
           </v-badge>
         </v-card-text>
@@ -631,7 +679,7 @@ export default {
         'Телеграм-канал',
         'Обращение в академию',
       ],
-      abbreviations: ['ХАБ', 'КАД', 'ВГ'],
+      abbreviations: ['ВУЗ', 'КШ', 'ВГ'],
       formGroupValid: false,
       rules: {
         required: (value) => !!value || 'Обязательно.',
@@ -646,6 +694,7 @@ export default {
       'reasonExpulsion',
       'militaryInstitute',
       'countGroup',
+      'selectedGroup',
     ]),
   },
   watch: {
@@ -677,6 +726,8 @@ export default {
       'addReasonExpulsion',
       'fetchMilitaryInstitute',
       'fetchCountGroup',
+      'findExaminationGroup',
+      'updateExaminationGroup',
     ]),
     nameCommissions(item) {
       return `${item.region}-${item.name}`
@@ -705,10 +756,12 @@ export default {
         })
         if (test != null) {
           await this.fetchCountGroup(test.id)
-          if (this.countGroup < 30) {
+          await this.findExaminationGroup(test.id)
+          if (this.countGroup < 30 && this.selectedGroup.close == false) {
             this.examinationGroup.number = test.number
           } else {
             this.examinationGroup.number = test.number + 1
+            await this.updateExaminationGroup({ id: test.id, close: true })
           }
         } else {
           this.examinationGroup.number = 1
@@ -723,12 +776,12 @@ export default {
 
       if (
         this.data.admission_examination_group == null &&
-        (value == 'Хабаровск' || value == 'Кадет' || value == 'Выездная группа')
+        (value == 'ВУЗ' || value == 'Кадет' || value == 'Выездная группа')
       ) {
-        if (value == 'Хабаровск') {
-          this.examinationGroup.abbreviation = 'ХАБ'
+        if (value == 'ВУЗ') {
+          this.examinationGroup.abbreviation = 'ВУЗ'
         } else if (value == 'Кадет') {
-          this.examinationGroup.abbreviation = 'КАД'
+          this.examinationGroup.abbreviation = 'КШ'
         } else if (value == 'Выездная группа') {
           this.examinationGroup.abbreviation = 'ВГ'
         }
@@ -742,16 +795,46 @@ export default {
             test = title
           }
         })
-        if (test != null) {
-          await this.fetchCountGroup(test.id)
-          if (this.countGroup < 30) {
-            this.examinationGroup.number = test.number
+        if (this.examinationGroup.abbreviation == 'ВГ') {
+          this.examinationGroup.number = parseInt(
+            this.data.admission_commission.region ??
+              this.commissions.find(
+                (commission) => commission.id == this.data.admission_commission,
+              ).region,
+          )
+        } else if (value == 'ВУЗ') {
+          this.examinationGroup.abbreviation =
+            this.data.arrivedFrom.abbreviation ??
+            this.militaryInstitute.find(
+              (inst) => inst.id == this.data.arrivedFrom,
+            ).abbreviation
+          if (test != null) {
+            await this.fetchCountGroup(test.id)
+            await this.findExaminationGroup(test.id)
+            if (this.countGroup < 30 && this.selectedGroup.close == false) {
+              this.examinationGroup.number = test.number
+            } else {
+              this.examinationGroup.number = test.number + 1
+              await this.updateExaminationGroup({ id: test.id, close: true })
+            }
           } else {
-            this.examinationGroup.number = test.number + 1
+            this.examinationGroup.number = 1
           }
         } else {
-          this.examinationGroup.number = 1
+          if (test != null) {
+            await this.fetchCountGroup(test.id)
+            await this.findExaminationGroup(test.id)
+            if (this.countGroup < 30 && this.selectedGroup.close == false) {
+              this.examinationGroup.number = test.number
+            } else {
+              this.examinationGroup.number = test.number + 1
+              await this.updateExaminationGroup({ id: test.id, close: true })
+            }
+          } else {
+            this.examinationGroup.number = 1
+          }
         }
+
         this.saveExaminationGroup()
       }
     },
@@ -798,7 +881,7 @@ export default {
       this.examinationGroup = {}
       this.send(
         'admission_examination_group',
-        this.data.admission_examination_group
+        this.data.admission_examination_group,
       )
     },
     formatDate(dateString) {
@@ -808,8 +891,8 @@ export default {
     },
     sendDate(key, value) {
       if (value != '') {
-        this.data[key] = value
-        this.differences[key] = value
+        this.data[key] = new Date(value)
+        this.differences[key] = new Date(value)
       } else {
         this.data[key] = null
         this.differences[key] = null

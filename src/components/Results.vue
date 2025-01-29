@@ -1,7 +1,10 @@
 <template>
   <v-row no-gutters>
     <v-col cols="6">
-      <v-card tile>
+      <v-card
+        tile
+        height="284px"
+      >
         <v-card-title> Результаты </v-card-title>
         <v-card-text>
           <v-row>
@@ -50,11 +53,10 @@
             </v-col>
             <v-col cols="6">
               <v-text-field
-                :value="this.getSportScore"
-                dense
-                readonly
                 label="ФП"
-                @input="send"
+                readonly
+                type="number"
+                :value="this.fullAbit?.sport_score"
               />
             </v-col>
             <v-col cols="6">
@@ -73,6 +75,22 @@
                   @input="sendDate('sport_date', $event)"
                 />
               </v-badge>
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                label="Достижения"
+                readonly
+                type="number"
+                :value="this.fullAbit?.personal_achievements_score"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                label="Рейтинг"
+                readonly
+                type="number"
+                :value="this.fullAbit?.rating"
+              />
             </v-col>
           </v-row>
         </v-card-text>
@@ -449,6 +467,7 @@ export default {
   },
   computed: {
     ...mapGetters([
+      'fullAbit',
       'subjects',
       'exercises',
       'egeMarks',
@@ -466,32 +485,10 @@ export default {
     },
     years() {
       const array = []
-      for (let i = moment().year() - 5; i <= moment().year(); i++) {
+      for (let i = moment().year() - 4; i <= moment().year(); i++) {
         array.push(i.toString())
       }
       return array
-    },
-    getSportScore() {
-      var sum = 0
-      var august = moment(`${moment().format('YYYY')}-08-01`)
-      var age = august.diff(
-        moment(this.abit.birthday).format('YYYY-MM-DD'),
-        'years'
-      )
-      for (var i = 0; i < this.sportScores.length; i++) {
-        sum += this.sportScores[i].score
-      }
-      if (age < 25) {
-        this.data.sport_score = sum - 95
-      } else {
-        this.data.sport_score = sum - 85
-      }
-      if (this.data.sport_score > 100) {
-        this.data.sport_score = 100
-      } else if (this.data.sport_score < 0) {
-        this.data.sport_score = 0
-      }
-      return this.data.sport_score
     },
   },
   watch: {
@@ -504,6 +501,7 @@ export default {
         this.fetchEntranceTestMark(this.data.id)
         this.fetchSportScore(this.data.id)
         this.fetchPersonalAchievements(this.data.id)
+        this.selectFullAbit(this.data.id)
       }
     },
   },
@@ -517,6 +515,7 @@ export default {
   },
   methods: {
     ...mapActions([
+      'selectFullAbit',
       'fetchSubjects',
       'fetchExercises',
       'fetchEgeMark',
@@ -583,7 +582,7 @@ export default {
       if (!this.egeMark.abitSubjectId) {
         this.egeMark.abitId = this.abit.id
         this.egeMark.date = moment(this.egeMark.date, 'YYYY').format(
-          'YYYY-MM-DD'
+          'YYYY-MM-DD',
         )
         await this.addEgeMark(this.egeMark)
         this.egeMark.mark = ''
@@ -617,26 +616,6 @@ export default {
         await this.putSportScore(this.sportScore)
         this.dialogSport = false
       }
-      var sum = 0
-      var august = moment(`${moment().format('YYYY')}-08-01`)
-      var age = august.diff(
-        moment(this.abit.birthday).format('YYYY-MM-DD'),
-        'years'
-      )
-      for (var i = 0; i < this.sportScores.length; i++) {
-        sum += this.sportScores[i].score
-      }
-      if (age < 25) {
-        this.data.sport_score = sum - 95
-      } else {
-        this.data.sport_score = sum - 85
-      }
-      if (this.data.sport_score > 100) {
-        this.data.sport_score = 100
-      } else if (this.data.sport_score < 0) {
-        this.data.sport_score = 0
-      }
-      this.send('sport_score', this.data.sport_score)
     },
 
     sendDate(key, value) {

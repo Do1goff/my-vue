@@ -151,6 +151,25 @@
                                   type="date"
                                 />
                               </v-col>
+                              <v-col cols="3">
+                                <v-autocomplete
+                                  class="small-text"
+                                  v-model="data.admission_commission"
+                                  :items="commissions"
+                                  :item-text="nameCommissions"
+                                  item-value="id"
+                                  label="Приёмная комиссия"
+                                />
+                              </v-col>
+                              <v-col cols="3">
+                                <v-autocomplete
+                                  v-model="data.arrivedFrom"
+                                  :items="militaryInstitute"
+                                  item-value="id"
+                                  item-text="name"
+                                  label="Прибыл из"
+                                />
+                              </v-col>
                               <v-col cols="3"
                                 ><v-radio-group
                                   v-model="data.sign"
@@ -167,20 +186,20 @@
                                     value="Кадет"
                                   ></v-radio>
                                   <v-radio
-                                    label="Хабаровск"
-                                    value="Хабаровск"
-                                  ></v-radio>
-                                  <v-radio
-                                    label="Другой"
-                                    value="Другой"
+                                    label="ВУЗ"
+                                    value="ВУЗ"
                                   ></v-radio>
                                   <v-radio
                                     label="Выездная группа"
                                     value="Выездная группа"
                                   ></v-radio>
+                                  <!-- <v-radio
+                                    label="Другой"
+                                    value="Другой"
+                                  ></v-radio> -->
                                 </v-radio-group>
                               </v-col>
-                              <v-col cols="3">
+                              <v-col>
                                 <v-autocomplete
                                   v-model="data.specialty_1"
                                   dense
@@ -191,7 +210,7 @@
                                   @input="sendSpecialty('specialty_1', $event)"
                                 />
                               </v-col>
-                              <v-col cols="3">
+                              <v-col>
                                 <v-autocomplete
                                   v-model="data.specialty_2"
                                   dense
@@ -201,7 +220,7 @@
                                   label="2 Специальность"
                                 />
                               </v-col>
-                              <v-col cols="3">
+                              <v-col>
                                 <v-autocomplete
                                   v-model="data.specialty_3"
                                   dense
@@ -211,15 +230,24 @@
                                   label="3 Специальность"
                                 />
                               </v-col>
-                              <v-col cols="3">
+                              <v-col>
                                 <v-autocomplete
-                                  class="small-text"
-                                  v-model="data.admission_commission"
-                                  :items="commissions"
-                                  :item-text="nameCommissions"
-                                  item-value="id"
+                                  v-model="data.specialty_4"
                                   dense
-                                  label="Приёмная комиссия"
+                                  :items="specialty"
+                                  :item-text="nameSpecialty"
+                                  item-value="id"
+                                  label="4 Специальность"
+                                />
+                              </v-col>
+                              <v-col>
+                                <v-autocomplete
+                                  v-model="data.specialty_5"
+                                  dense
+                                  :items="specialty"
+                                  :item-text="nameSpecialty"
+                                  item-value="id"
+                                  label="5 Специальность"
                                 />
                               </v-col>
                               <v-col cols="3">
@@ -490,7 +518,7 @@ export default {
       filterField: [],
       filterCompare: [],
       filterValue: [],
-      abbreviations: ['ХАБ', 'КАД', 'ВГ'],
+      abbreviations: ['ВУЗ', 'КШ', 'ВГ'],
       commission: {},
       examinationGroup: {},
 
@@ -510,12 +538,15 @@ export default {
       'specialty',
       'countGroup',
       'user',
+      'selectedGroup',
+      'militaryInstitute',
     ]),
   },
 
   async created() {
     this.fetchAbits()
     this.fetchAdmissionCommissions()
+    this.fetchMilitaryInstitute()
     this.fetchExaminationGroups()
     await this.fetchSpecialty()
     this.specialty.forEach((title, index) => {
@@ -533,9 +564,12 @@ export default {
       'fetchAdmissionCommissions',
       'addAdmissionCommission',
       'fetchExaminationGroups',
+      'fetchMilitaryInstitute',
       'addExaminationGroup',
       'fetchCountGroup',
       'saveHistory',
+      'updateExaminationGroup',
+      'findExaminationGroup',
     ]),
     formatDate(dateString) {
       if (!dateString) return null
@@ -554,7 +588,9 @@ export default {
     },
 
     async saveAdd() {
+      this.data.birthday = new Date(this.data.birthday)
       const newAbit = Object.assign({}, this.data)
+      console.log(newAbit)
       await this.addAbit(newAbit)
       this.data = Object.assign({}, this.defaultAbit)
       this.dialogAdd = false
@@ -564,9 +600,8 @@ export default {
       })
       this.selectedAbitId = this.allAbits[this.allAbits.length - 1].id
       const createdAbit = this.allAbits.find(
-        (abit) => abit.id == this.allAbits[this.allAbits.length - 1].id
+        (abit) => abit.id == this.allAbits[this.allAbits.length - 1].id,
       )
-      console.log(createdAbit)
       this.saveHistoryAdd(createdAbit)
     },
     closeAdd() {
@@ -612,7 +647,7 @@ export default {
       if (this.$route.path.split('/')[2] === `${item.id}`) {
         return 'selected'
       } else if (
-        item.expulsion_reason ? item.expulsion_reason !== null : false
+        item.expulsion_reason ? item.expulsion_reason != null : false
       ) {
         return 'expulsed'
       }
@@ -633,12 +668,12 @@ export default {
     async sendSign(key, value) {
       if (
         this.data.admission_examination_group == null &&
-        (value == 'Хабаровск' || value == 'Кадет' || value == 'Выездная группа')
+        (value == 'ВУЗ' || value == 'Кадет' || value == 'Выездная группа')
       ) {
-        if (value == 'Хабаровск') {
-          this.examinationGroup.abbreviation = 'ХАБ'
+        if (value == 'ВУЗ') {
+          this.examinationGroup.abbreviation = 'ВУЗ'
         } else if (value == 'Кадет') {
-          this.examinationGroup.abbreviation = 'КАД'
+          this.examinationGroup.abbreviation = 'КШ'
         } else if (value == 'Выездная группа') {
           this.examinationGroup.abbreviation = 'ВГ'
         }
@@ -652,15 +687,41 @@ export default {
             test = title
           }
         })
-        if (test != null) {
-          await this.fetchCountGroup(test.id)
-          if (this.countGroup < 30) {
-            this.examinationGroup.number = test.number
+        if (this.examinationGroup.abbreviation == 'ВГ') {
+          const region = this.commissions.find(
+            (commission) => commission.id == this.data.admission_commission,
+          ).region
+          this.examinationGroup.number = parseInt(region)
+        } else if (value == 'ВУЗ') {
+          const abb = this.militaryInstitute.find(
+            (inst) => inst.id == this.data.arrivedFrom,
+          ).abbreviation
+          this.examinationGroup.abbreviation = abb
+          if (test != null) {
+            await this.fetchCountGroup(test.id)
+            await this.findExaminationGroup(test.id)
+            if (this.countGroup < 30 && this.selectedGroup.close == false) {
+              this.examinationGroup.number = test.number
+            } else {
+              this.examinationGroup.number = test.number + 1
+              await this.updateExaminationGroup({ id: test.id, close: true })
+            }
           } else {
-            this.examinationGroup.number = test.number + 1
+            this.examinationGroup.number = 1
           }
         } else {
-          this.examinationGroup.number = 1
+          if (test != null) {
+            await this.fetchCountGroup(test.id)
+            await this.findExaminationGroup(test.id)
+            if (this.countGroup < 30 && this.selectedGroup.close == false) {
+              this.examinationGroup.number = test.number
+            } else {
+              this.examinationGroup.number = test.number + 1
+              await this.updateExaminationGroup({ id: test.id, close: true })
+            }
+          } else {
+            this.examinationGroup.number = 1
+          }
         }
         this.saveExaminationGroup()
       }
@@ -686,10 +747,12 @@ export default {
         })
         if (test != null) {
           await this.fetchCountGroup(test.id)
-          if (this.countGroup < 30) {
+          await this.findExaminationGroup(test.id)
+          if (this.countGroup < 30 && this.selectedGroup.close == false) {
             this.examinationGroup.number = test.number
           } else {
             this.examinationGroup.number = test.number + 1
+            await this.updateExaminationGroup({ id: test.id, close: true })
           }
         } else {
           this.examinationGroup.number = 1

@@ -14,6 +14,7 @@
               item-key="id"
               :search="search"
               fixed-header
+              height="600px"
               disable-pagination
               show-select
               v-model="selected"
@@ -21,8 +22,63 @@
               dense
               sort-by="admission_examination_group"
               sort-desc
+              group-by="admission_examination_group"
               multi-sort
             >
+              <template v-slot:item.ege_math="{ item }">
+                <span>{{
+                  Math.max(item.ege_math ?? 0, item.entrance_math ?? 0) != 0
+                    ? Math.max(item.ege_math ?? 0, item.entrance_math ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.ege_rus="{ item }">
+                <span>{{
+                  Math.max(item.ege_rus ?? 0, item.entrance_rus ?? 0) != 0
+                    ? Math.max(item.ege_rus ?? 0, item.entrance_rus ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.ege_hist="{ item }">
+                <span>{{
+                  Math.max(item.ege_hist ?? 0, item.entrance_hist ?? 0) != 0
+                    ? Math.max(item.ege_hist ?? 0, item.entrance_hist ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.ege_geo="{ item }">
+                <span>{{
+                  Math.max(item.ege_geo ?? 0, item.entrance_geo ?? 0) != 0
+                    ? Math.max(item.ege_geo ?? 0, item.entrance_geo ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.ege_phiz="{ item }">
+                <span>{{
+                  Math.max(item.ege_phiz ?? 0, item.entrance_phiz ?? 0) != 0
+                    ? Math.max(item.ege_phiz ?? 0, item.entrance_phiz ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.ege_obsh="{ item }">
+                <span>{{
+                  Math.max(item.ege_obsh ?? 0, item.entrance_obsh ?? 0) != 0
+                    ? Math.max(item.ege_obsh ?? 0, item.entrance_obsh ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.ege_inf="{ item }">
+                <span>{{
+                  Math.max(item.ege_inf ?? 0, item.entrance_inf ?? 0) != 0
+                    ? Math.max(item.ege_inf ?? 0, item.entrance_inf ?? 0)
+                    : ''
+                }}</span>
+              </template>
+              <template v-slot:item.lastName="{ item }">
+                <span>{{
+                  `${item.lastName} ${item.firstName} ${item.surName ?? ''}`
+                }}</span>
+              </template>
               <template v-slot:item.actions="{ item }">
                 <v-btn
                   color="primary"
@@ -40,8 +96,20 @@
       </v-col>
       <v-col>
         <v-card>
-          <v-card-title> Настройки </v-card-title>
+          <v-card-title>
+            Настройки
+            <v-spacer />
+            <v-switch
+              v-model="grouped"
+              label="По группам"
+            />
+          </v-card-title>
           <v-card-text>
+            <v-switch
+              label="Без отчисленных"
+              v-model="notExpulion"
+              @change="changeExpulsion"
+            />
             <v-radio-group
               v-model="exam"
               row
@@ -113,6 +181,8 @@ export default {
   name: 'Holes',
   data() {
     return {
+      grouped: false,
+      notExpulion: true,
       holes: false,
       twos: false,
       exam: null,
@@ -126,6 +196,7 @@ export default {
         { text: 'О', value: 'ege_obsh' },
         { text: 'Ист', value: 'ege_hist' },
       ],
+      ALLwithExpulsion: [],
       ALL: [],
       selected: [],
       headers: [
@@ -138,21 +209,20 @@ export default {
         {
           text: 'Фамилия',
           value: 'lastName',
-          align: 'center',
-          width: '1%',
+          align: 'start',
         },
-        {
-          text: 'Имя',
-          value: 'firstName',
-          align: 'center',
-          width: '1%',
-        },
-        {
-          text: 'Отчество',
-          value: 'surName',
-          align: 'center',
-          width: '1%',
-        },
+        // {
+        //   text: 'Имя',
+        //   value: 'firstName',
+        //   align: 'center',
+        //   width: '1%',
+        // },
+        // {
+        //   text: 'Отчество',
+        //   value: 'surName',
+        //   align: 'center',
+        //   width: '1%',
+        // },
         {
           text: 'Группа',
           value: 'admission_examination_group',
@@ -228,6 +298,34 @@ export default {
       search: null,
     }
   },
+  watch: {
+    selected: {
+      handler(newVal, oldVal) {
+        // Находим последний добавленный элемент
+        if (newVal.length > oldVal.length) {
+          // Если длина увеличилась, значит, был добавлен элемент
+          const addedItem = newVal.find((item) => !oldVal.includes(item))
+          this.lastAddedItem = addedItem || null
+          if (this.grouped) {
+            this.selected = this.ALL.filter(
+              (abit) =>
+                abit.admission_examination_group ==
+                addedItem.admission_examination_group,
+            ).reduce((acc, item) => {
+              if (!acc.includes(item)) {
+                acc.push(item)
+              }
+              return acc
+            }, this.selected)
+          }
+        } else if (newVal.length < oldVal.length) {
+          // Если длина уменьшилась, значит, элемент был снят
+          // Можно реализовать логику для обработки этого случая, если нужно
+        }
+      },
+      deep: true, // Это позволяет отслеживать изменения в массиве объектов
+    },
+  },
   computed: {
     ...mapGetters(['allAbits', 'allEgeMarks', 'subjects', 'fullAbits']),
   },
@@ -235,17 +333,31 @@ export default {
     await this.fetchFullAbits()
     await this.fetchSubjects()
     await this.fetchAllEgeMarks()
-    this.ALL = this.fullAbits
+    this.ALLwithExpulsion = this.fullAbits.filter(
+      (abit) => abit.expulsion_reason == null,
+    )
+    this.ALL = this.ALLwithExpulsion
   },
   methods: {
     ...mapActions([
+      'exportToTemplateExcel',
       'holesToStatements',
       'fetchAllEgeMarks',
       'fetchSubjects',
       'fetchFullAbits',
     ]),
+    changeExpulsion() {
+      if (this.notExpulion == true) {
+        this.ALLwithExpulsion = this.fullAbits.filter(
+          (abit) => abit.expulsion_reason == null,
+        )
+        this.selectHoles()
+      } else {
+        this.ALLwithExpulsion = this.fullAbits
+        this.selectHoles()
+      }
+    },
     selectHoles() {
-      console.log(this.egeRadio)
       this.selected = []
       var key =
         this.exam == 'PPO'
@@ -256,18 +368,18 @@ export default {
       var two = this.exam == 'PPO' ? 2 : this.exam == 'sport' ? 24 : 'minEGE'
       if (key != 'ege') {
         if (this.holes == false && this.twos == false) {
-          this.ALL = this.fullAbits.filter(
-            (abit) => abit[key] != null && abit[key] > two
+          this.ALL = this.ALLwithExpulsion.filter(
+            (abit) => abit[key] != null && abit[key] > two,
           )
         } else if (this.holes == true && this.twos == false) {
-          this.ALL = this.fullAbits.filter((abit) => abit[key] == null)
+          this.ALL = this.ALLwithExpulsion.filter((abit) => abit[key] == null)
         } else if (this.holes == true && this.twos == true) {
-          this.ALL = this.fullAbits.filter(
-            (abit) => abit[key] == null || abit[key] <= two
+          this.ALL = this.ALLwithExpulsion.filter(
+            (abit) => abit[key] == null || abit[key] <= two,
           )
         } else if (this.holes == false && this.twos == true) {
-          this.ALL = this.fullAbits.filter(
-            (abit) => abit[key] != null && abit[key] <= two
+          this.ALL = this.ALLwithExpulsion.filter(
+            (abit) => abit[key] != null && abit[key] <= two,
           )
         }
       } else {
@@ -281,7 +393,7 @@ export default {
           ege_inf: this.subjects.filter((sub) => sub.name == 'Информатика')[0]
             .minEGE,
           ege_obsh: this.subjects.filter(
-            (sub) => sub.name == 'Обществознание'
+            (sub) => sub.name == 'Обществознание',
           )[0].minEGE,
           ege_geo: this.subjects.filter((sub) => sub.name == 'География')[0]
             .minEGE,
@@ -294,8 +406,16 @@ export default {
             this.ALL = [
               ...new Set([
                 ...(this.ALL || []),
-                ...this.fullAbits.filter(
-                  (abit) => abit[`${i}`] != null && abit[`${i}`] > two[`${i}`]
+                ...this.ALLwithExpulsion.filter(
+                  (abit) =>
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) != (null || 0) &&
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) > two[`${i}`],
                 ),
               ]),
             ]
@@ -305,7 +425,13 @@ export default {
           for (let i of this.egeRadio) {
             this.ALL = [
               ...new Set([
-                ...this.fullAbits.filter((abit) => abit[`${i}`] == null),
+                ...this.ALLwithExpulsion.filter(
+                  (abit) =>
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) == (null || 0),
+                ),
                 ...(this.ALL || []),
               ]),
             ]
@@ -316,8 +442,16 @@ export default {
             this.ALL = [
               ...new Set([
                 ...(this.ALL || []),
-                ...this.fullAbits.filter(
-                  (abit) => abit[`${i}`] == null || abit[`${i}`] <= two[`${i}`]
+                ...this.ALLwithExpulsion.filter(
+                  (abit) =>
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) == (null || 0) ||
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) <= two[`${i}`],
                 ),
               ]),
             ]
@@ -328,8 +462,16 @@ export default {
             this.ALL = [
               ...new Set([
                 ...(this.ALL || []),
-                ...this.fullAbits.filter(
-                  (abit) => abit[`${i}`] != null && abit[`${i}`] <= two[`${i}`]
+                ...this.ALLwithExpulsion.filter(
+                  (abit) =>
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) != (null || 0) &&
+                    Math.max(
+                      abit[`${i}`] ?? 0,
+                      abit[`entrance_${i.slice(3)}`] ?? 0,
+                    ) <= two[`${i}`],
                 ),
               ]),
             ]
@@ -345,7 +487,7 @@ export default {
             abitId: abit.id,
             space: '',
             group: abit.admission_examination_group,
-          })
+          }),
       )
       var groups = [
         ...new Set(
@@ -353,8 +495,8 @@ export default {
             (abit) =>
               (abit = abit.admission_examination_group
                 ? abit.admission_examination_group
-                : null)
-          )
+                : null),
+          ),
         ),
       ]
       for (let x in groups) {
@@ -364,7 +506,8 @@ export default {
           group: groups[x],
           items: itemsInGroup,
         }
-        await this.holesToStatements(data)
+        const fileName = 'Ведомость ППО.xlsx'
+        await this.exportToTemplateExcel({ data, fileName })
       }
     },
   },

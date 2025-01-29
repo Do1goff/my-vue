@@ -58,9 +58,7 @@ export default {
       snackbar: false,
     }
   },
-  created() {
-    console.log(JSON.parse(sessionStorage.getItem('user'))?.username)
-  },
+  created() {},
 
   computed: {
     ...mapGetters(['isAuthenticated']),
@@ -68,7 +66,10 @@ export default {
   methods: {
     ...mapActions(['login']),
     async auth() {
-      const credentials = { login: this.userLogin, password: this.userPassword }
+      const credentials = {
+        username: this.userLogin,
+        password: this.userPassword,
+      }
       await this.login(credentials)
       if (this.isAuthenticated) {
         this.$router.push('/abit')

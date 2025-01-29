@@ -156,7 +156,6 @@ export default {
     },
 
     handleChild(data) {
-      console.log(data[1])
       this.handleChildEvent(data[0], data[1])
     },
     handleChildEvent(tab, data) {

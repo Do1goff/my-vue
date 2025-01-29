@@ -173,8 +173,8 @@ export default {
     },
     sendDate(key, value) {
       if (value != '') {
-        this.data[key] = value
-        this.differences[key] = value
+        this.data[key] = new Date(value)
+        this.differences[key] = new Date(value)
       } else {
         this.data[key] = null
         this.differences[key] = null

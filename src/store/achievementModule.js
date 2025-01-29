@@ -11,7 +11,7 @@ export default {
       const index = state.personalAchievements.findIndex(
         (personalAchievements) =>
           personalAchievements.abitAchievementId ===
-          newAchievement.abitAchievementId
+          newAchievement.abitAchievementId,
       )
       if (index !== -1) {
         state.personalAchievements.splice(index, 1, newAchievement)
@@ -22,21 +22,21 @@ export default {
   actions: {
     async fetchPersonalAchievements({ commit }, achievementId) {
       const response = await axios.get(
-        `/personal_achievements/${achievementId}`
+        `/personal_achievements/${achievementId}`,
       )
       commit('SET_PERSONAL_ACHIEVEMENTS', response.data)
     },
     async addPersonalAchievements({ commit }, newAchievement) {
       const response = await axios.post(
         '/personal_achievements',
-        newAchievement
+        newAchievement,
       )
       commit('ADD_PERSONAL_ACHIEVEMENTS', response.data)
     },
     async putPersonalAchievements({ commit }, newAchievement) {
       const response = await axios.put(
         `/personal_achievements/${newAchievement.abitAchievementId}`,
-        newAchievement
+        newAchievement,
       )
       commit('PUT_PERSONAL_ACHIEVEMENTS', response.data)
     },

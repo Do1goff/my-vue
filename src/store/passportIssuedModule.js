@@ -16,7 +16,7 @@ export default {
     async addPassportIssued({ commit }, newPassportIssued) {
       const response = await axios.post(
         '/passport_issued_by',
-        newPassportIssued
+        newPassportIssued,
       )
       commit('ADD_PASSPORT_ISSUED', response.data)
     },

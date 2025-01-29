@@ -8,7 +8,7 @@ export default {
     ADD_EGE_MARK: (state, newMark) => state.egeMarks.push(newMark),
     PUT_EGE_MARK(state, newMark) {
       const index = state.egeMarks.findIndex(
-        (egeMarks) => egeMarks.id === newMark.abitSubjectId
+        (egeMarks) => egeMarks.id === newMark.abitSubjectId,
       )
       if (index !== -1) {
         state.egeMarks.splice(index, 1, newMark)
@@ -35,7 +35,7 @@ export default {
     async putEgeMark({ commit }, newMark) {
       const response = await axios.put(
         `/ege_marks/${newMark.abitSubjectId}`,
-        newMark
+        newMark,
       )
       commit('PUT_EGE_MARK', response.data)
     },

@@ -1,10 +1,21 @@
+const { parserOptions } = require('../../nest/my-nest/.eslintrc')
+
 module.exports = {
+  root: true,
   env: {
     node: true,
   },
-  extends: ['prettier', 'eslint:recommended', 'plugin:vue/vue3-recommended'],
+  extends: [
+    'prettier',
+    'plugin:prettier/recommended',
+    'eslint:recommended',
+    'plugin:vue/vue3-recommended',
+  ],
+  parserOptions: {
+    parser: 'babel-eslint',
+  },
   rules: {
-    // override/add rules settings here, such as:
-    // 'vue/no-unused-vars': 'error'
+    'prettier/prettier': 'error',
+    'vue/no-unused-vars': 'error',
   },
 }

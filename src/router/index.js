@@ -1,9 +1,12 @@
+import AdminPanel from '@/views/AdminPanel.vue'
 import AuthView from '@/views/AuthView.vue'
 import ComponentView from '@/views/ComponentView.vue'
 import ExportDocuments from '@/views/ExportDocuments.vue'
+import GenerateCalls from '@/views/GenerateCalls.vue'
 import Holes from '@/views/Holes.vue'
 import HomeView from '@/views/HomeView.vue'
 import MultiQuery from '@/views/MultiQuery.vue'
+import Statistics from '@/views/Statistics.vue'
 import Upload from '@/views/Upload.vue'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -59,10 +62,28 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/generateCalls',
+    name: 'GenerateCalls',
+    component: GenerateCalls,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/statistics',
+    name: 'Statistics',
+    component: Statistics,
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/exportDocuments',
     name: 'ExportDocuments',
     component: ExportDocuments,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/adminPanel',
+    name: 'AdminPanel',
+    component: AdminPanel,
+    meta: { requiresAdmin: true },
   },
   {
     path: '/auth',
@@ -78,9 +99,20 @@ const router = new VueRouter({
 })
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const userToken = JSON.parse(sessionStorage.getItem('user'))?.username
+  const userAccess = JSON.parse(sessionStorage.getItem('user'))?.access
   if (requiresAuth) {
     if (userToken != undefined) {
+      next()
+    } else {
+      next('/auth')
+    }
+  } else {
+    next()
+  }
+  if (requiresAdmin) {
+    if (userAccess == 'Админ') {
       next()
     } else {
       next('/auth')

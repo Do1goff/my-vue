@@ -4,6 +4,7 @@ export default {
   state: {
     abits: [],
     fullAbits: [],
+    fullAbit: null,
     selectedAbit: null,
     history: [],
   },
@@ -11,6 +12,7 @@ export default {
     SET_ABITS: (state, payload) => (state.abits = payload),
     SET_FULL_ABITS: (state, payload) => (state.fullAbits = payload),
     SET_SELECTED_ABIT: (state, abit) => (state.selectedAbit = abit),
+    SET_FULL_ABIT: (state, abit) => (state.fullAbit = abit),
     ADD_ABIT: (state, newAbit) => state.abits.push(newAbit),
     DELETE_HISTORY: (state, id) =>
       (state.history = state.history.filter((history) => history.id !== id)),
@@ -26,7 +28,7 @@ export default {
     SET_HISTORY: (state, payload) => (state.history = payload),
     UPDATE_HISTORY(state, updatedHistory) {
       const index = state.history.findIndex(
-        (history) => history.id === updatedHistory.id
+        (history) => history.id === updatedHistory.id,
       )
       if (index !== -1) {
         state.history.splice(index, 1, updatedHistory)
@@ -37,6 +39,7 @@ export default {
   getters: {
     allAbits: (state) => state.abits,
     fullAbits: (state) => state.fullAbits,
+    fullAbit: (state) => state.fullAbit,
     selectedAbit: (state) => state.selectedAbit,
     allHistory: (state) => state.history,
   },
@@ -52,6 +55,10 @@ export default {
     async selectAbit({ commit }, abitID) {
       const response = await axios.get(`/abits/${abitID}`)
       commit('SET_SELECTED_ABIT', response.data)
+    },
+    async selectFullAbit({ commit }, abitID) {
+      const response = await axios.get(`/abits/full/${abitID}`)
+      commit('SET_FULL_ABIT', response.data)
     },
     async addAbit({ commit }, newAbit) {
       const response = await axios.post('/abits', newAbit)
@@ -77,7 +84,7 @@ export default {
     async updateHistory({ commit }, updatedHistory) {
       const response = await axios.put(
         `/history/${updatedHistory.id}`,
-        updatedHistory
+        updatedHistory,
       )
       commit('UPDATE_HISTORY', response.data)
     },

@@ -9,7 +9,7 @@ export default {
       state.entranceTestMarks.push(newMark),
     PUT_ENTRANCE_TEST_MARK(state, newMark) {
       const index = state.entranceTestMarks.findIndex(
-        (entranceTestMarks) => entranceTestMarks.id === newMark.abitSubjectId
+        (entranceTestMarks) => entranceTestMarks.id === newMark.abitSubjectId,
       )
       if (index !== -1) {
         state.entranceTestMarks.splice(index, 1, newMark)
@@ -29,7 +29,7 @@ export default {
     async putEntranceTestMark({ commit }, newMark) {
       const response = await axios.put(
         `/entrance_test/${newMark.abitSubjectId}`,
-        newMark
+        newMark,
       )
       commit('PUT_ENTRANCE_TEST_MARK', response.data)
     },

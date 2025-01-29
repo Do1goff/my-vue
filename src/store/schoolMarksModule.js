@@ -7,7 +7,7 @@ export default {
     ADD_SCHOOL_MARK: (state, newMark) => state.schoolMarks.push(newMark),
     PUT_SCHOOL_MARK(state, newMark) {
       const index = state.schoolMarks.findIndex(
-        (schoolMarks) => schoolMarks.id === newMark.abitSubjectId
+        (schoolMarks) => schoolMarks.id === newMark.abitSubjectId,
       )
       if (index !== -1) {
         state.schoolMarks.splice(index, 1, newMark)
@@ -27,7 +27,7 @@ export default {
     async putSchoolMark({ commit }, newMark) {
       const response = await axios.put(
         `/school_marks/${newMark.abitSubjectId}`,
-        newMark
+        newMark,
       )
       commit('PUT_SCHOOL_MARK', response.data)
     },

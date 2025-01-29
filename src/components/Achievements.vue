@@ -345,10 +345,10 @@ export default {
     updatePersonalAchievements(event) {
       this.editAchievement.achievementId = event
     },
-    savePersonalAchievements() {
+    async savePersonalAchievements() {
       this.editAchievement.abitId = this.abit.id
-      this.addPersonalAchievements(this.editAchievement)
-      this.editAchievement = {}
+      await this.addPersonalAchievements(this.editAchievement)
+      this.editAchievement = { name: '' }
     },
   },
 }

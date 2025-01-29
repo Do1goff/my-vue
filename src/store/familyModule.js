@@ -7,7 +7,7 @@ export default {
     ADD_FAMILY: (state, newMember) => state.family.push(newMember),
     PUT_FAMILY(state, newMember) {
       const index = state.family.findIndex(
-        (family) => family.id === newMember.id
+        (family) => family.id === newMember.id,
       )
       if (index !== -1) {
         state.family.splice(index, 1, newMember)

@@ -249,16 +249,182 @@
               <v-col cols="9">
                 <v-badge
                   color="success"
-                  :value="this.editResidence.residence ? true : false"
+                  :value="this.data.residence?.id != this.abit.residence?.id"
                   dot
                 >
-                  <v-textarea
-                    class="small-text"
-                    rows="2"
-                    label="Место жительства"
-                    :value="residenceLocation"
-                    readonly
-                  />
+                  <v-autocomplete
+                    :items="cities"
+                    label="Населенный пункт"
+                    item-value="id"
+                    :item-text="nameResidence"
+                    dense
+                    clearable
+                    v-model="data.residence"
+                    :hint="hintResidence"
+                    persistent-hint
+                    return-object
+                    @input="sendResidence"
+                  >
+                    <template v-slot:item="data">
+                      <v-list-item-content>
+                        <v-list-item-title
+                          v-html="`${data.item.status} ${data.item.name}`"
+                        ></v-list-item-title>
+                        <v-list-item-subtitle
+                          v-html="
+                            `${data.item.district_statusInEnd ? (data.item.district_name ?? '') : (data.item.district_status ?? '')} ${data.item.district_statusInEnd ? (data.item.district_status ?? '') : (data.item.district_name ?? '')} ${data.item.region_statusInEnd ? (data.item.region_name ?? '') : (data.item.region_status ?? '')} ${data.item.region_statusInEnd ? (data.item.region_status ?? '') : (data.item.region_name ?? '')}`
+                          "
+                        ></v-list-item-subtitle>
+                      </v-list-item-content>
+                    </template>
+
+                    <template #no-data>
+                      <v-dialog
+                        v-model="residenceDialog"
+                        max-width="2500px"
+                      >
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            color="primary"
+                            dark
+                            class="mb-2"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            Добавить
+                          </v-btn>
+                        </template>
+                        <v-card>
+                          <v-card-title> Добавить </v-card-title>
+                          <v-card-text>
+                            <v-container>
+                              <v-row>
+                                <v-col>
+                                  <v-autocomplete
+                                    label="Регион"
+                                    v-model="editCity.region"
+                                    :items="regions"
+                                    item-text="name"
+                                    item-value="id"
+                                    @input="selectRegion"
+                                  />
+                                </v-col>
+                                <v-col>
+                                  <v-autocomplete
+                                    label="Район"
+                                    v-model="editCity.district"
+                                    :items="districtsByRegion"
+                                    item-text="name"
+                                    item-value="id"
+                                  >
+                                    <template #no-data>
+                                      <v-dialog
+                                        v-model="districtDialog"
+                                        max-width="2500px"
+                                      >
+                                        <template #activator="{ on, attrs }">
+                                          <v-btn
+                                            color="primary"
+                                            dark
+                                            class="mb-2"
+                                            v-bind="attrs"
+                                            v-on="on"
+                                          >
+                                            Добавить
+                                          </v-btn>
+                                        </template>
+                                        <v-card>
+                                          <v-card-title>
+                                            Добавить
+                                          </v-card-title>
+                                          <v-card-text>
+                                            <v-container>
+                                              <v-row>
+                                                <v-col>
+                                                  <v-autocomplete
+                                                    label="Регион"
+                                                    v-model="
+                                                      editDistrict.region
+                                                    "
+                                                    :items="regions"
+                                                    item-text="name"
+                                                    item-value="id"
+                                                    @input="selectRegionD"
+                                                  />
+                                                </v-col>
+                                                <v-col>
+                                                  <v-text-field
+                                                    v-model="editDistrict.name"
+                                                    label="Район"
+                                                  />
+                                                </v-col>
+                                                <v-col cols="4">
+                                                  <v-select
+                                                    v-model="
+                                                      editDistrict.status
+                                                    "
+                                                    :items="statusesLocations"
+                                                    item-text="name"
+                                                    item-value="id"
+                                                    label="Статус"
+                                                  />
+                                                </v-col>
+                                                <v-col cols="4">
+                                                  <v-checkbox
+                                                    v-model="
+                                                      editDistrict.statusInEnd
+                                                    "
+                                                    label="Статус в конце?"
+                                                  />
+                                                </v-col>
+                                              </v-row>
+                                            </v-container>
+                                          </v-card-text>
+                                          <v-card-actions>
+                                            <v-spacer />
+                                            <v-btn
+                                              text
+                                              @click="addNewDistrict"
+                                            >
+                                              Сохранить
+                                            </v-btn>
+                                          </v-card-actions>
+                                        </v-card>
+                                      </v-dialog>
+                                    </template>
+                                  </v-autocomplete>
+                                </v-col>
+                                <v-col>
+                                  <v-text-field
+                                    v-model="editCity.name"
+                                    label="Город"
+                                  />
+                                </v-col>
+                                <v-col cols="4">
+                                  <v-select
+                                    v-model="editCity.status"
+                                    :items="statusesLocations"
+                                    item-text="name"
+                                    item-value="id"
+                                    label="Статус"
+                                  />
+                                </v-col>
+                              </v-row>
+                            </v-container>
+                          </v-card-text>
+                          <v-card-actions>
+                            <v-spacer />
+                            <v-btn
+                              text
+                              @click="addNewResidence"
+                            >
+                              Сохранить
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                    </template>
+                  </v-autocomplete>
                 </v-badge>
               </v-col>
               <v-col cols="3">
@@ -278,11 +444,11 @@
                     @input="send('secondCitizenship', $event)"
                   />
                 </v-badge>
-                <Location
+                <!-- <Location
                   :abit="this.abit || {}"
                   @send-locationObject="getLocationResidence($event)"
                   @send-locationText="getLocationTextResidence($event)"
-                />
+                /> -->
               </v-col>
             </v-row>
           </v-card-text>
@@ -1033,13 +1199,13 @@
 </template>
 
 <script>
-import Location from '@/components/Location.vue'
+// import Location from '@/components/Location.vue'
 import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'FirstInfoComponent',
   components: {
-    Location,
+    // Location,
   },
   props: {
     abit: {
@@ -1083,9 +1249,10 @@ export default {
       family_status: ['Холост', 'Женат', 'Разведён', 'Вдовец'],
       secondCitizenship: ['Проверить', 'Имеет', 'Отсутствует'],
       kinships: ['Мать', 'Отец', 'Сестра', 'Брат', 'Отчим', 'Мачеха'],
-      residenceLocation: '',
-      locationObjectResidence: {},
-      editResidence: {},
+      residenceDialog: false,
+      editCity: {},
+      districtDialog: false,
+      editDistrict: { statusInEnd: false },
     }
   },
   computed: {
@@ -1099,13 +1266,35 @@ export default {
       'addresses',
       'statuses',
       'familySocialStatus',
-      'locations',
-      'location',
       'regions',
       'districts',
       'cities',
       'cossack_society',
+      'districtsByRegion',
+      'statusesLocations',
     ]),
+    hintResidence() {
+      return `${
+        this.data.residence?.district_statusInEnd
+          ? (this.data.residence?.district_name ?? '')
+          : (this.data.residence?.district_status ?? '')
+      } 
+        ${
+          this.data.residence?.district_statusInEnd
+            ? (this.data.residence?.district_status ?? '')
+            : (this.data.residence?.district_name ?? '')
+        }
+            ${
+              this.data.residence?.region_statusInEnd
+                ? (this.data.residence?.region_name ?? '')
+                : (this.data.residence?.region_status ?? '')
+            } 
+               ${
+                 this.data.residence?.region_statusInEnd
+                   ? (this.data.residence?.region_status ?? '')
+                   : (this.data.residence?.region_name ?? '')
+               }`
+    },
   },
   watch: {
     abit() {
@@ -1115,52 +1304,16 @@ export default {
       if (this.data.id) {
         this.fetchTelephones(this.data.id)
         this.fetchFamily(this.data.id)
-
-        if (this.data.residence) {
-          await this.selectLocation(this.data.residence.id)
-          const foundRegion = this.regions.find(
-            (obj) => obj.id === this.location.region.id
+        if (this.data.residence != null) {
+          await this.fetchCities()
+          this.data.residence = this.cities.find(
+            (city) => city.id == this.data.residence?.id,
           )
-          const foundDistrict = this.districts.find(
-            (obj) => obj.id === this.location.district.id
-          )
-          if (this.location.city !== null) {
-            const foundCity = this.cities.find(
-              (obj) => obj.id === this.location.city.id
-            )
-            const locationCity =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}` +
-              ', ' +
-              `${foundCity.status.name}` +
-              ' ' +
-              `${foundCity.name}`
-            this.residenceLocation = locationCity
-          } else {
-            const locationDistrict =
-              `${foundRegion.name}` +
-              ' ' +
-              `${foundRegion.status.name}` +
-              ', ' +
-              `${foundDistrict.status.name}` +
-              ' ' +
-              `${foundDistrict.name}`
-            this.residenceLocation = locationDistrict
-          }
-          this.editResidence = {}
-        } else {
-          this.residenceLocation = null
-          this.editResidence = {}
         }
 
         if (this.data.militaryCommissariat) {
           await this.selectMilitaryCommissariat(
-            this.data.militaryCommissariat.id
+            this.data.militaryCommissariat.id,
           )
           this.militaryCommissariat = this.selectedMilitaryCommissariat
         } else {
@@ -1178,11 +1331,11 @@ export default {
     this.fetchMilitaryCommissariats()
     this.fetchStatuses()
     this.fetchFamilySocialStatus()
-    this.fetchLocations()
     this.fetchRegions()
     this.fetchDistricts()
     this.fetchCities()
     this.fetchCossackSociety()
+    this.fetchStatusesLocations()
   },
   methods: {
     ...mapActions([
@@ -1200,16 +1353,42 @@ export default {
       'fetchStatuses',
       'addStatuses',
       'fetchFamilySocialStatus',
-      'fetchLocations',
-      'selectLocation',
-      'addLocation',
-      'updateLocation',
+      'fetchDistrictsByRegion',
+      'fetchStatusesLocations',
+      'addCity',
+      'addDistrict',
       'fetchRegions',
       'fetchDistricts',
       'fetchCities',
       'fetchCossackSociety',
     ]),
 
+    addNewResidence() {
+      this.addCity(this.editCity)
+    },
+    async addNewDistrict() {
+      await this.addDistrict(this.editDistrict)
+      if (this.editDistrict.region != null) {
+        this.fetchDistrictsByRegion(this.editDistrict.region)
+      }
+    },
+    selectRegion() {
+      if (this.editCity.region != null) {
+        this.fetchDistrictsByRegion(this.editCity.region)
+      }
+    },
+    selectRegionD() {
+      if (this.editDistrict.region != null) {
+        this.fetchDistrictsByRegion(this.editDistrict.region)
+      }
+    },
+    sendResidence(item) {
+      this.data.residence = item
+      this.send('residence', item?.id ? item.id : null)
+    },
+    nameResidence(item) {
+      return `${item.status} ${item.name}`
+    },
     nameSpecialty(item) {
       return `(${item.abbreviation}) ${item.name}`
     },
@@ -1230,8 +1409,8 @@ export default {
     },
     sendDate(key, value) {
       if (value != '') {
-        this.data[key] = value
-        this.differences[key] = value
+        this.data[key] = new Date(value)
+        this.differences[key] = new Date(value)
       } else {
         this.data[key] = null
         this.differences[key] = null
@@ -1301,19 +1480,19 @@ export default {
       this.fetchStatuses()
       this.status = {}
     },
-    getLocationResidence(event) {
-      this.locationObjectResidence = event
-      this.sendResidence('residence', event)
-    },
-    getLocationTextResidence(event) {
-      this.residenceLocation = `${event}`
-    },
-    sendResidence(key, event) {
-      this.editResidence[key] = event
-      const data = {}
-      data[key] = event
-      this.$emit('child-residence', event)
-    },
+    // getLocationResidence(event) {
+    //   this.locationObjectResidence = event
+    //   this.sendResidence('residence', event)
+    // },
+    // getLocationTextResidence(event) {
+    //   this.residenceLocation = `${event}`
+    // },
+    // sendResidence(key, event) {
+    //   this.editResidence[key] = event
+    //   const data = {}
+    //   data[key] = event
+    //   this.$emit('child-residence', event)
+    // },
   },
 }
 </script>

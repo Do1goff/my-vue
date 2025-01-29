@@ -17,13 +17,22 @@
         <MultiQuery />
       </v-btn>
 
-      <v-btn icon>
+      <v-btn
+        icon
+        v-if="fox"
+      >
         <HistoryComponent />
       </v-btn>
 
-      <v-btn icon>
-        <v-icon>mdi-filter</v-icon>
-      </v-btn>
+      <router-link
+        to="/adminPanel"
+        style="text-decoration: none"
+        v-if="fox"
+      >
+        <v-btn icon>
+          <v-icon>mdi-account-cowboy-hat-outline</v-icon>
+        </v-btn>
+      </router-link>
 
       <v-btn icon>
         <v-icon>mdi-dots-vertical</v-icon>
@@ -36,6 +45,26 @@
       temporary
       app
     >
+      <router-link
+        to="/abit"
+        style="text-decoration: none"
+      >
+        <v-list-item height="100px">
+          <v-list-item-avatar
+            tile
+            height="70px"
+            width="70px"
+          >
+            <v-img src="http://localhost:8080/favicon.ico"></v-img>
+          </v-list-item-avatar>
+
+          <v-list-item-content>
+            <v-list-item-title><h3>Абитуриент</h3></v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </router-link>
+
+      <v-divider></v-divider>
       <v-list
         nav
         dense
@@ -86,6 +115,28 @@
               >
             </v-list-item>
           </router-link>
+
+          <router-link
+            to="/generateCalls"
+            style="text-decoration: none"
+          >
+            <v-list-item>
+              <v-list-item-title
+                ><v-icon>mdi-phone</v-icon> Вызовы</v-list-item-title
+              >
+            </v-list-item>
+          </router-link>
+
+          <router-link
+            to="/statistics"
+            style="text-decoration: none"
+          >
+            <v-list-item>
+              <v-list-item-title
+                ><v-icon>mdi-chart-bar</v-icon> Статистика</v-list-item-title
+              >
+            </v-list-item>
+          </router-link>
         </v-list-item-group>
       </v-list>
     </v-navigation-drawer>
@@ -109,12 +160,14 @@ export default {
     return {
       drawer: false,
       group: null,
+      fox: null,
     }
   },
 
   computed: {},
   mounted() {
     window.addEventListener('beforeunload', this.handleBeforeUpload)
+    this.fox = JSON.parse(sessionStorage.getItem('user'))?.access == 'Админ'
   },
   beforeDestroy() {
     window.removeEventListener('beforeunload', this.handleBeforeUpload)

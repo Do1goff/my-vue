@@ -7,7 +7,7 @@ export default {
     ADD_TELEPHONES: (state, newNumber) => state.telephones.push(newNumber),
     PUT_TELEPHONES(state, newNumber) {
       const index = state.telephones.findIndex(
-        (telephones) => telephones.id === newNumber.id
+        (telephones) => telephones.id === newNumber.id,
       )
       if (index !== -1) {
         state.telephones.splice(index, 1, newNumber)

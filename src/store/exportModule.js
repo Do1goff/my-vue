@@ -38,7 +38,6 @@ export default {
     },
     async exportToExcel({ commit }) {
       const response = await axios.get('/export', { responseType: 'blob' })
-      console.log(response)
       const blob = new Blob([response.data], {
         type: 'application/vnd.ms-excel',
       })
@@ -92,9 +91,29 @@ export default {
         { data, fileName },
         {
           responseType: 'blob',
-        }
+        },
       )
-      console.log(response)
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.ms-excel',
+      })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      commit('EXPORT', response.data)
+    },
+    async exportToTemplateExcelLists({ commit }, { data, fileName, lists }) {
+      const response = await axios.post(
+        '/export/toTemplateExcelLists',
+        { data, fileName, lists },
+        {
+          responseType: 'blob',
+        },
+      )
       const blob = new Blob([response.data], {
         type: 'application/vnd.ms-excel',
       })
@@ -114,7 +133,7 @@ export default {
         { data, fileName },
         {
           responseType: 'blob',
-        }
+        },
       )
 
       const blob = new Blob([response.data])
@@ -132,7 +151,6 @@ export default {
       const response = await axios.post('/export/holesStatements', data, {
         responseType: 'blob',
       })
-      console.log(response)
       const blob = new Blob([response.data], {
         type: 'application/vnd.ms-excel',
       })
